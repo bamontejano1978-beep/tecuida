@@ -229,15 +229,23 @@ export default function EditMunicipioForm({ municipio }: { municipio: MunicipioD
       </div>
 
       {/* Acciones */}
-      <div className="flex items-center justify-between pt-4 border-t border-gray-100">
-        <button
-          type="button"
-          onClick={handleDelete}
-          disabled={loading}
-          className="rounded-lg border border-red-200 px-4 py-2 text-sm font-medium text-red-600 hover:bg-red-50 disabled:opacity-50 transition-colors"
-        >
-          Eliminar municipio
-        </button>
+      <div className="flex items-center justify-between pt-4 border-t border-gray-100 flex-wrap gap-3">
+        <div className="flex items-center gap-2">
+          <button
+            type="button"
+            onClick={handleDelete}
+            disabled={loading}
+            className="rounded-lg border border-red-200 px-4 py-2 text-sm font-medium text-red-600 hover:bg-red-50 disabled:opacity-50 transition-colors"
+          >
+            Eliminar municipio
+          </button>
+          <Link
+            href={`/admin/municipios/${municipio.id}/aplicaciones`}
+            className="rounded-lg border border-indigo-200 px-4 py-2 text-sm font-medium text-indigo-600 hover:bg-indigo-50 transition-colors"
+          >
+            Gestionar aplicaciones
+          </Link>
+        </div>
         <div className="flex gap-3">
           <Link
             href="/admin/municipios"

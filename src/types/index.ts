@@ -57,6 +57,8 @@ export interface MunicipalityConfig {
   dominio: string
   escudo_url: string
   logo_url: string
+  /** Imagen de fondo para el hero de la landing page (1920×650+). Si es '', se usa color sólido. */
+  hero_image_url: string
   colores_corporativos: CorporateColors
   imagenes_municipio: string[]
   textos_institucionales: InstitutionalTexts

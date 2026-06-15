@@ -59,3 +59,15 @@ export const UpdateMunicipalityAppsSchema = z.object({
 })
 
 export type UpdateMunicipalityAppsDTO = z.infer<typeof UpdateMunicipalityAppsSchema>
+
+/**
+ * Esquema de validación para asignación masiva:
+ * asigna/desasigna una aplicación a múltiples municipios a la vez.
+ */
+export const BulkAssignAppSchema = z.object({
+  municipality_ids: z
+    .array(z.string().uuid('Cada municipality_id debe ser un UUID válido'))
+    .min(0),
+})
+
+export type BulkAssignAppDTO = z.infer<typeof BulkAssignAppSchema>

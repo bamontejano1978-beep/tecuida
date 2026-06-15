@@ -103,6 +103,7 @@ function mapRowToConfig(row: Record<string, unknown>): MunicipalityConfig {
     dominio: row.dominio as string,
     escudo_url: (row.escudo_url as string) || '',
     logo_url: (row.logo_url as string) || '',
+    hero_image_url: (row.hero_image_url as string) || '',
     colores_corporativos: (row.colores_corporativos as CorporateColors),
     imagenes_municipio: (row.imagenes_municipio as string[]) || [],
     textos_institucionales: (row.textos_institucionales as InstitutionalTexts),

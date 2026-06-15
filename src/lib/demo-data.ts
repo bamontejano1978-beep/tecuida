@@ -37,6 +37,7 @@ export function getDemoTenant(slug: string): MunicipalityConfig {
     dominio: `${slug}.tecuida.group`,
     escudo_url: '',
     logo_url: '',
+    hero_image_url: '',
     colores_corporativos: colors,
     imagenes_municipio: [],
     textos_institucionales: texts,
