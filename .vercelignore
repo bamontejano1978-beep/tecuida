@@ -1,0 +1,14 @@
+# ── Tests ──
+src/__tests__
+src/**/__tests__
+
+# ── Dev & Docs ──
+.env.local
+.env.local.example
+scripts/
+README.md
+.eslintrc.json
+
+# ── Config local ──
+jest.config.mjs
+jest.setup.ts

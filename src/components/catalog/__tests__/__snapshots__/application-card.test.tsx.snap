@@ -1,0 +1,56 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`ApplicationCard coincide con el snapshot (estructura estable) 1`] = `
+<a
+  class="group relative flex flex-col rounded-xl border border-gray-200 bg-white p-6 shadow-sm transition-all duration-200 hover:shadow-lg hover:border-indigo-200 hover:-translate-y-1 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
+  href="/app/aaaaaaaa-0000-0000-0000-000000000001"
+>
+  <div
+    class="absolute top-3 right-3"
+  >
+    <span
+      class="inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium bg-gray-100 text-gray-600"
+    >
+      Básico
+    </span>
+  </div>
+  <div
+    class="flex items-center gap-3 mb-3"
+  >
+    <div
+      class="flex h-10 w-10 items-center justify-center rounded-lg border bg-emerald-50 text-emerald-700 border-emerald-200"
+    />
+    <div>
+      <span
+        class="inline-flex items-center rounded-md border px-2 py-0.5 text-xs font-medium bg-emerald-50 text-emerald-700 border-emerald-200"
+      >
+        Programa
+      </span>
+    </div>
+  </div>
+  <h3
+    class="text-base font-semibold text-gray-900 group-hover:text-indigo-600 transition-colors"
+  >
+    Mindful30 Adultos
+  </h3>
+  <p
+    class="mt-2 flex-1 text-sm text-gray-500 line-clamp-3"
+  >
+    Programa de 30 días de mindfulness.
+  </p>
+  <div
+    class="mt-4 flex items-center justify-between pt-3 border-t border-gray-100"
+  >
+    <span
+      class="text-xs text-gray-400"
+    >
+      Bienestar emocional
+    </span>
+    <span
+      class="text-xs font-medium text-indigo-600 group-hover:translate-x-0.5 transition-transform"
+    >
+      Acceder →
+    </span>
+  </div>
+</a>
+`;

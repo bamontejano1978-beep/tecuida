@@ -5,13 +5,13 @@
 :root {
   --background: #ffffff;
   --foreground: #171717;
-}
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+  /* Variables de tenant — se sobrescriben dinámicamente desde el layout */
+  --tenant-primary: #1e40af;
+  --tenant-secondary: #3b82f6;
+  --tenant-accent: #f59e0b;
+  --tenant-text: #f8fafc;
+  --tenant-background: #ffffff;
 }
 
 body {
@@ -24,4 +24,23 @@ body {
   .text-balance {
     text-wrap: balance;
   }
+}
+
+/* Scrollbar con color de tenant */
+::-webkit-scrollbar {
+  width: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: #f1f5f9;
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--tenant-primary);
+  border-radius: 4px;
+  opacity: 0.6;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  opacity: 0.9;
 }
