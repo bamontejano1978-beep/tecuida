@@ -126,7 +126,7 @@ export async function PUT(
       updateData.nombre_ayuntamiento = updates.nombre_ayuntamiento
     if (updates.slug !== undefined) {
       updateData.slug = updates.slug
-      updateData.dominio = `${updates.slug}.${process.env.NEXT_PUBLIC_BASE_DOMAIN || 'tecuida.es'}`
+      updateData.dominio = `${updates.slug}.${process.env.NEXT_PUBLIC_BASE_DOMAIN || 'tecuida.group'}`
     }
     if (updates.colores_corporativos !== undefined)
       updateData.colores_corporativos = updates.colores_corporativos

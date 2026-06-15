@@ -179,7 +179,7 @@ export default function EditMunicipioForm({ municipio }: { municipio: MunicipioD
           className="mt-1 block w-full rounded-lg border border-gray-300 px-3 py-2 text-sm shadow-sm font-mono focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 outline-none"
         />
         <p className="mt-1 text-xs text-gray-400">
-          Dominio: {formData.slug}.tecuida.es
+          Dominio: {formData.slug}.tecuida.group
         </p>
       </div>
 

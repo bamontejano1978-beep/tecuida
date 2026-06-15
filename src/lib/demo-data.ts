@@ -34,7 +34,7 @@ export function getDemoTenant(slug: string): MunicipalityConfig {
     slug,
     nombre_municipio: slug.charAt(0).toUpperCase() + slug.slice(1),
     nombre_ayuntamiento: `Ayuntamiento de ${slug}`,
-    dominio: `${slug}.tecuida.es`,
+    dominio: `${slug}.tecuida.group`,
     escudo_url: '',
     logo_url: '',
     colores_corporativos: colors,

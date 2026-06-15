@@ -2,7 +2,7 @@
  * Sitemap dinámico — TE CUIDA
  *
  * Genera un sitemap.xml con todas las URLs indexables:
- *   - Landing page (tecuida.es)
+ *   - Landing page (tecuida.group)
  *   - Páginas estáticas (login, register)
  *   - Páginas de municipio (un subdominio por tenant)
  *
@@ -14,7 +14,7 @@ import { type MetadataRoute } from 'next'
 export default function sitemap(): MetadataRoute.Sitemap {
   const baseUrl = process.env.NEXT_PUBLIC_BASE_DOMAIN
     ? `https://${process.env.NEXT_PUBLIC_BASE_DOMAIN}`
-    : 'https://tecuida.es'
+    : 'https://tecuida.group'
 
   const staticRoutes = [
     { url: baseUrl, lastModified: new Date(), changeFrequency: 'weekly' as const, priority: 1 },

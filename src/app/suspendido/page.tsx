@@ -60,7 +60,7 @@ export default function SuspendidoPage({ searchParams }: SuspendidoPageProps) {
 
         <div className="mt-8 flex flex-col sm:flex-row items-center justify-center gap-3">
           <a
-            href="mailto:soporte@tecuida.es"
+            href="mailto:soporte@tecuida.group"
             className="inline-flex items-center rounded-lg bg-amber-600 px-6 py-3 text-base font-semibold text-white shadow-sm hover:bg-amber-500 transition-colors"
           >
             Contactar soporte

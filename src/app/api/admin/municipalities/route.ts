@@ -110,7 +110,7 @@ export async function POST(request: Request) {
     const supabase = createAdminClient()
 
     // Construir el dominio a partir del slug
-    const dominio = `${dto.slug}.${process.env.NEXT_PUBLIC_BASE_DOMAIN || 'tecuida.es'}`
+    const dominio = `${dto.slug}.${process.env.NEXT_PUBLIC_BASE_DOMAIN || 'tecuida.group'}`
 
     // Insertar en la base de datos
     const { data, error } = await supabase

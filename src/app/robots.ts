@@ -10,7 +10,7 @@ import { type MetadataRoute } from 'next'
 export default function robots(): MetadataRoute.Robots {
   const baseUrl = process.env.NEXT_PUBLIC_BASE_DOMAIN
     ? `https://${process.env.NEXT_PUBLIC_BASE_DOMAIN}`
-    : 'https://tecuida.es'
+    : 'https://tecuida.group'
 
   return {
     rules: [

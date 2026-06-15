@@ -237,7 +237,7 @@ export default function CrearMunicipioPage() {
               )}
               {formData.slug && !getFieldError('slug') && (
                 <p className="mt-1 text-xs text-gray-400">
-                  Dominio: {formData.slug}.tecuida.es
+                  Dominio: {formData.slug}.tecuida.group
                 </p>
               )}
             </div>

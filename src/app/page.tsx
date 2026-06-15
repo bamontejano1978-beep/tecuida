@@ -67,7 +67,7 @@ export default async function HomePage() {
           <p className="mt-2 text-sm text-gray-500">
             Para acceder al portal de tu municipio, visita{' '}
             <code className="bg-gray-100 px-1.5 py-0.5 rounded text-indigo-600 font-mono">
-              tumunicipio.tecuida.es
+              tumunicipio.tecuida.group
             </code>
           </p>
           <div className="mt-8">
