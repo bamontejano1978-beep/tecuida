@@ -10,6 +10,11 @@
 import { createAdminClient } from '@/lib/supabase/server'
 import { notFound } from 'next/navigation'
 import Link from 'next/link'
+import { headers } from 'next/headers'
+import {
+  getMunicipioLandingUrl,
+  cleanHostname,
+} from '@/lib/tenant/landing'
 import ManageAppsForm from './manage-apps-form'
 
 // ---------------------------------------------------------------------------
@@ -45,11 +50,24 @@ export default async function ManageAppsPage({ params }: ManageAppsPageProps) {
   // Municipio
   const { data: mun, error: munError } = await supabase
     .from('municipalities')
-    .select('id, nombre_municipio, slug')
+    .select('id, nombre_municipio, slug, dominio')
     .eq('id', params.id)
+    .eq('oculto_admin', false)
     .single()
 
   if (munError || !mun) notFound()
+
+  const currentHost = headers().get('host')
+  const catalogUrl = getMunicipioLandingUrl(
+    { slug: mun.slug, dominio: mun.dominio },
+    currentHost,
+  )
+  // En producción la URL coincide con el dominio; solo resaltamos la URL
+  // computada cuando aporta algo distinto (caso dev). Comparamos sobre el
+  // host normalizado para que el span siga oculto si alguien pegase
+  // `https://` en `dominio` en el futuro.
+  const showResolvedUrl =
+    !!mun.dominio && catalogUrl !== `https://${cleanHostname(mun.dominio)}`
 
   // Todas las apps del catálogo
   const { data: apps } = await supabase
@@ -103,9 +121,42 @@ export default async function ManageAppsPage({ params }: ManageAppsPageProps) {
           Aplicaciones activas
         </h1>
         <p className="mt-1 text-sm text-gray-500">
-          {mun.nombre_municipio} ({mun.slug}) — Selecciona las aplicaciones
-          disponibles para este municipio.
+          {mun.nombre_municipio} — Dominio: {mun.dominio} · ({mun.slug}).
+          Selecciona las aplicaciones disponibles para este municipio.
         </p>
+        <div className="mt-4 flex items-center gap-3">
+          <a
+            href={catalogUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-flex items-center gap-2 rounded-lg bg-indigo-600 px-4 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 transition-colors"
+          >
+            <svg
+              className="w-4 h-4"
+              fill="none"
+              viewBox="0 0 24 24"
+              strokeWidth={2}
+              stroke="currentColor"
+              aria-hidden="true"
+              focusable="false"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                d="M13.5 6H5.25A2.25 2.25 0 0 0 3 8.25v10.5A2.25 2.25 0 0 0 5.25 21h10.5A2.25 2.25 0 0 0 18 18.75V10.5m-10.5 6L21 3m0 0h-5.25M21 3v5.25"
+              />
+            </svg>
+            Ver catálogo público
+          </a>
+          {showResolvedUrl && (
+            <span
+              className="text-xs text-gray-400 font-mono truncate max-w-[280px]"
+              title={catalogUrl}
+            >
+              ({catalogUrl})
+            </span>
+          )}
+        </div>
       </div>
 
       <ManageAppsForm

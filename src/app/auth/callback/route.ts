@@ -15,6 +15,7 @@
 
 import { createServerClient } from '@supabase/ssr'
 import { type NextRequest, NextResponse } from 'next/server'
+import { createAuthCookiesAdapter } from '@/lib/supabase/cookies'
 
 export async function GET(request: NextRequest) {
   const { searchParams, origin } = new URL(request.url)
@@ -34,20 +35,12 @@ export async function GET(request: NextRequest) {
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
     {
-      cookies: {
-        getAll() {
-          return request.cookies.getAll()
-        },
-        setAll(
-          cookiesToSet: { name: string; value: string; options: Record<string, unknown> }[],
-        ) {
-          // Escribir las cookies de sesión en la respuesta.
-          // exchangeCodeForSession invoca este callback con los nuevos tokens.
-          cookiesToSet.forEach((c) => {
-            response.cookies.set(c.name, c.value, c.options as never)
-          })
-        },
-      },
+      // Adapter compartido: combina combineChunks (auth flow) + propaga
+      // las cookies generadas por exchangeCodeForSession al response
+      // para que lleguen al navegador.
+      cookies: createAuthCookiesAdapter(request.cookies, {
+        writeThrough: [response.cookies],
+      }),
     },
   )
 
@@ -100,6 +93,9 @@ export async function GET(request: NextRequest) {
       )
 
       // Resolver municipality_id desde el slug
+      // NOTA: NO filtrar por oculto_admin. El tenant 'platform' debe
+      // ser resoluble aquí para que los superadmins puedan iniciar
+      // sesión (migración 012). Los listados admin sí filtran.
       const { data: municipality } = await adminClient
         .from('municipalities')
         .select('id')

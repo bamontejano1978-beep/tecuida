@@ -9,6 +9,8 @@
 
 import { createAdminClient } from '@/lib/supabase/server'
 import Link from 'next/link'
+import { headers } from 'next/headers'
+import { getMunicipioLandingUrl } from '@/lib/tenant/landing'
 
 // ---------------------------------------------------------------------------
 // Tipos
@@ -72,6 +74,7 @@ export default async function MunicipiosPage({ searchParams }: MunicipiosPagePro
   let query = supabase
     .from('municipalities')
     .select('*', { count: 'exact' })
+    .eq('oculto_admin', false)
     .order('created_at', { ascending: false })
     .range(offset, offset + limit - 1)
 
@@ -101,6 +104,7 @@ export default async function MunicipiosPage({ searchParams }: MunicipiosPagePro
 
   const municipalities: MunicipalityRow[] = (data || []) as unknown as MunicipalityRow[]
   const totalPages = Math.ceil((count || 0) / limit)
+  const currentHost = headers().get('host')
 
   return (
     <div className="px-4 py-8 sm:px-6 lg:px-8">
@@ -234,6 +238,31 @@ export default async function MunicipiosPage({ searchParams }: MunicipiosPagePro
                         >
                           Apps
                         </Link>
+                        <a
+                          href={getMunicipioLandingUrl(
+                            { slug: mun.slug, dominio: mun.dominio },
+                            currentHost,
+                          )}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="inline-flex items-center gap-1 text-sm font-medium text-emerald-600 hover:text-emerald-500 transition-colors"
+                          title="Abrir landing pública en nueva pestaña"
+                        >
+                          <svg
+                            className="w-3.5 h-3.5"
+                            fill="none"
+                            viewBox="0 0 24 24"
+                            strokeWidth={2}
+                            stroke="currentColor"
+                          >
+                            <path
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              d="M13.5 6H5.25A2.25 2.25 0 0 0 3 8.25v10.5A2.25 2.25 0 0 0 5.25 21h10.5A2.25 2.25 0 0 0 18 18.75V10.5m-10.5 6L21 3m0 0h-5.25M21 3v5.25"
+                            />
+                          </svg>
+                          Landing
+                        </a>
                       </div>
                     </td>
                   </tr>

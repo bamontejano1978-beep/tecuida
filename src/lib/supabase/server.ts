@@ -21,6 +21,7 @@
 
 import { createServerClient } from '@supabase/ssr'
 import { cookies } from 'next/headers'
+import { createAuthCookiesAdapter } from '@/lib/supabase/cookies'
 
 /**
  * Crea un cliente Supabase para Server Components, Server Actions y Route Handlers.
@@ -40,23 +41,10 @@ export function createClient() {
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
     {
-      cookies: {
-        getAll() {
-          return cookieStore.getAll()
-        },
-        setAll(
-          cookiesToSet: { name: string; value: string; options: Record<string, unknown> }[],
-        ) {
-          try {
-            cookiesToSet.forEach(({ name, value, options }) => {
-              cookieStore.set(name, value, options)
-            })
-          } catch {
-            // `setAll` puede lanzar si se llama desde un Server Component de solo lectura.
-            // El middleware se encarga de refrescar la sesión en esos casos.
-          }
-        },
-      },
+      // Adapter compartido: get(name) para combineChunks en flujos auth
+      // (getUser/getSession/etc.), getAll() snapshot, setAll() con
+      // try/catch interno que cubre Server Components de solo lectura.
+      cookies: createAuthCookiesAdapter(cookieStore),
     }
   )
 }
@@ -83,22 +71,12 @@ export function createAdminClient() {
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.SUPABASE_SERVICE_ROLE_KEY!,
     {
-      cookies: {
-        getAll() {
-          return cookieStore.getAll()
-        },
-        setAll(
-          cookiesToSet: { name: string; value: string; options: Record<string, unknown> }[],
-        ) {
-          try {
-            cookiesToSet.forEach(({ name, value, options }) => {
-              cookieStore.set(name, value, options)
-            })
-          } catch {
-            // Solo lectura en Server Components; el middleware gestiona el refresco.
-          }
-        },
-      },
+      // Adapter compartido. Para el admin client, getUser() no se invoca
+      // en auth flows (autoRefreshToken:false + persistSession:false) y
+      // por tanto combineChunks nunca se llama; mantenemos get/getAll
+      // por consistencia con el contrato CookieMethods y por si Supabase
+      // cambia su comportamiento interno.
+      cookies: createAuthCookiesAdapter(cookieStore),
       // Desactivar la persistencia de sesión para el cliente admin:
       // opera con la service_role_key estática, no con JWT de usuario.
       auth: {

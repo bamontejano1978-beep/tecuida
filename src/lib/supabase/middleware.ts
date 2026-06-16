@@ -28,6 +28,7 @@
 import { createServerClient } from '@supabase/ssr'
 import { NextResponse, type NextRequest } from 'next/server'
 import type { User } from '@supabase/supabase-js'
+import { createAuthCookiesAdapter } from '@/lib/supabase/cookies'
 
 /**
  * Actualiza la sesión del ciudadano en las cookies de la respuesta.
@@ -51,31 +52,13 @@ export async function updateSession(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
     {
-      cookies: {
-        getAll() {
-          return request.cookies.getAll()
-        },
-        setAll(
-          cookiesToSet: { name: string; value: string; options: Record<string, unknown> }[],
-        ) {
-          // 1. Escribir en el objeto request para que los Server Components
-          //    del mismo ciclo puedan leer las cookies actualizadas.
-          cookiesToSet.forEach(({ name, value }) =>
-            request.cookies.set(name, value)
-          )
-
-          // 2. Recrear el NextResponse con las cookies actualizadas del request.
-          supabaseResponse = NextResponse.next({
-            request,
-          })
-
-          // 3. Escribir en el objeto response para que el navegador
-          //    reciba y persista las nuevas cookies.
-          cookiesToSet.forEach(({ name, value, options }) =>
-            supabaseResponse.cookies.set(name, value, options)
-          )
-        },
-      },
+      // Adapter compartido: get(name) para combineChunks, getAll() snapshot,
+      // setAll() replicando a request.cookies Y supabaseResponse.cookies
+      // para que las actualizaciones de sesión viajen al navegador y las
+      // lean los Server Components del mismo ciclo.
+      cookies: createAuthCookiesAdapter(request.cookies, {
+        writeThrough: [supabaseResponse.cookies],
+      }),
     }
   )
 
