@@ -15,6 +15,7 @@ import { getTenantConfigFromDB, getTenantFromHeaders } from '@/lib/tenant/header
 import { createAdminClient } from '@/lib/supabase/server'
 import { DEMO_APPS, DEMO_CATEGORIES } from '@/lib/demo-data'
 import CatalogClient from './catalog-client'
+import { MunicipalityHero } from '@/components/landing/municipality-hero'
 
 // ---------------------------------------------------------------------------
 // Tipos locales
@@ -264,58 +265,65 @@ async function TenantPage({
         </div>
       </header>
 
-      {/* ── Hero ── */}
-      <section
-        id="inicio"
-        className="relative min-h-[650px] text-white overflow-hidden bg-cover bg-center"
-        style={{
-          backgroundImage: tenant.hero_image_url
-            ? `linear-gradient(90deg, rgba(15,29,20,.88), rgba(15,29,20,.52) 48%, rgba(15,29,20,.2)), url(${tenant.hero_image_url})`
-            : `linear-gradient(90deg, rgba(15,29,20,.88), rgba(15,29,20,.52) 48%, rgba(15,29,20,.2))`,
-          backgroundColor: '#142c19',
-        }}
-      >
-        <div className="py-[clamp(70px,11vw,135px)] px-[clamp(22px,5vw,70px)] max-w-[1180px] pb-[120px]">
-          <div className="text-[#f4b64b] font-extrabold tracking-[.22em] uppercase text-[13px] mb-5">
-            Bienestar · comunidad · {tenant.nombre_municipio}
-          </div>
-          <h1 className="font-bold text-[clamp(55px,9vw,104px)] leading-[.92] mb-6 max-w-[720px] text-balance">
-            {tenant.nombre_municipio}
-            <br />
-            te cuida
-          </h1>
-          <p className="max-w-[560px] text-xl mb-[34px] text-white/90">
-            {tenant.textos_institucionales.bienvenida ||
-              `Programas y recursos para cuidar de las personas, fortalecer nuestra comunidad y construir juntos un ${tenant.nombre_municipio} más saludable y solidario.`}
-          </p>
-          <div className="flex flex-wrap gap-3.5">
-            <a
-              href="#programas"
-              className="inline-flex items-center gap-2.5 min-h-[52px] px-6 rounded-xl no-underline font-extrabold bg-gradient-to-br from-[#e0a13a] to-[#bd7c25] text-white shadow-[0_14px_32px_rgba(189,124,37,.3)] hover:-translate-y-0.5 transition-transform"
-            >
-              Descubre los programas →
-            </a>
-            <Link
-              href="/login"
-              className="inline-flex items-center gap-2.5 min-h-[52px] px-6 rounded-xl no-underline font-extrabold border border-white/45 bg-white/10 text-white backdrop-blur-sm hover:-translate-y-0.5 transition-transform"
-            >
-              Accede a tu área →
-            </Link>
-          </div>
-        </div>
-      </section>
+      {/* ── Hero (componente rediseñado) ── */}
+      <MunicipalityHero
+        nombre_municipio={tenant.nombre_municipio}
+        nombre_ayuntamiento={tenant.nombre_ayuntamiento}
+        hero_image_url={tenant.hero_image_url}
+        escudo_url={tenant.escudo_url}
+        descripcion={tenant.textos_institucionales.bienvenida ?? null}
+        colores_corporativos={tenant.colores_corporativos}
+      />
 
       {/* ── Stats ── */}
       <section aria-label="Resumen del programa" className="w-[min(1120px,calc(100%-40px))] -mt-[62px] mx-auto relative z-10 grid grid-cols-4 overflow-hidden bg-white/95 border border-white/70 rounded-[20px] shadow-[0_24px_70px_rgba(35,30,18,.13)] backdrop-blur-md max-md:grid-cols-2 max-sm:grid-cols-1">
         {[
-          { icon: '🌿', value: `${validApps.length}+`, label: 'Programas activos' },
-          { icon: '👥', value: 'Abierto', label: 'A toda la ciudadanía' },
-          { icon: '♡', value: 'Gratuito', label: 'Para los vecinos' },
-          { icon: '📅', value: '365', label: 'Días disponible' },
+          {
+            value: `${validApps.length}+`,
+            label: 'Programas activos',
+            icon: (
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true" focusable="false">
+                <path d="M11 20A7 7 0 0 1 9.8 6.1C15.5 5 17 4.48 19.2 2.2a1 1 0 0 1 1.6 1.5c-1.4 5.5-1.6 7-1.6 12.5a8 8 0 0 1-8 8" />
+                <path d="M2 21c0-3 1.85-5.36 5.08-6" />
+              </svg>
+            ),
+          },
+          {
+            value: 'Abierto',
+            label: 'A toda la ciudadanía',
+            icon: (
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true" focusable="false">
+                <circle cx="9" cy="7" r="4" />
+                <path d="M3 21v-2a4 4 0 0 1 4-4h4a4 4 0 0 1 4 4v2" />
+                <path d="M16 3.13a4 4 0 0 1 0 7.75" />
+                <path d="M22 21v-2a4 4 0 0 0-3-3.87" />
+                <circle cx="17" cy="7" r="3" />
+              </svg>
+            ),
+          },
+          {
+            value: 'Gratuito',
+            label: 'Para los vecinos',
+            icon: (
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true" focusable="false">
+                <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" />
+              </svg>
+            ),
+          },
+          {
+            value: '365',
+            label: 'Días disponible',
+            icon: (
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true" focusable="false">
+                <rect x="3" y="4" width="18" height="18" rx="2" />
+                <path d="M16 2v4M8 2v4M3 10h18" />
+              </svg>
+            ),
+          },
         ].map((stat, i) => (
-          <div key={i} className="flex items-center gap-4 p-[28px_30px] border-r border-[rgba(35,45,30,.13)] last:border-r-0 max-md:[&:nth-child(2)]:border-r-0 max-md:[&:nth-child(1)]:border-b max-md:[&:nth-child(2)]:border-b max-sm:border-r-0 max-sm:border-b max-sm:last:border-b-0">
-            <div className="w-[54px] h-[54px] rounded-full bg-[#f5efe2] grid place-items-center text-[26px] shrink-0">
-              {stat.icon}
+          <div key={i} className="group flex items-center gap-4 p-[28px_30px] border-r border-[rgba(35,45,30,.13)] last:border-r-0 max-md:[&:nth-child(2)]:border-r-0 max-md:[&:nth-child(1)]:border-b max-md:[&:nth-child(2)]:border-b max-sm:border-r-0 max-sm:border-b max-sm:last:border-b-0">
+            <div className="grid h-[54px] w-[54px] place-items-center rounded-full bg-[#f5efe2] text-[#38633e] shrink-0 transition-colors group-hover:bg-[#38633e] group-hover:text-white">
+              <span aria-hidden="true" className="block h-7 w-7">{stat.icon}</span>
             </div>
             <div>
               <strong className="block text-[#38633e] font-bold text-[35px] leading-none">{stat.value}</strong>
@@ -417,13 +425,24 @@ async function TenantPage({
       {/* ── Footer ── */}
       <footer id="contacto" className="bg-[#152b19] text-white/75 py-[38px] px-[clamp(20px,5vw,70px)]">
         <div className="max-w-[1120px] mx-auto flex justify-between gap-7 flex-wrap">
-          <div>
-            <strong className="text-white font-bold text-2xl">
-              {tenant.nombre_municipio} te cuida
-            </strong>
-            <p className="mt-2">
-              Una iniciativa del {tenant.nombre_ayuntamiento} para el bienestar emocional de sus vecinos y vecinas.
-            </p>
+          <div className="flex items-start gap-4">
+            {tenant.escudo_url && (
+              <img
+                src={tenant.escudo_url}
+                alt={`Escudo oficial de ${tenant.nombre_municipio}`}
+                className="h-16 w-16 shrink-0 object-contain [filter:drop-shadow(0_2px_6px_rgba(0,0,0,.45))]"
+                loading="lazy"
+                decoding="async"
+              />
+            )}
+            <div>
+              <strong className="text-white font-bold text-2xl">
+                {tenant.nombre_municipio} te cuida
+              </strong>
+              <p className="mt-2">
+                Una iniciativa del {tenant.nombre_ayuntamiento} para el bienestar emocional de sus vecinos y vecinas.
+              </p>
+            </div>
           </div>
           <div>
             <b className="text-white">Enlaces</b>

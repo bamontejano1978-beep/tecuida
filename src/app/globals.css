@@ -28,6 +28,46 @@ body {
   .text-balance {
     text-wrap: balance;
   }
+
+  /* Entrada suave para el hero y secciones destacadas de las
+     landings municipales. Sin librerías: keyframe + utility. */
+  .animate-fade-in-up {
+    animation: fade-in-up 0.8s cubic-bezier(0.16, 1, 0.3, 1) 0.15s both;
+  }
+
+  .animate-fade-in {
+    animation: fade-in 1120ms ease-out 0.4s both;
+  }
+
+  /* Respeta prefers-reduced-motion: desactiva animaciones */
+  @media (prefers-reduced-motion: reduce) {
+    .animate-fade-in-up,
+    .animate-fade-in {
+      animation: none;
+      opacity: 1;
+      transform: none;
+    }
+  }
+}
+
+@keyframes fade-in-up {
+  from {
+    opacity: 0;
+    transform: translate3d(0, 24px, 0);
+  }
+  to {
+    opacity: 1;
+    transform: translate3d(0, 0, 0);
+  }
+}
+
+@keyframes fade-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
 }
 
 /* Scrollbar con color de tenant */
