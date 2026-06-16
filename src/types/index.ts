@@ -53,7 +53,7 @@ export interface MunicipalityConfig {
   slug: string
   nombre_municipio: string
   nombre_ayuntamiento: string
-  /** Dominio completo, p. ej. "calamonte.tecuida.es" */
+  /** Dominio completo, p. ej. "calamonte.tecuida.group" */
   dominio: string
   escudo_url: string
   logo_url: string

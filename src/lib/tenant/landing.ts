@@ -3,7 +3,7 @@
  *
  * Lógica:
  *   - Si el municipio tiene `dominio` almacenado (full hostname de producción),
- *     usarlo directamente. Ej: "calamonte.tecuida.es" → https://calamonte.tecuida.es
+ *     usarlo directamente. Ej: "calamonte.tecuida.group" → https://calamonte.tecuida.group
  *   - En caso contrario, fallback a ?tenant={slug} sobre el host actual
  *     (soportado por el middleware en localhost/127.0.0.1).
  *

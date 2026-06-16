@@ -22,7 +22,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
     { url: `${baseUrl}/register`, lastModified: new Date(), changeFrequency: 'monthly' as const, priority: 0.5 },
   ]
 
-  // NOTA: Los subdominios de municipios (calamonte.tecuida.es, etc.)
+  // NOTA: Los subdominios de municipios (calamonte.tecuida.group, etc.)
   // deben tener sus propios sitemaps servidos desde cada subdominio.
   // Next.js por defecto solo genera el sitemap del dominio raíz.
   // Para subdominios, añadir una API route que sirva sitemaps por tenant,

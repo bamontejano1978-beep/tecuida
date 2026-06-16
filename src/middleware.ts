@@ -48,7 +48,7 @@ const PROTECTED_PREFIXES = ['/app/', '/perfil', '/dashboard']
 /**
  * Extrae el slug del tenant desde el hostname.
  *
- * Producción:  calamonte.tecuida.es → "calamonte"
+ * Producción:  calamonte.tecuida.group → "calamonte"
  * Desarrollo:  localhost:3000?tenant=calamonte → "calamonte"
  *
  * Devuelve null si no se puede determinar el tenant.

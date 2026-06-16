@@ -39,7 +39,7 @@ describe('Tipos TypeScript — verificación de estructura', () => {
       slug: 'calamonte',
       nombre_municipio: 'Calamonte',
       nombre_ayuntamiento: 'Ayuntamiento de Calamonte',
-      dominio: 'calamonte.tecuida.es',
+      dominio: 'calamonte.tecuida.group',
       escudo_url: 'https://example.com/escudo.png',
       logo_url: 'https://example.com/logo.png',
       colores_corporativos: {
@@ -59,7 +59,7 @@ describe('Tipos TypeScript — verificación de estructura', () => {
       tipo_suscripcion: 'basico',
       estado_suscripcion: 'activa',
     }
-    expect(config.dominio).toBe('calamonte.tecuida.es')
+    expect(config.dominio).toBe('calamonte.tecuida.group')
     expect(config.tipo_suscripcion).toBe('basico')
     expect(config.estado_suscripcion).toBe('activa')
   })

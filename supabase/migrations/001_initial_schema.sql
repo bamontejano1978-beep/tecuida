@@ -36,7 +36,7 @@ CREATE TABLE IF NOT EXISTS public.municipalities (
 );
 
 COMMENT ON TABLE public.municipalities IS 'Tenants del sistema TE CUIDA. Cada fila representa un municipio/ayuntamiento.';
-COMMENT ON COLUMN public.municipalities.slug IS 'Identificador único del municipio; forma el subdominio <slug>.tecuida.es';
+COMMENT ON COLUMN public.municipalities.slug IS 'Identificador único del municipio; forma el subdominio <slug>.tecuida.group';
 
 -- ============================================================
 -- 2. USERS — Ciudadanos registrados por municipio

@@ -158,7 +158,7 @@ function mockConfig(overrides?: Partial<MunicipalityConfig>): MunicipalityConfig
     slug: 'calamonte',
     nombre_municipio: 'Calamonte',
     nombre_ayuntamiento: 'Ayuntamiento de Calamonte',
-    dominio: 'calamonte.tecuida.es',
+    dominio: 'calamonte.tecuida.group',
     escudo_url: '',
     logo_url: '',
     colores_corporativos: {
@@ -220,7 +220,7 @@ describe('Protección de rutas autenticadas', () => {
   // ----- Rutas protegidas sin sesión -----
 
   it('redirige /app/123 a /login con tenant y redirect cuando no hay sesión', async () => {
-    const req = makeRequest('https://calamonte.tecuida.es/app/123')
+    const req = makeRequest('https://calamonte.tecuida.group/app/123')
 
     await middleware(req)
 
@@ -232,7 +232,7 @@ describe('Protección de rutas autenticadas', () => {
   })
 
   it('redirige /perfil a /login con tenant y redirect cuando no hay sesión', async () => {
-    const req = makeRequest('https://calamonte.tecuida.es/perfil')
+    const req = makeRequest('https://calamonte.tecuida.group/perfil')
 
     await middleware(req)
 
@@ -244,7 +244,7 @@ describe('Protección de rutas autenticadas', () => {
   })
 
   it('redirige /dashboard a /login con tenant y redirect cuando no hay sesión', async () => {
-    const req = makeRequest('https://calamonte.tecuida.es/dashboard')
+    const req = makeRequest('https://calamonte.tecuida.group/dashboard')
 
     await middleware(req)
 
@@ -262,7 +262,7 @@ describe('Protección de rutas autenticadas', () => {
     )
     ;(tenantCache.get as jest.Mock).mockResolvedValue(mockConfig())
 
-    const req = makeRequest('https://calamonte.tecuida.es/app/123')
+    const req = makeRequest('https://calamonte.tecuida.group/app/123')
 
     const res = await middleware(req)
 
@@ -275,7 +275,7 @@ describe('Protección de rutas autenticadas', () => {
   // ----- Rutas públicas: no deben verificar auth -----
 
   it('permite /login sin verificar autenticación (evita bucle)', async () => {
-    const req = makeRequest('https://calamonte.tecuida.es/login')
+    const req = makeRequest('https://calamonte.tecuida.group/login')
 
     const res = await middleware(req)
 
@@ -285,7 +285,7 @@ describe('Protección de rutas autenticadas', () => {
   })
 
   it('permite /register sin verificar autenticación', async () => {
-    const req = makeRequest('https://calamonte.tecuida.es/register')
+    const req = makeRequest('https://calamonte.tecuida.group/register')
 
     const res = await middleware(req)
 
@@ -294,7 +294,7 @@ describe('Protección de rutas autenticadas', () => {
   })
 
   it('permite /auth/callback sin verificar autenticación', async () => {
-    const req = makeRequest('https://calamonte.tecuida.es/auth/callback')
+    const req = makeRequest('https://calamonte.tecuida.group/auth/callback')
 
     const res = await middleware(req)
 
@@ -305,7 +305,7 @@ describe('Protección de rutas autenticadas', () => {
   // ----- Rutas de error: no deben verificar auth -----
 
   it('permite /404 sin verificar autenticación (evita bucle)', async () => {
-    const req = makeRequest('https://calamonte.tecuida.es/404')
+    const req = makeRequest('https://calamonte.tecuida.group/404')
 
     const res = await middleware(req)
 
@@ -314,7 +314,7 @@ describe('Protección de rutas autenticadas', () => {
   })
 
   it('permite /suspendido sin verificar autenticación', async () => {
-    const req = makeRequest('https://calamonte.tecuida.es/suspendido')
+    const req = makeRequest('https://calamonte.tecuida.group/suspendido')
 
     const res = await middleware(req)
 
@@ -366,7 +366,7 @@ describe('Resolución de tenant', () => {
     // Cache vacía + DB mock sin configurar → resolveTenant hace catch → null
     ;(tenantCache.get as jest.Mock).mockResolvedValue(null)
 
-    const req = makeRequest('https://inexistente.tecuida.es/')
+    const req = makeRequest('https://inexistente.tecuida.group/')
 
     await middleware(req)
 
@@ -383,7 +383,7 @@ describe('Resolución de tenant', () => {
     // ANTES de intentar resolver el tenant
     ;(updateSession as jest.Mock).mockResolvedValue(defaultSessionResponse(null))
 
-    const req = makeRequest('https://inexistente.tecuida.es/perfil')
+    const req = makeRequest('https://inexistente.tecuida.group/perfil')
 
     await middleware(req)
 
@@ -405,7 +405,7 @@ describe('Suscripción suspendida o cancelada', () => {
       mockConfig({ estado_suscripcion: 'suspendida' }),
     )
 
-    const req = makeRequest('https://calamonte.tecuida.es/')
+    const req = makeRequest('https://calamonte.tecuida.group/')
 
     await middleware(req)
 
@@ -423,7 +423,7 @@ describe('Suscripción suspendida o cancelada', () => {
       mockConfig({ estado_suscripcion: 'cancelada' }),
     )
 
-    const req = makeRequest('https://calamonte.tecuida.es/')
+    const req = makeRequest('https://calamonte.tecuida.group/')
 
     await middleware(req)
 
@@ -436,7 +436,7 @@ describe('Suscripción suspendida o cancelada', () => {
 describe('Query params en redirect', () => {
   it('preserva query params existentes en el redirect URL', async () => {
     const req = makeRequest(
-      'https://calamonte.tecuida.es/app/123?foo=bar&baz=qux',
+      'https://calamonte.tecuida.group/app/123?foo=bar&baz=qux',
     )
 
     await middleware(req)
@@ -449,7 +449,7 @@ describe('Query params en redirect', () => {
   })
 
   it('incluye solo redirect cuando no hay query params en la ruta original', async () => {
-    const req = makeRequest('https://calamonte.tecuida.es/dashboard')
+    const req = makeRequest('https://calamonte.tecuida.group/dashboard')
 
     await middleware(req)
 
@@ -498,20 +498,20 @@ describe('Headers de tenant en respuesta exitosa', () => {
         id: 'uuid-tenant-1',
         slug: 'calamonte',
         nombre_municipio: 'Calamonte',
-        dominio: 'calamonte.tecuida.es',
+        dominio: 'calamonte.tecuida.group',
         tipo_suscripcion: 'estandar',
         estado_suscripcion: 'activa',
       }),
     )
 
-    const req = makeRequest('https://calamonte.tecuida.es/')
+    const req = makeRequest('https://calamonte.tecuida.group/')
 
     const res = await middleware(req)
 
     expect(res.headers.get('x-tenant-id')).toBe('uuid-tenant-1')
     expect(res.headers.get('x-tenant-slug')).toBe('calamonte')
     expect(res.headers.get('x-tenant-name')).toBe('Calamonte')
-    expect(res.headers.get('x-tenant-domain')).toBe('calamonte.tecuida.es')
+    expect(res.headers.get('x-tenant-domain')).toBe('calamonte.tecuida.group')
     expect(res.headers.get('x-tenant-subscription-type')).toBe('estandar')
     expect(res.headers.get('x-tenant-subscription-status')).toBe('activa')
   })
