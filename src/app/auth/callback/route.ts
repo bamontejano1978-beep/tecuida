@@ -79,7 +79,7 @@ export async function GET(request: NextRequest) {
         process.env.SUPABASE_SERVICE_ROLE_KEY!,
         {
           cookies: {
-            get: () => null,
+            get: () => undefined,
             getAll: () => [],
             // eslint-disable-next-line @typescript-eslint/no-empty-function
             setAll: () => {},
@@ -157,7 +157,7 @@ export async function GET(request: NextRequest) {
         process.env.SUPABASE_SERVICE_ROLE_KEY!,
         {
           cookies: {
-            get: () => null,
+            get: () => undefined,
             getAll: () => [],
             // eslint-disable-next-line @typescript-eslint/no-empty-function
             setAll: () => {},

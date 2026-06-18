@@ -155,7 +155,7 @@ export default function RegisterPage() {
         </div>
 
         {/* Mensaje de error */}
-        {state.error && (
+        {state?.error && (
           <div className="rounded-md bg-red-50 p-3">
             <p className="text-sm text-red-700">{state.error}</p>
           </div>

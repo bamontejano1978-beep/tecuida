@@ -88,14 +88,14 @@ function LoginForm() {
         </div>
 
         {/* Mensaje de error */}
-        {state.error && !state.emailNotConfirmed && (
+        {state?.error && !state?.emailNotConfirmed && (
           <div className="rounded-md bg-red-50 p-3">
             <p className="text-sm text-red-700">{state.error}</p>
           </div>
         )}
 
         {/* Email no confirmado */}
-        {state.emailNotConfirmed && (
+        {state?.emailNotConfirmed && (
           <div className="rounded-md bg-yellow-50 p-3">
             <p className="text-sm text-yellow-700">
               Debes confirmar tu correo electrónico. Revisa tu bandeja de
