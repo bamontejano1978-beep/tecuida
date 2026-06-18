@@ -14,7 +14,7 @@
 
 'use server'
 
-import { createClient } from '@/lib/supabase/server'
+import { createClient, createAdminClient } from '@/lib/supabase/server'
 import { headers } from 'next/headers'
 import { redirect } from 'next/navigation'
 import { z } from 'zod'
@@ -74,6 +74,63 @@ function getCallbackUrl(): string {
   const host = headersList.get('host') || 'localhost:3000'
   const protocol = host.startsWith('localhost') ? 'http' : 'https'
   return `${protocol}://${host}/auth/callback`
+}
+
+/**
+ * Asegura que el usuario recién registrado tenga fila en public.users.
+ *
+ * Cuando Supabase tiene la confirmación de email desactivada, el usuario
+ * obtiene sesión inmediata tras signUp(). El callback /auth/callback NUNCA
+ * se invoca, y por tanto public.users nunca recibe la fila. Esta función
+ * cubre ese caso insertando la fila directamente con el admin client.
+ *
+ * Es idempotente: si la fila ya existe (p.ej. porque el callback ya la creó),
+ * no hace nada.
+ */
+async function ensurePublicUser(
+  userId: string,
+  slug: string,
+  email: string,
+  data: { nombre: string; apellidos: string; telefono?: string; fecha_nacimiento?: string },
+): Promise<void> {
+  const adminClient = createAdminClient()
+
+  // 1. Resolver municipality_id desde el slug
+  const { data: municipality } = await adminClient
+    .from('municipalities')
+    .select('id')
+    .eq('slug', slug)
+    .single()
+
+  if (!municipality) {
+    console.error('[ensurePublicUser] Municipio no encontrado para slug:', slug)
+    return
+  }
+
+  // 2. Verificar si ya existe la fila
+  const { data: existing } = await adminClient
+    .from('users')
+    .select('id')
+    .eq('id', userId)
+    .maybeSingle()
+
+  if (existing) return // ya existe, nada que hacer
+
+  // 3. Insertar
+  const { error: insertError } = await adminClient.from('users').insert({
+    id: userId,
+    municipality_id: municipality.id,
+    email,
+    nombre: data.nombre,
+    apellidos: data.apellidos,
+    telefono: data.telefono || null,
+    fecha_nacimiento: data.fecha_nacimiento || null,
+    rol: 'ciudadano',
+  })
+
+  if (insertError) {
+    console.error('[ensurePublicUser] Error insertando:', insertError.message)
+  }
 }
 
 /**
@@ -218,13 +275,23 @@ export async function signUp(
   }
 
   // Si Supabase no requiere confirmación de email, el usuario ya
-  // tiene sesión. Redirigir al dashboard.
-  // Si requiere confirmación, redirigir a la página de verificación.
+  // tiene sesión. Insertar en public.users y redirigir al dashboard.
+  // Si requiere confirmación, redirigir a la página de verificación
+  // (el callback /auth/callback insertará en public.users entonces).
   const {
     data: { user },
   } = await supabase.auth.getUser()
 
   if (user?.aud === 'authenticated') {
+    // El usuario ya tiene sesión → crear fila en public.users ahora
+    // (sin esperar al callback, que solo se invoca en email verification/OAuth)
+    try {
+      await ensurePublicUser(user.id, slug, parsed.data.email, parsed.data)
+    } catch (err) {
+      console.error('[signUp] Error creando public.users:', err)
+      // No bloqueamos el registro: el callback lo reintentará si falla aquí
+    }
+
     const redirectTo = getValidRedirect(formData.get('redirect'))
     return { success: true, redirectTo }
   }
