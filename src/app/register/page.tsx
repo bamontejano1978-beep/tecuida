@@ -13,22 +13,23 @@
 import { signUp } from '@/lib/actions/auth'
 import type { AuthResult } from '@/lib/actions/auth'
 import Link from 'next/link'
-import { useRouter } from 'next/navigation'
 import { useEffect } from 'react'
 import { useFormState } from 'react-dom'
 
 const initialState: AuthResult = { success: false }
 
 export default function RegisterPage() {
-  const router = useRouter()
   const [state, formAction] = useFormState(signUp, initialState)
 
-  // Redirigir desde el cliente cuando registro es exitoso
+  // Redirigir desde el cliente cuando registro es exitoso.
+  // window.location.href fuerza recarga completa, necesaria para
+  // que el navegador envíe las cookies de sesión recién establecidas
+  // por la Server Action (router.push() = SPA suave no las envía).
   useEffect(() => {
     if (state?.success && state?.redirectTo) {
-      router.push(state.redirectTo)
+      window.location.href = state.redirectTo
     }
-  }, [state, router])
+  }, [state])
 
   return (
     <>
