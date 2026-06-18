@@ -43,6 +43,8 @@ export const CreateMunicipalitySchema = z.object({
     errorMap: () => ({ message: 'El tipo de suscripción debe ser basico, estandar o premium' }),
   }),
   colores_corporativos: corporateColorsSchema,
+  hero_image_url: z.string().url('La URL de la imagen principal debe ser una URL válida').nullable().optional(),
+  escudo_url: z.string().url('La URL del escudo debe ser una URL válida').nullable().optional(),
 })
 
 export type CreateMunicipalityDTO = z.infer<typeof CreateMunicipalitySchema>

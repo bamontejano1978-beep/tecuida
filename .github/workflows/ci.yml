@@ -1,0 +1,132 @@
+# ============================================================
+# TE CUIDA — CI Workflow
+# ============================================================
+# Ejecuta lint, tests y build en cada push/PR a main o master.
+# Paraleliza los 3 jobs para feedback rápido. Cancela runs
+# obsoletos al hacer push a la misma rama (ahorra minutos).
+#
+# Triggers:
+#   - push a master/main
+#   - pull_request contra master/main
+#
+# Secrets requeridos: ninguno (los tests son unitarios y usan
+# mocks; no necesitan credenciales reales de Supabase).
+# ============================================================
+
+name: CI
+
+# Least-privilege: el workflow solo necesita leer el código fuente.
+# Si en el futuro añadimos un job que comenta en PRs, se amplía.
+permissions:
+  contents: read
+
+on:
+  push:
+    branches: [master, main]
+  pull_request:
+    branches: [master, main]
+
+# Cancela runs en progreso cuando se hace un nuevo push a la misma rama
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+# ============================================================
+# Jobs
+# ============================================================
+
+jobs:
+  # ──────────────────────────────────────────────────────────
+  # 1. Lint
+  # ──────────────────────────────────────────────────────────
+  lint:
+    name: Lint (next lint)
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Instalar dependencias
+        run: npm ci
+
+      - name: Ejecutar ESLint
+        run: npm run lint
+
+  # ──────────────────────────────────────────────────────────
+  # 2. Tests (Jest)
+  # ──────────────────────────────────────────────────────────
+  test:
+    name: Tests (Jest)
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Instalar dependencias
+        run: npm ci
+
+      - name: Ejecutar tests
+        # --ci: fuerza modo CI (no watch, fail fast)
+        # --coverage: genera ./coverage/ (requerido por el upload step)
+        # Nota: el npm script ya pasa --runInBand; no añadimos --maxWorkers
+        #       porque entraría en conflicto con --runInBand.
+        run: npm test -- --ci --coverage
+
+      - name: Subir reporte de cobertura
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage-report
+          path: coverage/
+          retention-days: 7
+
+  # ──────────────────────────────────────────────────────────
+  # 3. Build (next build) — valida tipos vía SWC
+  # ──────────────────────────────────────────────────────────
+  # Usamos `next build` en vez de `tsc --noEmit` porque el
+  # proyecto tiene errores pre-existentes conocidos en
+  # __tests__ y demo-data.ts (ver CHECKPOINT.md). `next build`
+  # es la fuente de verdad para Vercel y solo falla si hay
+  # errores reales que bloqueen el deploy.
+  # ──────────────────────────────────────────────────────────
+  build:
+    name: Build (next build)
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Instalar dependencias
+        run: npm ci
+
+      - name: Build de producción
+        # vercel.json ya define buildCommand, pero lo dejamos
+        # explícito para que el job sea self-contained
+        env:
+          NEXT_PUBLIC_SUPABASE_URL: https://ci-placeholder.supabase.co
+          NEXT_PUBLIC_SUPABASE_ANON_KEY: ci-placeholder-anon-key
+          SUPABASE_SERVICE_ROLE_KEY: ci-placeholder-service-key
+        run: npm run build

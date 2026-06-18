@@ -71,19 +71,18 @@ export async function GET(request: NextRequest) {
   if (metadata?.municipality_slug) {
     try {
       // Usar admin client para insertar en public.users
-      // (RLS bloquea inserts del propio usuario si aún no tiene fila)
+      // (RLS bloquea inserts del propio usuario si aún no tiene fila).
+      // IMPORTANTE: adapter no-op para que @supabase/ssr no reemplace
+      // el service_role_key por el JWT del usuario.
       const adminClient = createServerClient(
         process.env.NEXT_PUBLIC_SUPABASE_URL!,
         process.env.SUPABASE_SERVICE_ROLE_KEY!,
         {
           cookies: {
-            getAll() {
-              return request.cookies.getAll()
-            },
+            get: () => null,
+            getAll: () => [],
             // eslint-disable-next-line @typescript-eslint/no-empty-function
-            setAll() {
-              // El admin client no necesita persistir sesión
-            },
+            setAll: () => {},
           },
           auth: {
             autoRefreshToken: false,
@@ -158,9 +157,10 @@ export async function GET(request: NextRequest) {
         process.env.SUPABASE_SERVICE_ROLE_KEY!,
         {
           cookies: {
-            getAll() { return request.cookies.getAll() },
+            get: () => null,
+            getAll: () => [],
             // eslint-disable-next-line @typescript-eslint/no-empty-function
-            setAll() {},
+            setAll: () => {},
           },
           auth: { autoRefreshToken: false, persistSession: false },
         },

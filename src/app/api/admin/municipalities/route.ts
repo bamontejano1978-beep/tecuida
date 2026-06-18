@@ -112,22 +112,33 @@ export async function POST(request: Request) {
     // Construir el dominio a partir del slug
     const dominio = `${dto.slug}.${process.env.NEXT_PUBLIC_BASE_DOMAIN || 'tecuida.group'}`
 
+    // Construir el objeto de inserción
+    const insertRow: Record<string, unknown> = {
+      slug: dto.slug,
+      nombre_municipio: dto.nombre_municipio,
+      nombre_ayuntamiento: dto.nombre_ayuntamiento,
+      dominio,
+      colores_corporativos: dto.colores_corporativos,
+      textos_institucionales: {
+        bienvenida: `Bienvenido/a al portal de bienestar de ${dto.nombre_ayuntamiento}`,
+        descripcion: `Portal de salud y bienestar del municipio de ${dto.nombre_municipio}`,
+        pie_pagina: `© ${dto.nombre_ayuntamiento} — TE CUIDA`,
+      },
+      tipo_suscripcion: dto.tipo_suscripcion,
+    }
+
+    // Imágenes opcionales subidas por el admin (evita dependencia de búsquedas externas)
+    if (dto.hero_image_url) {
+      insertRow.hero_image_url = dto.hero_image_url
+    }
+    if (dto.escudo_url) {
+      insertRow.escudo_url = dto.escudo_url
+    }
+
     // Insertar en la base de datos
     const { data, error } = await supabase
       .from('municipalities')
-      .insert({
-        slug: dto.slug,
-        nombre_municipio: dto.nombre_municipio,
-        nombre_ayuntamiento: dto.nombre_ayuntamiento,
-        dominio,
-        colores_corporativos: dto.colores_corporativos,
-        textos_institucionales: {
-          bienvenida: `Bienvenido/a al portal de bienestar de ${dto.nombre_ayuntamiento}`,
-          descripcion: `Portal de salud y bienestar del municipio de ${dto.nombre_municipio}`,
-          pie_pagina: `© ${dto.nombre_ayuntamiento} — TE CUIDA`,
-        },
-        tipo_suscripcion: dto.tipo_suscripcion,
-      })
+      .insert(insertRow)
       .select()
       .single()
 

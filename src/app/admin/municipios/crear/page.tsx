@@ -9,9 +9,10 @@
 
 'use client'
 
-import { useState } from 'react'
+import { useState, useRef } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
+import { ImageUploadField, type ImageUploadFieldHandle } from '@/components/ui/image-upload-field'
 
 // ---------------------------------------------------------------------------
 // Tipos
@@ -39,6 +40,9 @@ interface FormErrors {
 
 export default function CrearMunicipioPage() {
   const router = useRouter()
+  const heroRef = useRef<ImageUploadFieldHandle>(null)
+  const escudoRef = useRef<ImageUploadFieldHandle>(null)
+
   const [formData, setFormData] = useState<FormData>({
     nombre_municipio: '',
     nombre_ayuntamiento: '',
@@ -64,7 +68,7 @@ export default function CrearMunicipioPage() {
         slug: value
           .toLowerCase()
           .normalize('NFD')
-          .replace(/[\u0300-\u036f]/g, '') // quitar tildes
+          .replace(/[\u0300-\u036f]/g, '')
           .replace(/[^a-z0-9\s-]/g, '')
           .replace(/\s+/g, '-')
           .replace(/-+/g, '-'),
@@ -107,37 +111,56 @@ export default function CrearMunicipioPage() {
     setLoading(true)
 
     try {
+      // 1. Subir imágenes (en paralelo)
+      const slug = formData.slug.trim()
+      const uploadPromises = [
+        heroRef.current?.upload(slug) ?? Promise.resolve(null),
+        escudoRef.current?.upload(slug) ?? Promise.resolve(null),
+      ]
+      const [heroUrl, escudoUrl] = await Promise.all(uploadPromises)
+
+      // 2. Crear el municipio
+      const body: Record<string, unknown> = {
+        nombre_municipio: formData.nombre_municipio.trim(),
+        nombre_ayuntamiento: formData.nombre_ayuntamiento.trim(),
+        slug,
+        provincia: formData.provincia.trim(),
+        pais: 'España',
+        tipo_suscripcion: formData.tipo_suscripcion,
+        colores_corporativos: {
+          primary: formData.color_primary,
+          secondary: formData.color_secondary,
+          accent: formData.color_accent,
+          background: '#ffffff',
+          text: '#111827',
+        },
+      }
+
+      if (heroUrl) body.hero_image_url = heroUrl
+      if (escudoUrl) body.escudo_url = escudoUrl
+
       const res = await fetch('/api/admin/municipalities', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          nombre_municipio: formData.nombre_municipio.trim(),
-          nombre_ayuntamiento: formData.nombre_ayuntamiento.trim(),
-          slug: formData.slug.trim(),
-          provincia: formData.provincia.trim(),
-          pais: 'España',
-          tipo_suscripcion: formData.tipo_suscripcion,
-          colores_corporativos: {
-            primary: formData.color_primary,
-            secondary: formData.color_secondary,
-            accent: formData.color_accent,
-            background: '#ffffff',
-            text: '#111827',
-          },
-        }),
+        body: JSON.stringify(body),
       })
 
       if (!res.ok) {
-        const body = await res.json()
-        throw new Error(body.error || 'Error al crear el municipio')
+        const errBody = await res.json()
+        throw new Error(errBody.error || 'Error al crear el municipio')
       }
 
       setSuccess(true)
       setTimeout(() => {
         router.push('/admin/municipios')
-      }, 1500)
+      }, 2000)
     } catch (err) {
-      setSubmitError(err instanceof Error ? err.message : 'Error inesperado')
+      const message = err instanceof Error ? err.message : 'Error inesperado'
+      if (message.startsWith('Error al crear') || message.startsWith('El slug')) {
+        setSubmitError(message)
+      } else {
+        setSubmitError('No se pudo crear el municipio. Revisa los errores indicados en cada campo.')
+      }
     } finally {
       setLoading(false)
     }
@@ -275,6 +298,24 @@ export default function CrearMunicipioPage() {
               <option value="premium">Premium</option>
             </select>
           </div>
+
+          {/* ── Imagen principal (hero) ── */}
+          <ImageUploadField
+            ref={heroRef}
+            label="Imagen principal del municipio"
+            description="Foto de fondo para la landing page (JPEG, PNG, SVG o WebP, máx. 5 MB)"
+            kind="hero"
+            aspect={2.5}
+          />
+
+          {/* ── Escudo institucional ── */}
+          <ImageUploadField
+            ref={escudoRef}
+            label="Escudo del municipio"
+            description="Imagen del escudo oficial (JPEG, PNG, SVG o WebP, máx. 5 MB)"
+            kind="escudo"
+            aspect={1}
+          />
 
           {/* Colores corporativos */}
           <div>

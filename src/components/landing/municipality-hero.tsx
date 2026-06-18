@@ -21,6 +21,7 @@
 
 import Link from 'next/link'
 import { useId } from 'react'
+import { AssetAttribution } from './asset-attribution'
 
 export interface MunicipalityHeroProps {
   nombre_municipio: string
@@ -29,6 +30,13 @@ export interface MunicipalityHeroProps {
   escudo_url: string | null
   descripcion: string | null
   colores_corporativos: Record<string, string>
+  /**
+   * FK a public.municipalities.id. Necesaria para que AssetAttribution
+   * pueda leer la fila de public.municipality_assets y mostrar el crédito
+   * obligatorio CC-BY-SA (cumple el contrato legal de las licencias de
+   * origen en Wikimedia Commons).
+   */
+  municipalityId: string
 }
 
 export function MunicipalityHero({
@@ -38,6 +46,7 @@ export function MunicipalityHero({
   escudo_url,
   descripcion,
   colores_corporativos,
+  municipalityId,
 }: MunicipalityHeroProps) {
   const inicial = nombre_municipio.charAt(0).toUpperCase()
   const primary = colores_corporativos.primary || '#142c19'
@@ -157,6 +166,20 @@ export function MunicipalityHero({
               Accede a tu área →
             </Link>
           </div>
+
+          {/* ── Línea de crédito CC-BY-SA bajo los CTAs ──
+              Solo cuando hay foto (`hero_image_url`) — sin imagen seguimos con
+              fondo verde corporativo plano y la atribución de un asset
+              ausente no aplica. Separada por un border-top sutil para no
+              competir con los CTAs. */}
+          {hero_image_url && (
+            <div className="mt-7 pt-4 border-t border-white/12">
+              <AssetAttribution
+                municipalityId={municipalityId}
+                kind="hero"
+              />
+            </div>
+          )}
         </div>
       </div>
 

@@ -1,15 +1,17 @@
 /**
  * EditMunicipioForm — Client Component de edición de municipio
  *
- * Permite actualizar nombre, ayuntamiento, slug, colores
- * y tipo de suscripción de un municipio existente.
+ * Permite actualizar nombre, ayuntamiento, slug, colores,
+ * tipo de suscripción e imágenes (hero y escudo) de un
+ * municipio existente. Usa ImageUploadField para las imágenes.
  */
 
 'use client'
 
-import { useState } from 'react'
+import { useState, useRef } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
+import { ImageUploadField, type ImageUploadFieldHandle } from '@/components/ui/image-upload-field'
 
 // ---------------------------------------------------------------------------
 // Tipos
@@ -28,6 +30,8 @@ interface MunicipioData {
   }
   tipo_suscripcion: string
   estado_suscripcion: string
+  hero_image_url: string | null
+  escudo_url: string | null
 }
 
 // ---------------------------------------------------------------------------
@@ -36,6 +40,9 @@ interface MunicipioData {
 
 export default function EditMunicipioForm({ municipio }: { municipio: MunicipioData }) {
   const router = useRouter()
+  const heroRef = useRef<ImageUploadFieldHandle>(null)
+  const escudoRef = useRef<ImageUploadFieldHandle>(null)
+
   const [formData, setFormData] = useState({
     nombre_municipio: municipio.nombre_municipio,
     nombre_ayuntamiento: municipio.nombre_ayuntamiento,
@@ -60,22 +67,39 @@ export default function EditMunicipioForm({ municipio }: { municipio: MunicipioD
     setLoading(true)
 
     try {
+      // 1. Subir imágenes (en paralelo)
+      const slug = formData.slug.trim()
+      const uploadPromises = [
+        heroRef.current?.upload(slug) ?? Promise.resolve(null),
+        escudoRef.current?.upload(slug) ?? Promise.resolve(null),
+      ]
+      const [heroUrl, escudoUrl] = await Promise.all(uploadPromises)
+
+      // 2. Obtener estado completo para saber si se quitó alguna
+      const heroState = heroRef.current?.getState()
+      const escudoState = escudoRef.current?.getState()
+
+      // 3. Construir payload
+      const payload: Record<string, unknown> = {
+        nombre_municipio: formData.nombre_municipio.trim(),
+        nombre_ayuntamiento: formData.nombre_ayuntamiento.trim(),
+        slug,
+        tipo_suscripcion: formData.tipo_suscripcion,
+        colores_corporativos: {
+          primary: formData.color_primary,
+          secondary: formData.color_secondary,
+          accent: formData.color_accent,
+          background: '#ffffff',
+          text: '#111827',
+        },
+        hero_image_url: heroState?.removed ? null : (heroUrl ?? null),
+        escudo_url: escudoState?.removed ? null : (escudoUrl ?? null),
+      }
+
       const res = await fetch(`/api/admin/municipalities/${municipio.id}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          nombre_municipio: formData.nombre_municipio.trim(),
-          nombre_ayuntamiento: formData.nombre_ayuntamiento.trim(),
-          slug: formData.slug.trim(),
-          tipo_suscripcion: formData.tipo_suscripcion,
-          colores_corporativos: {
-            primary: formData.color_primary,
-            secondary: formData.color_secondary,
-            accent: formData.color_accent,
-            background: '#ffffff',
-            text: '#111827',
-          },
-        }),
+        body: JSON.stringify(payload),
       })
 
       if (!res.ok) {
@@ -86,7 +110,17 @@ export default function EditMunicipioForm({ municipio }: { municipio: MunicipioD
       setSubmitOk('Municipio actualizado correctamente.')
       router.refresh()
     } catch (err) {
-      setSubmitError(err instanceof Error ? err.message : 'Error inesperado')
+      const message = err instanceof Error ? err.message : 'Error inesperado'
+      if (
+        message.startsWith('Error al actualizar') ||
+        message.startsWith('El slug') ||
+        message.startsWith('Datos inválidos') ||
+        message.startsWith('No se proporcionaron')
+      ) {
+        setSubmitError(message)
+      } else {
+        setSubmitError('No se pudo actualizar el municipio. Revisa los errores indicados en cada campo.')
+      }
     } finally {
       setLoading(false)
     }
@@ -199,6 +233,26 @@ export default function EditMunicipioForm({ municipio }: { municipio: MunicipioD
           <option value="premium">Premium</option>
         </select>
       </div>
+
+      {/* ── Imagen principal (hero) ── */}
+      <ImageUploadField
+        ref={heroRef}
+        label="Imagen principal del municipio"
+        description="Foto de fondo para la landing page (JPEG, PNG, SVG o WebP, máx. 5 MB)"
+        kind="hero"
+        currentUrl={municipio.hero_image_url}
+        aspect={2.5}
+      />
+
+      {/* ── Escudo institucional ── */}
+      <ImageUploadField
+        ref={escudoRef}
+        label="Escudo del municipio"
+        description="Imagen del escudo oficial (JPEG, PNG, SVG o WebP, máx. 5 MB)"
+        kind="escudo"
+        currentUrl={municipio.escudo_url}
+        aspect={1}
+      />
 
       {/* Colores */}
       <div>

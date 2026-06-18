@@ -49,6 +49,8 @@ export default async function EditMunicipioPage({ params }: EditMunicipioPagePro
     },
     tipo_suscripcion: data.tipo_suscripcion as string,
     estado_suscripcion: data.estado_suscripcion as string,
+    hero_image_url: (data.hero_image_url as string) || null,
+    escudo_url: (data.escudo_url as string) || null,
     created_at: data.created_at as string,
   }
 

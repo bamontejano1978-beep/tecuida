@@ -16,7 +16,7 @@
  * Requisitos: 10.5, 13.4
  */
 
-import { createClient } from '@/lib/supabase/server'
+import { createAdminClient, createClient } from '@/lib/supabase/server'
 import { NextResponse } from 'next/server'
 
 export interface AdminUser {
@@ -46,7 +46,11 @@ export async function verifyAdminAccess(): Promise<AdminUser | NextResponse> {
   }
 
   // 2. Verificar rol en public.users
-  const { data: userRow, error: dbError } = await supabase
+  //    Usamos createAdminClient() (service_role_key) para bypasear RLS.
+  //    La política RLS de public.users usa una subconsulta autorreferente
+  //    que causa un deadlock si el usuario aún no tiene fila en la tabla.
+  const adminClient = createAdminClient()
+  const { data: userRow, error: dbError } = await adminClient
     .from('users')
     .select('id, email, nombre, apellidos, rol')
     .eq('id', user.id)

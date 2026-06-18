@@ -32,7 +32,9 @@ const PUBLIC_ASSET_PREFIXES = [
   '/api/admin',
   '/auth',
   '/login',
-  '/register',
+  // '/register' NO está aquí: el registro necesita que el middleware
+  // resuelva el tenant e inyecte x-tenant-slug para que signUp()
+  // sepa a qué municipio asociar al nuevo ciudadano.
 ]
 
 /** Caminos de error — deben saltarse para evitar bucles de redirección */
@@ -123,7 +125,6 @@ function mapRowToConfig(row: Record<string, unknown>): MunicipalityConfig {
  */
 async function resolveTenant(
   slug: string,
-  request: NextRequest,
 ): Promise<MunicipalityConfig | null> {
   // 1. Caché (Redis o memoria)
   const cached = await tenantCache.get(slug)
@@ -136,20 +137,19 @@ async function resolveTenant(
     return demoConfig
   }
 
-  // 3. Base de datos — cliente admin (service_role bypasea RLS)
+  // 3. Base de datos — cliente admin (service_role bypasea RLS).
+  //    IMPORTANTE: adapter no-op para que @supabase/ssr no reemplace
+  //    el service_role_key por el JWT del usuario.
   try {
     const supabase = createServerClient(
       process.env.NEXT_PUBLIC_SUPABASE_URL!,
       process.env.SUPABASE_SERVICE_ROLE_KEY!,
       {
         cookies: {
-          getAll() {
-            return request.cookies.getAll()
-          },
-      // eslint-disable-next-line @typescript-eslint/no-empty-function
-      setAll() {
-        // El cliente admin no necesita persistir sesión
-      },
+          get: () => null,
+          getAll: () => [],
+          // eslint-disable-next-line @typescript-eslint/no-empty-function
+          setAll: () => {},
         },
         auth: {
           autoRefreshToken: false,
@@ -224,7 +224,7 @@ export async function middleware(request: NextRequest) {
   }
 
   // 5. Resolver tenant (caché → DB)
-  const config = await resolveTenant(slug, request)
+  const config = await resolveTenant(slug)
 
   if (!config) {
     return NextResponse.redirect(new URL(`/404?slug=${slug}`, request.url))

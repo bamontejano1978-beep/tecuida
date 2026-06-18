@@ -253,6 +253,13 @@ export interface UpdateMunicipalityAppsDTO {
   application_ids: UUID[]
 }
 
+/** Diferencia entre las apps actuales de un municipio y las de un plan (GET /api/admin/municipalities/[id]/plan?plan_id=) */
+export interface PlanChangeDiff {
+  to_add: string[]
+  to_remove: string[]
+  to_keep: string[]
+}
+
 export interface RegisterCitizenDTO {
   email: string
   password: string

@@ -147,6 +147,7 @@ export async function POST(request: NextRequest): Promise<Response> {
   // que Supabase añada en el futuro se propaguen automáticamente sin
   // drop silencioso. Excluimos solo provider_token + provider_refresh_token
   // por seguridad (son OAuth tokens sensibles).
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const { provider_token: _pt, provider_refresh_token: _prt, ...safeSession } =
     signInData.session
 

@@ -42,6 +42,7 @@ describe('Tipos TypeScript — verificación de estructura', () => {
       dominio: 'calamonte.tecuida.group',
       escudo_url: 'https://example.com/escudo.png',
       logo_url: 'https://example.com/logo.png',
+      hero_image_url: 'https://example.com/hero.jpg',
       colores_corporativos: {
         primary: '#003087',
         secondary: '#0070f3',

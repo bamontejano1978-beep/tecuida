@@ -74,7 +74,7 @@ jest.mock('next/server', () => {
           // Headers no es enumerable con Object.entries — usar iterador
           reqHeaders =
             typeof (raw as Headers).entries === 'function'
-              ? ([...(raw as Headers)] as [string, string][])
+              ? (Array.from(raw as Headers) as [string, string][])
               : (Object.entries(raw as Record<string, string>))
         }
         return makeNextResponse({
@@ -161,6 +161,7 @@ function mockConfig(overrides?: Partial<MunicipalityConfig>): MunicipalityConfig
     dominio: 'calamonte.tecuida.group',
     escudo_url: '',
     logo_url: '',
+    hero_image_url: '',
     colores_corporativos: {
       primary: '#003087',
       secondary: '#0070f3',

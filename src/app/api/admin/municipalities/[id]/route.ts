@@ -132,6 +132,10 @@ export async function PUT(
       updateData.colores_corporativos = updates.colores_corporativos
     if (updates.tipo_suscripcion !== undefined)
       updateData.tipo_suscripcion = updates.tipo_suscripcion
+    if (updates.hero_image_url !== undefined)
+      updateData.hero_image_url = updates.hero_image_url
+    if (updates.escudo_url !== undefined)
+      updateData.escudo_url = updates.escudo_url
 
     if (Object.keys(updateData).length === 0) {
       return NextResponse.json(

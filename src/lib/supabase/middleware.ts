@@ -44,7 +44,7 @@ export async function updateSession(
 ): Promise<{ response: NextResponse; user: User | null }> {
   // Comenzar con una respuesta que pasa la petición sin modificar.
   // Se irán añadiendo cookies de sesión si es necesario.
-  let supabaseResponse = NextResponse.next({
+  const supabaseResponse = NextResponse.next({
     request,
   })
 

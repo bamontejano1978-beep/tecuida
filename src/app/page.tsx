@@ -273,6 +273,7 @@ async function TenantPage({
         escudo_url={tenant.escudo_url}
         descripcion={tenant.textos_institucionales.bienvenida ?? null}
         colores_corporativos={tenant.colores_corporativos}
+        municipalityId={tenant.id}
       />
 
       {/* ── Stats ── */}

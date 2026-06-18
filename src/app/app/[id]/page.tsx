@@ -17,11 +17,11 @@
  * Requisitos: 7.1
  */
 
-import Link from 'next/link'
 import { notFound } from 'next/navigation'
 import { getTenantConfigFromDB, getTenantFromHeaders } from '@/lib/tenant/headers'
 import { createAdminClient, createClient } from '@/lib/supabase/server'
 import ProgramPageClient from './program-page-client'
+import { ApplicationHero } from '@/components/landing/application-hero'
 import type { Program, ProgramModule, Lesson } from '@/types'
 
 // ---------------------------------------------------------------------------
@@ -65,6 +65,8 @@ interface AppRow {
   tipo: string
   nivel_suscripcion: string
   activa: boolean
+  thumbnail_url: string | null
+  categoria: { nombre: string } | null
 }
 
 interface ProgressRow {
@@ -92,7 +94,7 @@ export default async function ProgramPage({ params }: Props) {
 
   const { data: appData, error: appError } = await adminClient
     .from('applications')
-    .select('*')
+    .select('*, categoria:categories (nombre)')
     .eq('id', params.id)
     .single()
 
@@ -209,76 +211,29 @@ export default async function ProgramPage({ params }: Props) {
   // 7. Aplanar lecciones para navegación secuencial
   const allLessons = modules.flatMap((m) => m.lessons)
 
-  // 8. Renderizar
-  return (
-    <div className="min-h-screen bg-gray-50">
-      {/* Breadcrumb */}
-      <div
-        className="border-b"
-        style={{
-          backgroundColor: tenant?.colores_corporativos.primary || '#4f46e5',
-        }}
-      >
-        <div className="mx-auto max-w-7xl px-4 py-3 sm:px-6 lg:px-8">
-          <nav className="flex items-center gap-2 text-sm">
-            <Link
-              href="/"
-              className="text-white/80 hover:text-white transition-colors"
-            >
-              ← Catálogo
-            </Link>
-            <span className="text-white/40">/</span>
-            <span className="text-white font-medium truncate">{app.nombre}</span>
-          </nav>
-        </div>
-      </div>
+  // 8. Computar progreso agregado para el hero (null si el usuario anónimo no ha empezado)
+  const progress =
+    completedLessonIds.length > 0
+      ? {
+          percent: Math.round((completedLessonIds.length / allLessons.length) * 100),
+          completed: completedLessonIds.length,
+          total: allLessons.length,
+        }
+      : null
 
-      {/* Cabecera del programa */}
-      <div className="bg-white border-b border-gray-200">
-        <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
-          <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
-            <div>
-              <h1 className="text-2xl font-bold text-gray-900 sm:text-3xl">
-                {program.nombre}
-              </h1>
-              <p className="mt-2 text-gray-600 max-w-2xl">
-                {program.descripcion}
-              </p>
-              <div className="mt-3 flex flex-wrap items-center gap-3 text-sm text-gray-500">
-                <span className="inline-flex items-center gap-1">
-                  <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M9 12h3.75M9 15h3.75M9 18h3.75m3 .75H18a2.25 2.25 0 0 0 2.25-2.25V6.108c0-1.135-.845-2.098-1.976-2.192a48.424 48.424 0 0 0-1.123-.08m-5.801 0c-.065.21-.1.433-.1.664 0 .414.336.75.75.75h4.5a.75.75 0 0 0 .75-.75 2.25 2.25 0 0 0-.1-.664m-5.8 0A2.251 2.251 0 0 1 13.5 2.25H15a2.25 2.25 0 0 1 2.15 1.586m-5.8 0c-.376.023-.75.05-1.124.08C9.095 4.01 8.25 4.973 8.25 6.108V8.25m0 0H4.875c-.621 0-1.125.504-1.125 1.125v11.25c0 .621.504 1.125 1.125 1.125h9.75c.621 0 1.125-.504 1.125-1.125V9.375c0-.621-.504-1.125-1.125-1.125H8.25ZM6.75 12h.008v.008H6.75V12Zm0 3h.008v.008H6.75V15Zm0 3h.008v.008H6.75V18Z" />
-                  </svg>
-                  {modules.length} módulos
-                </span>
-                <span>·</span>
-                <span>{allLessons.length} lecciones</span>
-                <span>·</span>
-                <span>{program.total_sesiones} sesiones</span>
-              </div>
-            </div>
-            {/* Progreso global */}
-            {completedLessonIds.length > 0 && (
-              <div className="shrink-0 flex items-center gap-3 bg-emerald-50 rounded-lg px-4 py-3 border border-emerald-200">
-                <div className="text-center">
-                  <p className="text-2xl font-bold text-emerald-700">
-                    {Math.round(
-                      (completedLessonIds.length / allLessons.length) * 100,
-                    )}
-                    %
-                  </p>
-                  <p className="text-xs text-emerald-600">
-                    {completedLessonIds.length}/{allLessons.length}
-                  </p>
-                </div>
-                <div className="text-xs text-emerald-600">
-                  Completado
-                </div>
-              </div>
-            )}
-          </div>
-        </div>
-      </div>
+  // 9. Renderizar
+  return (
+    <div id="lecciones" className="min-h-screen bg-gray-50">
+      {/* Hero rediseñado (mismo lenguaje visual que MunicipalityHero) */}
+      <ApplicationHero
+        nombre={app.nombre}
+        descripcion={app.descripcion}
+        tipo={app.tipo as 'programa' | 'herramienta' | 'encuesta' | 'recurso'}
+        nivel={app.nivel_suscripcion as 'basico' | 'estandar' | 'premium'}
+        thumbnail_url={app.thumbnail_url ?? null}
+        categoria_nombre={app.categoria?.nombre ?? null}
+        progress={progress}
+      />
 
       {/* Cuerpo: sidebar + visor */}
       <ProgramPageClient
