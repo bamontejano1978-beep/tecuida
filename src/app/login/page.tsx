@@ -13,16 +13,25 @@
 import { signIn } from '@/lib/actions/auth'
 import type { AuthResult } from '@/lib/actions/auth'
 import Link from 'next/link'
-import { useSearchParams } from 'next/navigation'
+import { useRouter, useSearchParams } from 'next/navigation'
+import { useEffect } from 'react'
 import { useFormState } from 'react-dom'
 import { Suspense } from 'react'
 
 const initialState: AuthResult = { success: false }
 
 function LoginForm() {
+  const router = useRouter()
   const searchParams = useSearchParams()
   const redirectTo = searchParams.get('redirect') || ''
   const [state, formAction] = useFormState(signIn, initialState)
+
+  // Redirigir desde el cliente cuando login es exitoso
+  useEffect(() => {
+    if (state?.success && state?.redirectTo) {
+      router.push(state.redirectTo)
+    }
+  }, [state, router])
 
   return (
     <>

@@ -13,12 +13,22 @@
 import { signUp } from '@/lib/actions/auth'
 import type { AuthResult } from '@/lib/actions/auth'
 import Link from 'next/link'
+import { useRouter } from 'next/navigation'
+import { useEffect } from 'react'
 import { useFormState } from 'react-dom'
 
 const initialState: AuthResult = { success: false }
 
 export default function RegisterPage() {
+  const router = useRouter()
   const [state, formAction] = useFormState(signUp, initialState)
+
+  // Redirigir desde el cliente cuando registro es exitoso
+  useEffect(() => {
+    if (state?.success && state?.redirectTo) {
+      router.push(state.redirectTo)
+    }
+  }, [state, router])
 
   return (
     <>
