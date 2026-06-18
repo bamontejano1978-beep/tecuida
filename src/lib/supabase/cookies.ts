@@ -21,7 +21,7 @@ export type SupabaseCookieOptions = Record<string, unknown>
 
 /**
  * Devuelve un objeto con solo los campos soportados por
- * NextResponse.cookies.set, normalizando `expires` a Unix seconds.
+ * NextResponse.cookies.set, normalizando `expires` a Date.
  */
 export function pickSupportedCookieOptions(
   options: SupabaseCookieOptions,
@@ -29,21 +29,21 @@ export function pickSupportedCookieOptions(
   path?: string
   domain?: string
   maxAge?: number
-  expires?: number
+  expires?: Date
   httpOnly?: boolean
   secure?: boolean
   sameSite?: 'strict' | 'lax' | 'none'
 } {
-  let expires: number | undefined
+  let expires: Date | undefined
   if (typeof options.expires === 'number') {
-    expires = options.expires
+    expires = new Date(options.expires * 1000)
   } else if (options.expires instanceof Date) {
-    expires = Math.floor(options.expires.getTime() / 1000)
+    expires = options.expires
   } else if (
     typeof options.expires === 'string' &&
     !Number.isNaN(Date.parse(options.expires))
   ) {
-    expires = Math.floor(new Date(options.expires).getTime() / 1000)
+    expires = new Date(options.expires)
   }
 
   return {
