@@ -14,7 +14,6 @@ import { signIn } from '@/lib/actions/auth'
 import type { AuthResult } from '@/lib/actions/auth'
 import Link from 'next/link'
 import { useSearchParams } from 'next/navigation'
-import { useEffect } from 'react'
 import { useFormState } from 'react-dom'
 import { Suspense } from 'react'
 
@@ -24,16 +23,6 @@ function LoginForm() {
   const searchParams = useSearchParams()
   const redirectTo = searchParams.get('redirect') || ''
   const [state, formAction] = useFormState(signIn, initialState)
-
-  // Redirigir desde el cliente cuando login es exitoso.
-  // window.location.href fuerza recarga completa, necesaria para
-  // que el navegador envíe las cookies de sesión recién establecidas
-  // por la Server Action (router.push() = SPA suave no las envía).
-  useEffect(() => {
-    if (state?.success && state?.redirectTo) {
-      window.location.href = state.redirectTo
-    }
-  }, [state])
 
   return (
     <>

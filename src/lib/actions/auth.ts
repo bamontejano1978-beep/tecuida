@@ -48,8 +48,6 @@ export interface AuthResult {
   error?: string
   /** Cuando el email no está confirmado, success es false pero damos feedback */
   emailNotConfirmed?: boolean
-  /** URL a la que redirigir tras éxito (el cliente hace router.push) */
-  redirectTo?: string
 }
 
 // ---------------------------------------------------------------------------
@@ -207,10 +205,8 @@ export async function signIn(
   // Determinar la URL de redirección:
   //   1. Si hay ?redirect= válido en el form, usarlo
   //   2. Si no, ir a /dashboard por defecto
-  // NOTA: no usamos redirect() aquí porque useFormState no lo propaga
-  // al navegador. Devolvemos redirectTo para que el cliente haga router.push().
   const redirectTo = getValidRedirect(formData.get('redirect'))
-  return { success: true, redirectTo }
+  redirect(redirectTo)
 }
 
 // ---------------------------------------------------------------------------
@@ -293,10 +289,10 @@ export async function signUp(
     }
 
     const redirectTo = getValidRedirect(formData.get('redirect'))
-    return { success: true, redirectTo }
+    redirect(redirectTo)
   }
 
-  return { success: true, redirectTo: '/register/confirmation' }
+  redirect('/register/confirmation')
 }
 
 // ---------------------------------------------------------------------------
