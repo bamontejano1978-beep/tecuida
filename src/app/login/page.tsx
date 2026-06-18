@@ -1,9 +1,8 @@
 /**
  * Página de inicio de sesión — TE CUIDA
  *
- * Client Component con Server Action (signIn).
- * Lee el query param `?redirect=` (inyectado por el middleware)
- * y lo pasa al Server Action para redirigir tras login exitoso.
+ * Client Component con Server Action plana (sin useFormState).
+ * Los errores se pasan como query params (?error=...) en la URL.
  *
  * Requisitos: 5.1
  */
@@ -11,18 +10,29 @@
 'use client'
 
 import { signIn } from '@/lib/actions/auth'
-import type { AuthResult } from '@/lib/actions/auth'
 import Link from 'next/link'
 import { useSearchParams } from 'next/navigation'
-import { useFormState } from 'react-dom'
+import { useFormStatus } from 'react-dom'
 import { Suspense } from 'react'
 
-const initialState: AuthResult = { success: false }
+function SubmitButton() {
+  const { pending } = useFormStatus()
+  return (
+    <button
+      type="submit"
+      disabled={pending}
+      className="w-full flex justify-center rounded-md bg-indigo-600 px-4 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+    >
+      {pending ? 'Iniciando sesión…' : 'Iniciar sesión'}
+    </button>
+  )
+}
 
 function LoginForm() {
   const searchParams = useSearchParams()
   const redirectTo = searchParams.get('redirect') || ''
-  const [state, formAction] = useFormState(signIn, initialState)
+  const error = searchParams.get('error')
+  const emailNotConfirmed = searchParams.get('emailNotConfirmed') === '1'
 
   return (
     <>
@@ -41,7 +51,7 @@ function LoginForm() {
       </div>
 
       {/* Formulario */}
-      <form action={formAction} className="mt-8 space-y-6">
+      <form action={signIn} className="mt-8 space-y-6">
         {/* Campo oculto: URL a la que redirigir tras login exitoso */}
         {redirectTo && (
           <input type="hidden" name="redirect" value={redirectTo} />
@@ -88,14 +98,14 @@ function LoginForm() {
         </div>
 
         {/* Mensaje de error */}
-        {state?.error && !state?.emailNotConfirmed && (
+        {error && !emailNotConfirmed && (
           <div className="rounded-md bg-red-50 p-3">
-            <p className="text-sm text-red-700">{state.error}</p>
+            <p className="text-sm text-red-700">{error}</p>
           </div>
         )}
 
         {/* Email no confirmado */}
-        {state?.emailNotConfirmed && (
+        {emailNotConfirmed && (
           <div className="rounded-md bg-yellow-50 p-3">
             <p className="text-sm text-yellow-700">
               Debes confirmar tu correo electrónico. Revisa tu bandeja de
@@ -105,12 +115,7 @@ function LoginForm() {
         )}
 
         {/* Submit */}
-        <button
-          type="submit"
-          className="w-full flex justify-center rounded-md bg-indigo-600 px-4 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600 transition-colors"
-        >
-          Iniciar sesión
-        </button>
+        <SubmitButton />
 
         {/* Enlace a registro */}
         <p className="text-center text-sm text-gray-500">

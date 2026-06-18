@@ -40,17 +40,6 @@ const signUpSchema = z.object({
 })
 
 // ---------------------------------------------------------------------------
-// Tipos de resultado
-// ---------------------------------------------------------------------------
-
-export interface AuthResult {
-  success: boolean
-  error?: string
-  /** Cuando el email no está confirmado, success es false pero damos feedback */
-  emailNotConfirmed?: boolean
-}
-
-// ---------------------------------------------------------------------------
 // Helpers
 // ---------------------------------------------------------------------------
 
@@ -161,23 +150,23 @@ function getValidRedirect(raw: FormDataEntryValue | null): string {
 }
 
 // ---------------------------------------------------------------------------
-// signIn — Iniciar sesión
+// signIn — Iniciar sesión (plain Server Action, sin useFormState)
 // ---------------------------------------------------------------------------
+//
+// Usamos una Server Action plana con <form action={signIn}> en vez de
+// useFormState. Esto es más fiable en Next.js 14: redirect() navega
+// directamente al navegador sin la capa intermedia de useFormState.
+// Los errores se pasan como query params (?error=...) en la URL.
 
-export async function signIn(
-  _prevState: AuthResult,
-  formData: FormData,
-): Promise<AuthResult> {
+export async function signIn(formData: FormData): Promise<void> {
   const parsed = signInSchema.safeParse({
     email: formData.get('email'),
     password: formData.get('password'),
   })
 
   if (!parsed.success) {
-    return {
-      success: false,
-      error: parsed.error.errors[0]?.message || 'Datos inválidos',
-    }
+    const msg = parsed.error.errors[0]?.message || 'Datos inválidos'
+    redirect(`/login?error=${encodeURIComponent(msg)}`)
   }
 
   const supabase = createClient()
@@ -188,18 +177,13 @@ export async function signIn(
   })
 
   if (error) {
-    // Traducir errores comunes de Supabase a mensajes amigables
     if (error.message.includes('Invalid login credentials')) {
-      return { success: false, error: 'Correo o contraseña incorrectos' }
+      redirect('/login?error=' + encodeURIComponent('Correo o contraseña incorrectos'))
     }
     if (error.message.includes('Email not confirmed')) {
-      return {
-        success: false,
-        emailNotConfirmed: true,
-        error: 'Debes confirmar tu correo electrónico antes de iniciar sesión',
-      }
+      redirect('/login?error=' + encodeURIComponent('Debes confirmar tu correo electrónico antes de iniciar sesión') + '&emailNotConfirmed=1')
     }
-    return { success: false, error: error.message }
+    redirect('/login?error=' + encodeURIComponent(error.message))
   }
 
   // Determinar la URL de redirección:
@@ -210,19 +194,13 @@ export async function signIn(
 }
 
 // ---------------------------------------------------------------------------
-// signUp — Registrar nuevo ciudadano
+// signUp — Registrar nuevo ciudadano (plain Server Action, sin useFormState)
 // ---------------------------------------------------------------------------
 
-export async function signUp(
-  _prevState: AuthResult,
-  formData: FormData,
-): Promise<AuthResult> {
+export async function signUp(formData: FormData): Promise<void> {
   const slug = getTenantSlug()
   if (!slug) {
-    return {
-      success: false,
-      error: 'No se pudo identificar el municipio. Contacta con soporte.',
-    }
+    redirect('/register?error=' + encodeURIComponent('No se pudo identificar el municipio. Contacta con soporte.'))
   }
 
   const parsed = signUpSchema.safeParse({
@@ -235,10 +213,8 @@ export async function signUp(
   })
 
   if (!parsed.success) {
-    return {
-      success: false,
-      error: parsed.error.errors[0]?.message || 'Datos inválidos',
-    }
+    const msg = parsed.error.errors[0]?.message || 'Datos inválidos'
+    redirect(`/register?error=${encodeURIComponent(msg)}`)
   }
 
   const supabase = createClient()
@@ -247,10 +223,8 @@ export async function signUp(
     email: parsed.data.email,
     password: parsed.data.password,
     options: {
-      // El callback de PKCE donde Supabase enviará el código
       emailRedirectTo: getCallbackUrl(),
       data: {
-        // Metadatos que el callback usará para insertar en public.users
         municipality_slug: slug,
         nombre: parsed.data.nombre,
         apellidos: parsed.data.apellidos,
@@ -262,30 +236,22 @@ export async function signUp(
 
   if (error) {
     if (error.message.includes('already registered')) {
-      return {
-        success: false,
-        error: 'Ya existe una cuenta con este correo electrónico',
-      }
+      redirect('/register?error=' + encodeURIComponent('Ya existe una cuenta con este correo electrónico'))
     }
-    return { success: false, error: error.message }
+    redirect('/register?error=' + encodeURIComponent(error.message))
   }
 
   // Si Supabase no requiere confirmación de email, el usuario ya
   // tiene sesión. Insertar en public.users y redirigir al dashboard.
-  // Si requiere confirmación, redirigir a la página de verificación
-  // (el callback /auth/callback insertará en public.users entonces).
   const {
     data: { user },
   } = await supabase.auth.getUser()
 
   if (user?.aud === 'authenticated') {
-    // El usuario ya tiene sesión → crear fila en public.users ahora
-    // (sin esperar al callback, que solo se invoca en email verification/OAuth)
     try {
       await ensurePublicUser(user.id, slug, parsed.data.email, parsed.data)
     } catch (err) {
       console.error('[signUp] Error creando public.users:', err)
-      // No bloqueamos el registro: el callback lo reintentará si falla aquí
     }
 
     const redirectTo = getValidRedirect(formData.get('redirect'))

@@ -1,9 +1,9 @@
 /**
  * Página de registro de ciudadano — TE CUIDA
  *
- * Client Component con Server Action (signUp).
- * El tenant se resuelve automáticamente desde el subdominio
- * y se inyecta en la Server Action vía x-tenant-slug header.
+ * Client Component con Server Action plana (sin useFormState).
+ * El tenant se resuelve desde el subdominio y se inyecta en la
+ * Server Action vía x-tenant-slug header.
  *
  * Requisitos: 11.5, 12.1, 12.2
  */
@@ -11,20 +11,32 @@
 'use client'
 
 import { signUp } from '@/lib/actions/auth'
-import type { AuthResult } from '@/lib/actions/auth'
 import Link from 'next/link'
-import { useFormState } from 'react-dom'
+import { useSearchParams } from 'next/navigation'
+import { useFormStatus } from 'react-dom'
+import { Suspense } from 'react'
 
-const initialState: AuthResult = { success: false }
+function SubmitButton() {
+  const { pending } = useFormStatus()
+  return (
+    <button
+      type="submit"
+      disabled={pending}
+      className="w-full flex justify-center rounded-md bg-indigo-600 px-4 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+    >
+      {pending ? 'Creando cuenta…' : 'Crear cuenta'}
+    </button>
+  )
+}
 
-export default function RegisterPage() {
-  const [state, formAction] = useFormState(signUp, initialState)
+function RegisterForm() {
+  const searchParams = useSearchParams()
+  const error = searchParams.get('error')
 
   return (
     <>
       {/* Header institucional */}
       <div className="text-center">
-
         <h1 className="text-3xl font-bold tracking-tight text-gray-900">
           TE CUIDA
         </h1>
@@ -38,7 +50,7 @@ export default function RegisterPage() {
       </div>
 
       {/* Formulario */}
-      <form action={formAction} className="mt-8 space-y-6">
+      <form action={signUp} className="mt-8 space-y-6">
         <div className="space-y-4">
           {/* Nombre */}
           <div>
@@ -155,19 +167,14 @@ export default function RegisterPage() {
         </div>
 
         {/* Mensaje de error */}
-        {state?.error && (
+        {error && (
           <div className="rounded-md bg-red-50 p-3">
-            <p className="text-sm text-red-700">{state.error}</p>
+            <p className="text-sm text-red-700">{error}</p>
           </div>
         )}
 
         {/* Submit */}
-        <button
-          type="submit"
-          className="w-full flex justify-center rounded-md bg-indigo-600 px-4 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600 transition-colors"
-        >
-          Crear cuenta
-        </button>
+        <SubmitButton />
 
         {/* Enlace a login */}
         <p className="text-center text-sm text-gray-500">
@@ -181,5 +188,13 @@ export default function RegisterPage() {
         </p>
       </form>
     </>
+  )
+}
+
+export default function RegisterPage() {
+  return (
+    <Suspense fallback={<div className="min-h-screen" />}>
+      <RegisterForm />
+    </Suspense>
   )
 }
