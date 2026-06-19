@@ -47,6 +47,17 @@ export const CreateApplicationSchema = z.object({
         'El tipo debe ser programa, herramienta, encuesta o recurso',
     }),
   }),
+  instrucciones: z
+    .string()
+    .max(5000, 'Las instrucciones no pueden superar los 5000 caracteres')
+    .optional()
+    .or(z.literal('').transform(() => undefined)),
+  url_acceso: z
+    .string()
+    .url('La URL de acceso debe ser una URL válida')
+    .max(500, 'La URL no puede superar los 500 caracteres')
+    .optional()
+    .or(z.literal('').transform(() => undefined)),
   activa: z.boolean().default(true),
 })
 

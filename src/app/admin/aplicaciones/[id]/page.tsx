@@ -81,6 +81,8 @@ export default async function EditApplicationPage({
             | 'herramienta'
             | 'encuesta'
             | 'recurso',
+          instrucciones: (app.instrucciones as string) || null,
+          url_acceso: (app.url_acceso as string) || null,
           activa: app.activa as boolean,
         }}
         categories={categoriesList}

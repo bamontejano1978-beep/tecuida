@@ -22,6 +22,7 @@ import { getTenantConfigFromDB, getTenantFromHeaders } from '@/lib/tenant/header
 import { createAdminClient, createClient } from '@/lib/supabase/server'
 import ProgramPageClient from './program-page-client'
 import { ApplicationHero } from '@/components/landing/application-hero'
+import GenericAppLanding from '@/components/landing/generic-app-landing'
 import type { Program, ProgramModule, Lesson } from '@/types'
 
 // ---------------------------------------------------------------------------
@@ -65,6 +66,8 @@ interface AppRow {
   tipo: string
   activa: boolean
   thumbnail_url: string | null
+  instrucciones: string | null
+  url_acceso: string | null
   categoria: { nombre: string } | null
 }
 
@@ -103,7 +106,23 @@ export default async function ProgramPage({ params }: Props) {
 
   const app = appData as unknown as AppRow
 
-  // 3. Obtener el programa asociado a la aplicación
+  // 3. Si NO es un programa, renderizar landing genérica
+  if (app.tipo !== 'programa') {
+    return (
+      <div className="min-h-screen bg-gray-50">
+        <GenericAppLanding
+          nombre={app.nombre}
+          descripcion={app.descripcion}
+          tipo={app.tipo}
+          instrucciones={app.instrucciones}
+          url_acceso={app.url_acceso}
+          categoria_nombre={app.categoria?.nombre ?? null}
+        />
+      </div>
+    )
+  }
+
+  // 4. Obtener el programa asociado a la aplicación
   const { data: programData, error: progError } = await adminClient
     .from('programs')
     .select('*')

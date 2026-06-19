@@ -143,6 +143,10 @@ export async function PUT(
     if (updates.thumbnail_url !== undefined)
       updateData.thumbnail_url = updates.thumbnail_url
     if (updates.tipo !== undefined) updateData.tipo = updates.tipo
+    if (updates.instrucciones !== undefined)
+      updateData.instrucciones = updates.instrucciones
+    if (updates.url_acceso !== undefined)
+      updateData.url_acceso = updates.url_acceso
     if (updates.activa !== undefined) updateData.activa = updates.activa
 
     if (Object.keys(updateData).length === 0) {

@@ -32,6 +32,8 @@ interface ApplicationData {
   category_id: string
   thumbnail_url: string
   tipo: 'programa' | 'herramienta' | 'encuesta' | 'recurso'
+  instrucciones: string | null
+  url_acceso: string | null
   activa: boolean
 }
 
@@ -53,6 +55,8 @@ export default function EditApplicationForm({
     category_id: application.category_id,
     thumbnail_url: application.thumbnail_url,
     tipo: application.tipo,
+    instrucciones: application.instrucciones || '',
+    url_acceso: application.url_acceso || '',
     activa: application.activa,
   })
   const [submitError, setSubmitError] = useState<string | null>(null)
@@ -85,6 +89,8 @@ export default function EditApplicationForm({
             // '' → undefined → API rule ?? null → null en BD
             thumbnail_url: formData.thumbnail_url.trim() || undefined,
             tipo: formData.tipo,
+            instrucciones: formData.instrucciones.trim() || undefined,
+            url_acceso: formData.url_acceso.trim() || undefined,
             activa: formData.activa,
           }),
         },
@@ -255,6 +261,46 @@ export default function EditApplicationForm({
           <option value="encuesta">Encuesta</option>
           <option value="recurso">Recurso</option>
         </select>
+      </div>
+
+      {/* Landing: instrucciones + enlace */}
+      <div className="rounded-lg bg-gray-50 border border-gray-200 p-4 space-y-4">
+        <p className="text-sm font-medium text-gray-700">
+          🌐 Landing de la aplicación
+        </p>
+        <p className="text-xs text-gray-400 -mt-2">
+          Estos campos se muestran en la página pública de la aplicación.
+        </p>
+
+        <div>
+          <label htmlFor="instrucciones" className="block text-sm font-medium text-gray-700">
+            Instrucciones de uso y descarga{' '}
+            <span className="text-xs font-normal text-gray-400">(opcional)</span>
+          </label>
+          <textarea
+            id="instrucciones"
+            rows={4}
+            value={formData.instrucciones}
+            onChange={(e) => updateField('instrucciones', e.target.value)}
+            className="mt-1 block w-full rounded-lg border border-gray-300 px-3 py-2 text-sm shadow-sm focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 outline-none resize-none"
+            placeholder="Instrucciones de uso y descarga..."
+          />
+        </div>
+
+        <div>
+          <label htmlFor="url_acceso" className="block text-sm font-medium text-gray-700">
+            Enlace a la aplicación web{' '}
+            <span className="text-xs font-normal text-gray-400">(opcional)</span>
+          </label>
+          <input
+            id="url_acceso"
+            type="url"
+            value={formData.url_acceso}
+            onChange={(e) => updateField('url_acceso', e.target.value)}
+            className="mt-1 block w-full rounded-lg border border-gray-300 px-3 py-2 text-sm shadow-sm focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 outline-none font-mono"
+            placeholder="https://..."
+          />
+        </div>
       </div>
 
       {/* Thumbnail URL */}
