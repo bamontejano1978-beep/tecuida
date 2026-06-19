@@ -23,7 +23,6 @@ interface FormData {
   nombre_ayuntamiento: string
   slug: string
   provincia: string
-  tipo_suscripcion: string
   color_primary: string
   color_secondary: string
   color_accent: string
@@ -48,7 +47,6 @@ export default function CrearMunicipioPage() {
     nombre_ayuntamiento: '',
     slug: '',
     provincia: '',
-    tipo_suscripcion: 'basico',
     color_primary: '#1e40af',
     color_secondary: '#3b82f6',
     color_accent: '#f59e0b',
@@ -126,7 +124,6 @@ export default function CrearMunicipioPage() {
         slug,
         provincia: formData.provincia.trim(),
         pais: 'España',
-        tipo_suscripcion: formData.tipo_suscripcion,
         colores_corporativos: {
           primary: formData.color_primary,
           secondary: formData.color_secondary,
@@ -282,21 +279,22 @@ export default function CrearMunicipioPage() {
             </div>
           </div>
 
-          {/* Tipo de suscripción */}
+          {/* Provincia */}
           <div>
-            <label htmlFor="tipo_suscripcion" className="block text-sm font-medium text-gray-700">
-              Tipo de suscripción
+            <label htmlFor="provincia" className="block text-sm font-medium text-gray-700">
+              Provincia *
             </label>
-            <select
-              id="tipo_suscripcion"
-              value={formData.tipo_suscripcion}
-              onChange={(e) => updateField('tipo_suscripcion', e.target.value)}
+            <input
+              id="provincia"
+              type="text"
+              value={formData.provincia}
+              onChange={(e) => updateField('provincia', e.target.value)}
               className="mt-1 block w-full rounded-lg border border-gray-300 px-3 py-2 text-sm shadow-sm focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 outline-none"
-            >
-              <option value="basico">Básico</option>
-              <option value="estandar">Estándar</option>
-              <option value="premium">Premium</option>
-            </select>
+              placeholder="Ej: Badajoz"
+            />
+            {getFieldError('provincia') && (
+              <p className="mt-1 text-xs text-red-600">{getFieldError('provincia')}</p>
+            )}
           </div>
 
           {/* ── Imagen principal (hero) ── */}

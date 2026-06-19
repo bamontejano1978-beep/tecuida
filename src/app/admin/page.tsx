@@ -23,6 +23,7 @@ async function getDashboardStats() {
   const { data: municipalities, error: munError } = await supabase
     .from('municipalities')
     .select('id, estado_suscripcion')
+    .eq('oculto_admin', false)
 
   if (munError) {
     console.error('[Admin Dashboard] municipalities:', munError.message)
@@ -138,7 +139,7 @@ export default async function AdminDashboardPage() {
       ) : (
         <>
           {/* Stats grid */}
-          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
             <StatCard
               label="Municipios totales"
               value={stats.totalMunicipios}
@@ -149,11 +150,6 @@ export default async function AdminDashboardPage() {
               label="Municipios activos"
               value={stats.activos}
               color="emerald"
-            />
-            <StatCard
-              label="En periodo de prueba"
-              value={stats.enPrueba}
-              color="amber"
             />
             <StatCard
               label="Suspendidos"

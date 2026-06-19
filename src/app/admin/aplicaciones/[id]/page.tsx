@@ -81,10 +81,6 @@ export default async function EditApplicationPage({
             | 'herramienta'
             | 'encuesta'
             | 'recurso',
-          nivel_suscripcion: app.nivel_suscripcion as
-            | 'basico'
-            | 'estandar'
-            | 'premium',
           activa: app.activa as boolean,
         }}
         categories={categoriesList}

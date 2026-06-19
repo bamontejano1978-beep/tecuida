@@ -29,11 +29,10 @@ export function getTenantFromHeaders(): MunicipalityConfig | null {
   const slug = headersList.get('x-tenant-slug')
   const nombre = headersList.get('x-tenant-name')
   const dominio = headersList.get('x-tenant-domain')
-  const tipo = headersList.get('x-tenant-subscription-type')
   const estado = headersList.get('x-tenant-subscription-status')
 
   // Todos los campos son requeridos
-  if (!id || !slug || !nombre || !dominio || !tipo || !estado) {
+  if (!id || !slug || !nombre || !dominio || !estado) {
     return null
   }
 
@@ -50,7 +49,6 @@ export function getTenantFromHeaders(): MunicipalityConfig | null {
     imagenes_municipio: [],
     textos_institucionales: DEFAULT_TEXTS,
     modulos_activos: [],
-    tipo_suscripcion: tipo as MunicipalityConfig['tipo_suscripcion'],
     estado_suscripcion: estado as MunicipalityConfig['estado_suscripcion'],
   }
 }
@@ -102,7 +100,6 @@ export async function getTenantConfigFromDB(
     imagenes_municipio: (data.imagenes_municipio as string[]) || [],
     textos_institucionales: (data.textos_institucionales as InstitutionalTexts),
     modulos_activos: (data.modulos_activos as string[]) || [],
-    tipo_suscripcion: data.tipo_suscripcion as MunicipalityConfig['tipo_suscripcion'],
     estado_suscripcion: data.estado_suscripcion as MunicipalityConfig['estado_suscripcion'],
   }
 

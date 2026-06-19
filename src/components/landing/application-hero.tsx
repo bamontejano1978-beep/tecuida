@@ -29,7 +29,6 @@ import { useId } from 'react'
 // ---------------------------------------------------------------------------
 
 export type ApplicationTipo = 'programa' | 'herramienta' | 'encuesta' | 'recurso'
-export type ApplicationNivel = 'basico' | 'estandar' | 'premium'
 
 export interface ApplicationHeroProgress {
   percent: number
@@ -41,7 +40,6 @@ export interface ApplicationHeroProps {
   nombre: string
   descripcion: string | null
   tipo: ApplicationTipo
-  nivel: ApplicationNivel
   thumbnail_url: string | null
   categoria_nombre: string | null
   /** Progreso del usuario autenticado. Si es null/undefined, no se muestra. */
@@ -54,30 +52,18 @@ export interface ApplicationHeroProps {
 // Subcomponentes locales — minimal, sin estado
 // ---------------------------------------------------------------------------
 
-const TIER_LABELS: Record<ApplicationNivel, string> = {
-  basico: 'Básico',
-  estandar: 'Estándar',
-  premium: 'Premium',
-}
-
-/**
- * Estilos de la pill de nivel:
- *   - basico: neutro (mismo look que el pill de nombre_ayuntamiento del hero municipal)
- *   - estandar: azul tenue
- *   - premium: gradient dorado para destacar (mismo dorado que el sello)
- */
-const TIER_PILL_CLASS: Record<ApplicationNivel, string> = {
-  basico: 'border border-white/30 bg-white/10 text-white',
-  estandar: 'border border-[#60a5fa]/45 bg-[#3b82f6]/20 text-[#bfdbfe]',
-  premium:
-    'border border-[#f4d884]/45 bg-gradient-to-br from-[#e4aa45]/30 to-[#bd7c25]/20 text-[#f4d884]',
-}
-
 const TIPO_LABELS: Record<ApplicationTipo, string> = {
   programa: 'Programa',
   herramienta: 'Herramienta',
   encuesta: 'Encuesta',
   recurso: 'Recurso',
+}
+
+const TIPO_PILL_CLASS: Record<string, string> = {
+  programa: 'border border-white/30 bg-white/10 text-white',
+  herramienta: 'border border-[#60a5fa]/45 bg-[#3b82f6]/20 text-[#bfdbfe]',
+  encuesta: 'border border-[#f4d884]/45 bg-gradient-to-br from-[#e4aa45]/30 to-[#bd7c25]/20 text-[#f4d884]',
+  recurso: 'border border-[#a78bfa]/45 bg-[#7c3aed]/20 text-[#c4b5fd]',
 }
 
 // ---------------------------------------------------------------------------
@@ -88,7 +74,6 @@ export function ApplicationHero({
   nombre,
   descripcion,
   tipo,
-  nivel,
   thumbnail_url,
   categoria_nombre,
   progress,
@@ -106,17 +91,9 @@ export function ApplicationHero({
     const VALID_TIPOS: readonly ApplicationTipo[] = [
       'programa', 'herramienta', 'encuesta', 'recurso',
     ]
-    const VALID_NIVELES: readonly ApplicationNivel[] = [
-      'basico', 'estandar', 'premium',
-    ]
     if (!VALID_TIPOS.includes(tipo)) {
       console.warn(
         `[ApplicationHero] Invalid tipo="${tipo}" — expected one of ${VALID_TIPOS.join(', ')}. Verifica applications.tipo.`,
-      )
-    }
-    if (!VALID_NIVELES.includes(nivel)) {
-      console.warn(
-        `[ApplicationHero] Invalid nivel="${nivel}" — expected one of ${VALID_NIVELES.join(', ')}. Verifica applications.nivel_suscripcion.`,
       )
     }
   }
@@ -193,7 +170,7 @@ export function ApplicationHero({
       {/* ── Contenido principal ── */}
       <div className="relative z-10 mx-auto w-full max-w-[1180px] px-[clamp(22px,5vw,70px)] pb-[clamp(90px,12vw,140px)] pt-[clamp(110px,14vw,180px)]">
         <div className="animate-fade-in-up">
-          {/* Sello + pills de tipo + nivel */}
+          {/* Sello + pill de tipo */}
           <div className="mb-7 flex flex-wrap items-center gap-3.5">
             <div
               aria-hidden="true"
@@ -204,14 +181,9 @@ export function ApplicationHero({
                 {inicial}
               </span>
             </div>
-            <span className="inline-flex items-center gap-2 rounded-full border border-white/30 bg-white/10 px-4 py-1.5 text-[11px] font-extrabold uppercase tracking-[.22em] backdrop-blur-md">
+            <span className={`inline-flex items-center gap-2 rounded-full px-4 py-1.5 text-[11px] font-extrabold uppercase tracking-[.22em] backdrop-blur-md ${TIPO_PILL_CLASS[tipo] || TIPO_PILL_CLASS.programa}`}>
               <span className="block h-1.5 w-1.5 rounded-full bg-[#e4aa45]" />
               {TIPO_LABELS[tipo] || tipo}
-            </span>
-            <span
-              className={`inline-flex items-center gap-2 rounded-full px-4 py-1.5 text-[11px] font-extrabold uppercase tracking-[.22em] backdrop-blur-md ${TIER_PILL_CLASS[nivel]}`}
-            >
-              {TIER_LABELS[nivel]}
             </span>
           </div>
 

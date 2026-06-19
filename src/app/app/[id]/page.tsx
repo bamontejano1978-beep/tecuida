@@ -63,7 +63,6 @@ interface AppRow {
   nombre: string
   descripcion: string | null
   tipo: string
-  nivel_suscripcion: string
   activa: boolean
   thumbnail_url: string | null
   categoria: { nombre: string } | null
@@ -229,7 +228,6 @@ export default async function ProgramPage({ params }: Props) {
         nombre={app.nombre}
         descripcion={app.descripcion}
         tipo={app.tipo as 'programa' | 'herramienta' | 'encuesta' | 'recurso'}
-        nivel={app.nivel_suscripcion as 'basico' | 'estandar' | 'premium'}
         thumbnail_url={app.thumbnail_url ?? null}
         categoria_nombre={app.categoria?.nombre ?? null}
         progress={progress}

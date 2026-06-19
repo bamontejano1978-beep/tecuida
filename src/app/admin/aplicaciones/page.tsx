@@ -27,7 +27,6 @@ interface ApplicationRow {
   category_id: string
   thumbnail_url: string | null
   tipo: string
-  nivel_suscripcion: string
   activa: boolean
 }
 
@@ -40,12 +39,6 @@ const tipoLabels: Record<string, string> = {
   herramienta: 'Herramienta',
   encuesta: 'Encuesta',
   recurso: 'Recurso',
-}
-
-const nivelLabels: Record<string, string> = {
-  basico: 'Básico',
-  estandar: 'Estándar',
-  premium: 'Premium',
 }
 
 // ---------------------------------------------------------------------------
@@ -259,9 +252,6 @@ export default async function AplicacionesPage({
                     Tipo
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">
-                    Nivel
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">
                     Estado
                   </th>
                   <th className="px-6 py-3 text-right text-xs font-semibold text-gray-500 uppercase tracking-wider">
@@ -290,12 +280,6 @@ export default async function AplicacionesPage({
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700">
                       {tipoLabels[app.tipo] ?? app.tipo}
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <span className="inline-flex items-center rounded-full bg-indigo-50 px-2 py-0.5 text-xs font-medium text-indigo-700">
-                        {nivelLabels[app.nivel_suscripcion] ??
-                          app.nivel_suscripcion}
-                      </span>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
                       <span

@@ -27,7 +27,6 @@ function createApp(overrides: Partial<Application> = {}): Application {
     categoria_id: '11111111-0000-0000-0000-000000000001',
     thumbnail_url: '',
     tipo: 'programa',
-    nivel: 'basico',
     activa: true,
     ...overrides,
   }
@@ -71,24 +70,26 @@ describe('ApplicationCard', () => {
     expect(link).toHaveAttribute('href', '/app/bbbbbbbb-0000-0000-0000-000000000002')
   })
 
-  // ─── Niveles (tier badges) ────────────────────────────────────
+  // ─── Badges de tipo ────────────────────────────────────────
 
   it.each([
-    ['basico', 'Básico'],
-    ['estandar', 'Estándar'],
-    ['premium', 'Premium'],
-  ] as const)('muestra el badge de nivel "%s" como "%s"', (nivel, expectedLabel) => {
-    const app = createApp({ nivel })
+    ['programa', 'Programa'],
+    ['herramienta', 'Herramienta'],
+    ['encuesta', 'Encuesta'],
+    ['recurso', 'Recurso'],
+  ] as const)('muestra el badge de tipo "%s" como "%s"', (tipo, expectedLabel) => {
+    const app = createApp({ tipo })
     render(<ApplicationCard application={app} />)
 
-    expect(screen.getByText(expectedLabel)).toBeInTheDocument()
+    // Hay 2 elementos con el mismo texto (badge + type label)
+    expect(screen.getAllByText(expectedLabel).length).toBeGreaterThanOrEqual(1)
   })
 
-  it('usa fallback "Básico" para un nivel desconocido', () => {
-    const app = createApp({ nivel: 'enterprise' as Application['nivel'] })
+  it('usa fallback "Programa" para un tipo desconocido', () => {
+    const app = createApp({ tipo: 'otro' as Application['tipo'] })
     render(<ApplicationCard application={app} />)
 
-    expect(screen.getByText('Básico')).toBeInTheDocument()
+    expect(screen.getByText('Programa')).toBeInTheDocument()
   })
 
   // ─── Tipos de aplicación ──────────────────────────────────────
@@ -102,7 +103,8 @@ describe('ApplicationCard', () => {
     const app = createApp({ tipo })
     const { container } = render(<ApplicationCard application={app} />)
 
-    expect(screen.getByText(expectedLabel)).toBeInTheDocument()
+    // Hay 2 elementos con el mismo texto (badge + type label)
+    expect(screen.getAllByText(expectedLabel).length).toBeGreaterThanOrEqual(1)
     // Verificar que el icono SVG se renderiza dentro del contenedor de icono
     const iconContainer = container.querySelector('.h-10.w-10')
     expect(iconContainer).toBeInTheDocument()
@@ -145,20 +147,18 @@ describe('ApplicationCard', () => {
 
   // ─── Varios elementos en la misma card ────────────────────────
 
-  it('renderiza todos los elementos simultáneamente en una herramienta premium', () => {
+  it('renderiza todos los elementos simultáneamente en una herramienta', () => {
     const app = createApp({
       id: 'cccccccc-0000-0000-0000-000000000003',
       nombre: 'Alimentación equilibrada',
       descripcion: 'Planes de alimentación y recetas saludables.',
       tipo: 'herramienta',
-      nivel: 'premium',
     })
     render(<ApplicationCard application={app} categoryName="Salud comunitaria" />)
 
     expect(screen.getByRole('heading', { name: 'Alimentación equilibrada' })).toBeInTheDocument()
     expect(screen.getByText('Planes de alimentación y recetas saludables.')).toBeInTheDocument()
-    expect(screen.getByText('Herramienta')).toBeInTheDocument()
-    expect(screen.getByText('Premium')).toBeInTheDocument()
+    expect(screen.getAllByText('Herramienta')).toHaveLength(2)
     expect(screen.getByText('Salud comunitaria')).toBeInTheDocument()
     expect(screen.getByText('Acceder →')).toBeInTheDocument()
 

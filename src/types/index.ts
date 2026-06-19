@@ -12,10 +12,9 @@
 export type UUID = string
 
 // ---------------------------------------------------------------------------
-// Suscripciones
+// Estado del municipio
 // ---------------------------------------------------------------------------
 
-export type SubscriptionType = 'basico' | 'estandar' | 'premium'
 export type SubscriptionStatus = 'activa' | 'suspendida' | 'cancelada' | 'prueba'
 
 // ---------------------------------------------------------------------------
@@ -63,7 +62,6 @@ export interface MunicipalityConfig {
   imagenes_municipio: string[]
   textos_institucionales: InstitutionalTexts
   modulos_activos: string[]
-  tipo_suscripcion: SubscriptionType
   estado_suscripcion: SubscriptionStatus
 }
 
@@ -126,7 +124,6 @@ export interface Application {
   categoria_id: UUID
   thumbnail_url: string
   tipo: ApplicationType
-  nivel: 'basico' | 'estandar' | 'premium'
   activa: boolean
 }
 
@@ -243,7 +240,6 @@ export interface CreateMunicipalityDTO {
   slug: string
   provincia: string
   pais: string
-  tipo_suscripcion: SubscriptionType
   colores_corporativos: CorporateColors
 }
 
@@ -251,13 +247,6 @@ export interface UpdateMunicipalityAppsDTO {
   municipality_id: UUID
   /** Lista de IDs de aplicaciones a activar/desactivar para el municipio */
   application_ids: UUID[]
-}
-
-/** Diferencia entre las apps actuales de un municipio y las de un plan (GET /api/admin/municipalities/[id]/plan?plan_id=) */
-export interface PlanChangeDiff {
-  to_add: string[]
-  to_remove: string[]
-  to_keep: string[]
 }
 
 export interface RegisterCitizenDTO {

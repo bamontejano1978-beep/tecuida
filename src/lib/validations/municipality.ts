@@ -39,9 +39,6 @@ export const CreateMunicipalitySchema = z.object({
     ),
   provincia: z.string().min(1, 'La provincia no puede estar vacía'),
   pais: z.string().min(1, 'El país no puede estar vacío').default('España'),
-  tipo_suscripcion: z.enum(['basico', 'estandar', 'premium'], {
-    errorMap: () => ({ message: 'El tipo de suscripción debe ser basico, estandar o premium' }),
-  }),
   colores_corporativos: corporateColorsSchema,
   hero_image_url: z.string().url('La URL de la imagen principal debe ser una URL válida').nullable().optional(),
   escudo_url: z.string().url('La URL del escudo debe ser una URL válida').nullable().optional(),

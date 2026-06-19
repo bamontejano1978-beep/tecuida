@@ -16,7 +16,6 @@ export const APPLICATION_TYPES = [
   'encuesta',
   'recurso',
 ] as const
-export const APPLICATION_LEVELS = ['basico', 'estandar', 'premium'] as const
 
 /**
  * Esquema de validación para crear una nueva aplicación en el catálogo.
@@ -46,11 +45,6 @@ export const CreateApplicationSchema = z.object({
     errorMap: () => ({
       message:
         'El tipo debe ser programa, herramienta, encuesta o recurso',
-    }),
-  }),
-  nivel_suscripcion: z.enum(APPLICATION_LEVELS, {
-    errorMap: () => ({
-      message: 'El nivel debe ser basico, estandar o premium',
     }),
   }),
   activa: z.boolean().default(true),

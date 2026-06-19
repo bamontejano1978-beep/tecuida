@@ -28,7 +28,6 @@ interface MunicipioData {
     secondary: string
     accent: string
   }
-  tipo_suscripcion: string
   estado_suscripcion: string
   hero_image_url: string | null
   escudo_url: string | null
@@ -47,7 +46,6 @@ export default function EditMunicipioForm({ municipio }: { municipio: MunicipioD
     nombre_municipio: municipio.nombre_municipio,
     nombre_ayuntamiento: municipio.nombre_ayuntamiento,
     slug: municipio.slug,
-    tipo_suscripcion: municipio.tipo_suscripcion,
     color_primary: municipio.colores_corporativos.primary,
     color_secondary: municipio.colores_corporativos.secondary,
     color_accent: municipio.colores_corporativos.accent,
@@ -84,7 +82,6 @@ export default function EditMunicipioForm({ municipio }: { municipio: MunicipioD
         nombre_municipio: formData.nombre_municipio.trim(),
         nombre_ayuntamiento: formData.nombre_ayuntamiento.trim(),
         slug,
-        tipo_suscripcion: formData.tipo_suscripcion,
         colores_corporativos: {
           primary: formData.color_primary,
           secondary: formData.color_secondary,
@@ -215,23 +212,6 @@ export default function EditMunicipioForm({ municipio }: { municipio: MunicipioD
         <p className="mt-1 text-xs text-gray-400">
           Dominio: {formData.slug}.tecuida.group
         </p>
-      </div>
-
-      {/* Suscripción */}
-      <div>
-        <label htmlFor="tipo_suscripcion" className="block text-sm font-medium text-gray-700">
-          Tipo de suscripción
-        </label>
-        <select
-          id="tipo_suscripcion"
-          value={formData.tipo_suscripcion}
-          onChange={(e) => updateField('tipo_suscripcion', e.target.value)}
-          className="mt-1 block w-full rounded-lg border border-gray-300 px-3 py-2 text-sm shadow-sm focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 outline-none"
-        >
-          <option value="basico">Básico</option>
-          <option value="estandar">Estándar</option>
-          <option value="premium">Premium</option>
-        </select>
       </div>
 
       {/* ── Imagen principal (hero) ── */}

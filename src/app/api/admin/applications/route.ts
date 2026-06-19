@@ -144,7 +144,6 @@ export async function POST(request: Request) {
         // '' o undefined → null en BD (campo documentado como opcional)
         thumbnail_url: dto.thumbnail_url ?? null,
         tipo: dto.tipo,
-        nivel_suscripcion: dto.nivel_suscripcion,
         activa: dto.activa ?? true,
       })
       .select()

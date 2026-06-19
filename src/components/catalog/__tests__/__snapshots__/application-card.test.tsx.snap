@@ -9,9 +9,9 @@ exports[`ApplicationCard coincide con el snapshot (estructura estable) 1`] = `
     class="absolute top-3 right-3"
   >
     <span
-      class="inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium bg-gray-100 text-gray-600"
+      class="inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium bg-emerald-100 text-emerald-700"
     >
-      Básico
+      Programa
     </span>
   </div>
   <div

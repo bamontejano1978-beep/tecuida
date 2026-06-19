@@ -58,9 +58,10 @@ const typeColors: Record<ApplicationType, string> = {
 }
 
 const tierBadges: Record<string, { label: string; className: string }> = {
-  basico: { label: 'Básico', className: 'bg-gray-100 text-gray-600' },
-  estandar: { label: 'Estándar', className: 'bg-blue-100 text-blue-700' },
-  premium: { label: 'Premium', className: 'bg-amber-100 text-amber-800' },
+  programa: { label: 'Programa', className: 'bg-emerald-100 text-emerald-700' },
+  herramienta: { label: 'Herramienta', className: 'bg-sky-100 text-sky-700' },
+  encuesta: { label: 'Encuesta', className: 'bg-amber-100 text-amber-800' },
+  recurso: { label: 'Recurso', className: 'bg-violet-100 text-violet-700' },
 }
 
 // ---------------------------------------------------------------------------
@@ -84,7 +85,7 @@ export default function ApplicationCard({
   const icon = typeIcons[application.tipo] || typeIcons.programa
   const typeLabel = typeLabels[application.tipo] || application.tipo
   const typeColor = typeColors[application.tipo] || typeColors.programa
-  const tier = tierBadges[application.nivel] || tierBadges.basico
+  const tier = tierBadges[application.tipo] || tierBadges.programa
 
   return (
     <Link

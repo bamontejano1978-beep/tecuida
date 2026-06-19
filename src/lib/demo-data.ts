@@ -42,7 +42,6 @@ export function getDemoTenant(slug: string): MunicipalityConfig {
     imagenes_municipio: [],
     textos_institucionales: texts,
     modulos_activos: ['catalog', 'mindfulness'],
-    tipo_suscripcion: 'premium',
     estado_suscripcion: 'activa',
   }
 }
@@ -60,7 +59,6 @@ export interface DemoAppRow {
     descripcion: string
     thumbnail_url: string | null
     tipo: string
-    nivel_suscripcion: string
     activa: boolean
   } | null
 }
@@ -88,7 +86,6 @@ export const DEMO_APPS: DemoAppRow[] = [
         'Programa de mindfulness de 30 días con meditaciones guiadas, ejercicios de respiración y técnicas de gestión del estrés.',
       thumbnail_url: null,
       tipo: 'programa',
-      nivel_suscripcion: 'estandar',
       activa: true,
     },
   },
@@ -102,7 +99,6 @@ export const DEMO_APPS: DemoAppRow[] = [
         'Herramientas prácticas para identificar y manejar el estrés diario. Incluye tests de autoevaluación y planes personalizados.',
       thumbnail_url: null,
       tipo: 'herramienta',
-      nivel_suscripcion: 'basico',
       activa: true,
     },
   },
@@ -116,7 +112,6 @@ export const DEMO_APPS: DemoAppRow[] = [
         'Rutinas de ejercicio adaptadas a todos los niveles. Sin necesidad de equipamiento especial.',
       thumbnail_url: null,
       tipo: 'programa',
-      nivel_suscripcion: 'basico',
       activa: true,
     },
   },
@@ -130,7 +125,6 @@ export const DEMO_APPS: DemoAppRow[] = [
         'Guías de alimentación equilibrada, recetas saludables y planificación de menús semanales.',
       thumbnail_url: null,
       tipo: 'recurso',
-      nivel_suscripcion: 'estandar',
       activa: true,
     },
   },
@@ -144,7 +138,6 @@ export const DEMO_APPS: DemoAppRow[] = [
         'Recursos para mejorar la comunicación familiar, gestión de conflictos y crianza positiva.',
       thumbnail_url: null,
       tipo: 'programa',
-      nivel_suscripcion: 'premium',
       activa: true,
     },
   },
@@ -158,7 +151,6 @@ export const DEMO_APPS: DemoAppRow[] = [
         'Programa interactivo para fortalecer la autoestima y la confianza personal a través de ejercicios prácticos.',
       thumbnail_url: null,
       tipo: 'programa',
-      nivel_suscripcion: 'premium',
       activa: true,
     },
   },
@@ -172,7 +164,6 @@ export const DEMO_APPS: DemoAppRow[] = [
         'Técnicas cognitivo-conductuales para el manejo de la ansiedad. Incluye diario emocional y seguimiento.',
       thumbnail_url: null,
       tipo: 'herramienta',
-      nivel_suscripcion: 'estandar',
       activa: true,
     },
   },
@@ -186,7 +177,6 @@ export const DEMO_APPS: DemoAppRow[] = [
         'Evaluación integral de tu estado de bienestar físico y emocional. Recibe recomendaciones personalizadas.',
       thumbnail_url: null,
       tipo: 'encuesta',
-      nivel_suscripcion: 'basico',
       activa: true,
     },
   },

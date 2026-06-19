@@ -110,7 +110,6 @@ function mapRowToConfig(row: Record<string, unknown>): MunicipalityConfig {
     imagenes_municipio: (row.imagenes_municipio as string[]) || [],
     textos_institucionales: (row.textos_institucionales as InstitutionalTexts),
     modulos_activos: (row.modulos_activos as string[]) || [],
-    tipo_suscripcion: row.tipo_suscripcion as MunicipalityConfig['tipo_suscripcion'],
     estado_suscripcion: row.estado_suscripcion as MunicipalityConfig['estado_suscripcion'],
   }
 }
@@ -186,10 +185,24 @@ async function resolveTenant(
 export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl
 
-  // 1. Refrescar sesión de Supabase (cookies de auth)
-  //    updateSession ahora devuelve el usuario para evitar una
-  //    llamada duplicada a getUser() en el paso 3.
-  const { response: supabaseResponse, user } = await updateSession(request)
+  // 0. Saltar updateSession en POST /login y POST /register.
+  //    Son Server Actions de autenticación que establecen cookies
+  //    de sesión NUEVAS. Si el middleware ejecuta getUser() antes,
+  //    @supabase/ssr escribe cookies vacías (no hay sesión aún) en
+  //    la respuesta, y Next.js 14 las mergea con las cookies que
+  //    la Server Action intenta establecer → conflicto → el navegador
+  //    recibe cookies inconsistentes y no persiste la sesión.
+  const isAuthAction =
+    request.method === 'POST' &&
+    (pathname === '/login' || pathname === '/register' ||
+     pathname === '/api/auth/login' || pathname === '/api/auth/register')
+
+  // 1. Refrescar sesión de Supabase (cookies de auth).
+  //    updateSession devuelve el usuario para evitar una llamada
+  //    duplicada a getUser() en el paso 3.
+  const { response: supabaseResponse, user } = isAuthAction
+    ? { response: NextResponse.next({ request }), user: null }
+    : await updateSession(request)
 
   // 2. Los assets públicos y las páginas de error no necesitan tenant.
   //    Las páginas de error deben excluirse para evitar un bucle infinito:
@@ -249,10 +262,7 @@ export async function middleware(request: NextRequest) {
   requestHeaders.set('x-tenant-slug', config.slug)
   requestHeaders.set('x-tenant-name', config.nombre_municipio)
   requestHeaders.set('x-tenant-domain', config.dominio)
-  requestHeaders.set('x-tenant-subscription-type', config.tipo_suscripcion)
   requestHeaders.set('x-tenant-subscription-status', config.estado_suscripcion)
-  requestHeaders.set('x-tenant-primary', config.colores_corporativos.primary)
-  requestHeaders.set('x-tenant-secondary', config.colores_corporativos.secondary)
   requestHeaders.set('x-tenant-accent', config.colores_corporativos.accent)
   requestHeaders.set('x-tenant-text', config.colores_corporativos.text)
 

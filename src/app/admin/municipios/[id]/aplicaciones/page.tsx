@@ -32,7 +32,6 @@ interface AppRow {
   nombre: string
   descripcion: string
   tipo: string
-  nivel_suscripcion: string
   activa: boolean
 }
 
@@ -72,7 +71,7 @@ export default async function ManageAppsPage({ params }: ManageAppsPageProps) {
   // Todas las apps del catálogo
   const { data: apps } = await supabase
     .from('applications')
-    .select('id, category_id, nombre, descripcion, tipo, nivel_suscripcion, activa')
+    .select('id, category_id, nombre, descripcion, tipo, activa')
     .eq('activa', true)
     .order('nombre')
 

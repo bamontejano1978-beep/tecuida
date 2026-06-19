@@ -30,7 +30,6 @@ interface AppRow {
     descripcion: string
     thumbnail_url: string | null
     tipo: string
-    nivel_suscripcion: string
     activa: boolean
   } | null
 }
@@ -225,7 +224,6 @@ async function TenantPage({
     descripcion: string
     thumbnail_url: string
     tipo: 'programa' | 'herramienta' | 'encuesta' | 'recurso'
-    nivel: 'basico' | 'estandar' | 'premium'
     activa: boolean
   }[]
   categoriesWithCounts: { id: string; nombre: string; count: number }[]
@@ -507,7 +505,6 @@ export default async function HomePage() {
           descripcion,
           thumbnail_url,
           tipo,
-          nivel_suscripcion,
           activa
         )`,
       )
@@ -570,7 +567,6 @@ export default async function HomePage() {
           descripcion: a.application!.descripcion,
           thumbnail_url: a.application!.thumbnail_url || '',
           tipo: a.application!.tipo as 'programa' | 'herramienta' | 'encuesta' | 'recurso',
-          nivel: a.application!.nivel_suscripcion as 'basico' | 'estandar' | 'premium',
           activa: a.application!.activa,
         }))}
       categoriesWithCounts={categoriesWithCounts}

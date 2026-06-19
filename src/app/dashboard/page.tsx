@@ -52,7 +52,6 @@ interface ActiveAppRow {
     descripcion: string
     thumbnail_url: string | null
     tipo: string
-    nivel_suscripcion: string
   } | null
 }
 
@@ -108,8 +107,7 @@ export default async function DashboardPage() {
           nombre,
           descripcion,
           thumbnail_url,
-          tipo,
-          nivel_suscripcion
+          tipo
         )
       `,
       )

@@ -18,7 +18,6 @@ interface AppRow {
   nombre: string
   descripcion: string
   tipo: string
-  nivel_suscripcion: string
 }
 
 interface CategoryWithApps {
@@ -32,9 +31,10 @@ interface CategoryWithApps {
 // ---------------------------------------------------------------------------
 
 const tierBadge: Record<string, string> = {
-  basico: 'bg-gray-100 text-gray-600',
-  estandar: 'bg-blue-100 text-blue-700',
-  premium: 'bg-amber-100 text-amber-800',
+  programa: 'bg-indigo-100 text-indigo-700',
+  herramienta: 'bg-blue-100 text-blue-700',
+  encuesta: 'bg-amber-100 text-amber-800',
+  recurso: 'bg-emerald-100 text-emerald-700',
 }
 
 export default function ManageAppsForm({
@@ -156,10 +156,10 @@ export default function ManageAppsForm({
                     <p className="text-sm font-medium text-gray-900">{app.nombre}</p>
                     <span
                       className={`inline-flex items-center rounded-full px-1.5 py-0 text-xs font-medium ${
-                        tierBadge[app.nivel_suscripcion] || tierBadge.basico
+                        tierBadge[app.tipo] || tierBadge.programa
                       }`}
                     >
-                      {app.nivel_suscripcion}
+                      {app.tipo}
                     </span>
                   </div>
                   <p className="mt-0.5 text-xs text-gray-500 line-clamp-2">

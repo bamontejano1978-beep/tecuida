@@ -130,8 +130,6 @@ export async function PUT(
     }
     if (updates.colores_corporativos !== undefined)
       updateData.colores_corporativos = updates.colores_corporativos
-    if (updates.tipo_suscripcion !== undefined)
-      updateData.tipo_suscripcion = updates.tipo_suscripcion
     if (updates.hero_image_url !== undefined)
       updateData.hero_image_url = updates.hero_image_url
     if (updates.escudo_url !== undefined)

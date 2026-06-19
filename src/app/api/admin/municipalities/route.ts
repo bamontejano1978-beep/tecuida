@@ -124,7 +124,6 @@ export async function POST(request: Request) {
         descripcion: `Portal de salud y bienestar del municipio de ${dto.nombre_municipio}`,
         pie_pagina: `© ${dto.nombre_ayuntamiento} — TE CUIDA`,
       },
-      tipo_suscripcion: dto.tipo_suscripcion,
     }
 
     // Imágenes opcionales subidas por el admin (evita dependencia de búsquedas externas)

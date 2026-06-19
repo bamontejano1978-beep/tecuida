@@ -13,7 +13,6 @@ import {
 import type {
   MunicipalityConfig,
   CorporateColors,
-  SubscriptionType,
   SubscriptionStatus,
   ProgramProgressSummary,
   AdminDashboardStats,
@@ -57,11 +56,9 @@ describe('Tipos TypeScript — verificación de estructura', () => {
         pie_pagina: 'Pie de página',
       },
       modulos_activos: [],
-      tipo_suscripcion: 'basico',
       estado_suscripcion: 'activa',
     }
     expect(config.dominio).toBe('calamonte.tecuida.group')
-    expect(config.tipo_suscripcion).toBe('basico')
     expect(config.estado_suscripcion).toBe('activa')
   })
 
@@ -130,12 +127,7 @@ describe('Errores de dominio', () => {
   })
 })
 
-describe('SubscriptionType y SubscriptionStatus — valores válidos', () => {
-  it('SubscriptionType acepta los tres niveles de suscripción', () => {
-    const types: SubscriptionType[] = ['basico', 'estandar', 'premium']
-    expect(types).toHaveLength(3)
-  })
-
+describe('SubscriptionStatus — valores válidos', () => {
   it('SubscriptionStatus acepta los cuatro estados de suscripción', () => {
     const statuses: SubscriptionStatus[] = ['activa', 'suspendida', 'cancelada', 'prueba']
     expect(statuses).toHaveLength(4)

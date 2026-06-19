@@ -65,7 +65,6 @@ export async function GET(
           descripcion,
           thumbnail_url,
           tipo,
-          nivel_suscripcion,
           activa
         )
       `,

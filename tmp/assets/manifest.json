@@ -1,0 +1,219 @@
+{
+  "schema_version": 1,
+  "generated_at": "2026-06-16T20:03:46.157Z",
+  "dry_run": true,
+  "bucket_target": "municipalities",
+  "usp_policy": "TeCuidaBot/1.0 (https://tecuida.group; admin@tecuida.group) scripts/discover-municipality-assets",
+  "notice": "Assets descargados a ./tmp/assets/<slug>/{hero,escudo}.{ext}. Supabase Storage NO se tocó. NO se escribió en BD. Este manifest es input para la migración 021.",
+  "stats": {
+    "heroes_found": 7,
+    "escudos_found": 5,
+    "total": 7
+  },
+  "assets": [
+    {
+      "slug": "calamonte",
+      "article_title": "Calamonte",
+      "hero": {
+        "slug": "calamonte",
+        "kind": "hero",
+        "local_path": "calamonte/hero.jpg",
+        "source_url": "https://upload.wikimedia.org/wikipedia/commons/1/14/Calamonte_07_by-dpc.jpg",
+        "author": "David Perez",
+        "license": "CC BY 4.0",
+        "attribution_line": "David Perez, CC BY 4.0, vía Wikimedia Commons",
+        "fetched_at": "2026-06-16T20:02:40.948Z",
+        "resolved_from": "commons_search",
+        "status": "downloaded"
+      },
+      "escudo": {
+        "slug": "calamonte",
+        "kind": "escudo",
+        "local_path": "calamonte/escudo.svg",
+        "source_url": "https://upload.wikimedia.org/wikipedia/commons/3/39/Escudo_de_Calamonte.svg",
+        "author": "SanchoPanzaXXI",
+        "license": "CC BY-SA 4.0",
+        "attribution_line": "SanchoPanzaXXI, CC BY-SA 4.0, vía Wikimedia Commons",
+        "fetched_at": "2026-06-16T20:02:42.674Z",
+        "resolved_from": "commons_filename",
+        "status": "downloaded"
+      },
+      "warnings": [
+        "REST summary sin pageimage/originalimage. Fallback a Commons search.",
+        "Hero descubierto vía Commons search (REST summary devolvió bandera o falló)."
+      ]
+    },
+    {
+      "slug": "fuente-del-maestre",
+      "article_title": "Fuente del Maestre",
+      "hero": {
+        "slug": "fuente-del-maestre",
+        "kind": "hero",
+        "local_path": "fuente-del-maestre/hero.jpg",
+        "source_url": "https://upload.wikimedia.org/wikipedia/commons/2/28/Panoramica_la_fuente.jpg",
+        "author": "",
+        "license": "CC BY-SA 3.0",
+        "attribution_line": "Imagen, CC BY-SA 3.0, vía Wikimedia Commons",
+        "fetched_at": "2026-06-16T20:02:46.511Z",
+        "resolved_from": "commons_search",
+        "status": "downloaded"
+      },
+      "escudo": {
+        "slug": "fuente-del-maestre",
+        "kind": "escudo",
+        "local_path": "fuente-del-maestre/escudo.svg",
+        "source_url": "https://upload.wikimedia.org/wikipedia/commons/0/01/Escudo_de_Fuente_del_Maestre.svg",
+        "author": "SanchoPanzaXXI",
+        "license": "CC BY-SA 4.0",
+        "attribution_line": "SanchoPanzaXXI, CC BY-SA 4.0, vía Wikimedia Commons",
+        "fetched_at": "2026-06-16T20:02:48.284Z",
+        "resolved_from": "commons_filename",
+        "status": "downloaded"
+      },
+      "warnings": [
+        "REST summary sin pageimage/originalimage. Fallback a Commons search.",
+        "Hero descubierto vía Commons search (REST summary devolvió bandera o falló)."
+      ]
+    },
+    {
+      "slug": "jerez-de-los-caballeros",
+      "article_title": "Jerez de los Caballeros",
+      "hero": {
+        "slug": "jerez-de-los-caballeros",
+        "kind": "hero",
+        "local_path": "jerez-de-los-caballeros/hero.jpg",
+        "source_url": "https://upload.wikimedia.org/wikipedia/commons/f/f7/Iglesia_de_San_Juan_de_los_Caballeros%2C_Jerez_de_la_Frontera%2C_Espa%C3%B1a%2C_2015-12-07%2C_DD_30-32_HDR.JPG",
+        "author": "Diego Delso",
+        "license": "CC BY-SA 4.0",
+        "attribution_line": "Diego Delso, CC BY-SA 4.0, vía Wikimedia Commons",
+        "fetched_at": "2026-06-16T20:02:53.327Z",
+        "resolved_from": "commons_search",
+        "status": "downloaded"
+      },
+      "escudo": null,
+      "warnings": [
+        "REST summary sin pageimage/originalimage. Fallback a Commons search.",
+        "Hero descubierto vía Commons search (REST summary devolvió bandera o falló).",
+        "Escudo no encontrado en categoría ni por nombre canónico."
+      ]
+    },
+    {
+      "slug": "llerena",
+      "article_title": "Llerena",
+      "hero": {
+        "slug": "llerena",
+        "kind": "hero",
+        "local_path": "llerena/hero.jpg",
+        "source_url": "https://upload.wikimedia.org/wikipedia/commons/a/a8/Llerena_-_005_%2830617160551%29.jpg",
+        "author": "Luis Rogelio HM",
+        "license": "CC BY-SA 2.0",
+        "attribution_line": "Luis Rogelio HM, CC BY-SA 2.0, vía Wikimedia Commons",
+        "fetched_at": "2026-06-16T20:03:09.617Z",
+        "resolved_from": "commons_search",
+        "status": "downloaded"
+      },
+      "escudo": {
+        "slug": "llerena",
+        "kind": "escudo",
+        "local_path": "llerena/escudo.svg",
+        "source_url": "https://upload.wikimedia.org/wikipedia/commons/e/e6/Escudo_de_Llerena.svg",
+        "author": "Gonzalo 11789",
+        "license": "CC BY 4.0",
+        "attribution_line": "Gonzalo 11789, CC BY 4.0, vía Wikimedia Commons",
+        "fetched_at": "2026-06-16T20:03:11.357Z",
+        "resolved_from": "commons_filename",
+        "status": "downloaded"
+      },
+      "warnings": [
+        "REST summary sin pageimage/originalimage. Fallback a Commons search.",
+        "Hero descubierto vía Commons search (REST summary devolvió bandera o falló)."
+      ]
+    },
+    {
+      "slug": "los-santos-de-maimona",
+      "article_title": "Los Santos de Maimona",
+      "hero": {
+        "slug": "los-santos-de-maimona",
+        "kind": "hero",
+        "local_path": "los-santos-de-maimona/hero.jpg",
+        "source_url": "https://upload.wikimedia.org/wikipedia/commons/c/c9/Los_Santos_de_Maimona_%28old_photo%29.jpg",
+        "author": "author unknown",
+        "license": "Public domain",
+        "attribution_line": "author unknown, Public domain, vía Wikimedia Commons",
+        "fetched_at": "2026-06-16T20:03:15.319Z",
+        "resolved_from": "commons_search",
+        "status": "downloaded"
+      },
+      "escudo": {
+        "slug": "los-santos-de-maimona",
+        "kind": "escudo",
+        "local_path": "los-santos-de-maimona/escudo.png",
+        "source_url": "https://upload.wikimedia.org/wikipedia/commons/e/e0/Escudo_de_Los_Santos_de_Maimona.png",
+        "author": "Mojasa76",
+        "license": "CC0",
+        "attribution_line": "Mojasa76, CC0, vía Wikimedia Commons",
+        "fetched_at": "2026-06-16T20:03:18.461Z",
+        "resolved_from": "commons_filename",
+        "status": "downloaded"
+      },
+      "warnings": [
+        "REST summary sin pageimage/originalimage. Fallback a Commons search.",
+        "Hero descubierto vía Commons search (REST summary devolvió bandera o falló)."
+      ]
+    },
+    {
+      "slug": "villafranca-de-los-barros",
+      "article_title": "Villafranca de los Barros",
+      "hero": {
+        "slug": "villafranca-de-los-barros",
+        "kind": "hero",
+        "local_path": "villafranca-de-los-barros/hero.jpg",
+        "source_url": "https://upload.wikimedia.org/wikipedia/commons/b/bb/Villafranca_de_los_Barros_aerial.jpg",
+        "author": "kallerna",
+        "license": "CC BY-SA 4.0",
+        "attribution_line": "kallerna, CC BY-SA 4.0, vía Wikimedia Commons",
+        "fetched_at": "2026-06-16T20:03:22.822Z",
+        "resolved_from": "commons_search",
+        "status": "downloaded"
+      },
+      "escudo": null,
+      "warnings": [
+        "REST summary sin pageimage/originalimage. Fallback a Commons search.",
+        "Hero descubierto vía Commons search (REST summary devolvió bandera o falló).",
+        "Escudo no encontrado en categoría ni por nombre canónico."
+      ]
+    },
+    {
+      "slug": "zafra",
+      "article_title": "Zafra",
+      "hero": {
+        "slug": "zafra",
+        "kind": "hero",
+        "local_path": "zafra/hero.jpg",
+        "source_url": "https://upload.wikimedia.org/wikipedia/commons/6/6b/Zafra_obesula_01.jpg",
+        "author": "H. Zell",
+        "license": "CC BY-SA 3.0",
+        "attribution_line": "H. Zell, CC BY-SA 3.0, vía Wikimedia Commons",
+        "fetched_at": "2026-06-16T20:03:39.934Z",
+        "resolved_from": "commons_search",
+        "status": "downloaded"
+      },
+      "escudo": {
+        "slug": "zafra",
+        "kind": "escudo",
+        "local_path": "zafra/escudo.jpg",
+        "source_url": "https://upload.wikimedia.org/wikipedia/commons/a/ae/Escudo_de_Zafra.jpg",
+        "author": "Ayuntamiento de Zafra",
+        "license": "CC BY-SA 4.0",
+        "attribution_line": "Ayuntamiento de Zafra, CC BY-SA 4.0, vía Wikimedia Commons",
+        "fetched_at": "2026-06-16T20:03:44.652Z",
+        "resolved_from": "commons_filename",
+        "status": "downloaded"
+      },
+      "warnings": [
+        "REST summary sin pageimage/originalimage. Fallback a Commons search.",
+        "Hero descubierto vía Commons search (REST summary devolvió bandera o falló)."
+      ]
+    }
+  ]
+}

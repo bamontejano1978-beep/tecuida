@@ -176,7 +176,6 @@ function mockConfig(overrides?: Partial<MunicipalityConfig>): MunicipalityConfig
       pie_pagina: 'Pie de página',
     },
     modulos_activos: [],
-    tipo_suscripcion: 'basico',
     estado_suscripcion: 'activa',
     ...overrides,
   }
@@ -500,7 +499,6 @@ describe('Headers de tenant en respuesta exitosa', () => {
         slug: 'calamonte',
         nombre_municipio: 'Calamonte',
         dominio: 'calamonte.tecuida.group',
-        tipo_suscripcion: 'estandar',
         estado_suscripcion: 'activa',
       }),
     )
@@ -513,7 +511,7 @@ describe('Headers de tenant en respuesta exitosa', () => {
     expect(res.headers.get('x-tenant-slug')).toBe('calamonte')
     expect(res.headers.get('x-tenant-name')).toBe('Calamonte')
     expect(res.headers.get('x-tenant-domain')).toBe('calamonte.tecuida.group')
-    expect(res.headers.get('x-tenant-subscription-type')).toBe('estandar')
     expect(res.headers.get('x-tenant-subscription-status')).toBe('activa')
+    // x-tenant-subscription-type ya no se inyecta (sin planes)
   })
 })

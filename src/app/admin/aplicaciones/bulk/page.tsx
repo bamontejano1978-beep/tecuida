@@ -17,14 +17,12 @@ interface AppRow {
   id: string
   nombre: string
   tipo: string
-  nivel_suscripcion: string
 }
 
 interface MunicipalityRow {
   id: string
   nombre_municipio: string
   slug: string
-  tipo_suscripcion: string
 }
 
 interface CurrentAssignment {
@@ -42,14 +40,14 @@ export default async function BulkAssignPage() {
   // Cargar todas las aplicaciones activas
   const { data: apps } = await supabase
     .from('applications')
-    .select('id, nombre, tipo, nivel_suscripcion')
+    .select('id, nombre, tipo')
     .eq('activa', true)
     .order('nombre')
 
   // Cargar todos los municipios
   const { data: municipalities } = await supabase
     .from('municipalities')
-    .select('id, nombre_municipio, slug, tipo_suscripcion')
+    .select('id, nombre_municipio, slug')
     .order('nombre_municipio')
 
   // Cargar TODAS las asignaciones actuales (para pre-marcar checkboxes)
