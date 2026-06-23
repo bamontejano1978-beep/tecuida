@@ -1,11 +1,11 @@
 /**
  * Dashboard del ciudadano — TE CUIDA
  *
- * Server Component que muestra:
- *   - Programas en progreso y disponibles
- *   - Estadísticas personales (lecciones completadas, tiempo, racha)
- *   - Logros recientes
- *   - Acceso rápido a continuar donde lo dejaste
+ * Server Component que muestra el panel personal del ciudadano
+ * con el modelo de tienda de aplicaciones municipal:
+ *   - Apps disponibles en su municipio
+ *   - Apps que ya ha abierto/accedido
+ *   - Acceso rápido al catálogo completo
  *
  * Requisitos: 5.1, 5.2, 7.1
  */
@@ -21,18 +21,16 @@ import SignOutButton from '@/components/ui/sign-out-button'
 // Tipos
 // ---------------------------------------------------------------------------
 
-interface ProgressRow {
-  lesson_id: string
-  program_id: string
-  completada: boolean
-  porcentaje_completado: number
-  program: {
+interface ActiveAppRow {
+  application_id: string
+  application: {
     id: string
+    category_id: string
     nombre: string
-    application_id: string
-  } | null
-  lesson: {
-    titulo: string
+    descripcion: string
+    thumbnail_url: string | null
+    tipo: string
+    app_slug?: string | null
   } | null
 }
 
@@ -43,16 +41,15 @@ interface AchievementRow {
   fecha_obtenido: string
 }
 
-interface ActiveAppRow {
-  application_id: string
-  application: {
-    id: string
-    category_id: string
-    nombre: string
-    descripcion: string
-    thumbnail_url: string | null
-    tipo: string
-  } | null
+// ---------------------------------------------------------------------------
+// Iconos por tipo de app
+// ---------------------------------------------------------------------------
+
+const tipoIcon: Record<string, string> = {
+  programa: '🌿',
+  herramienta: '🔧',
+  encuesta: '📋',
+  recurso: '📖',
 }
 
 // ---------------------------------------------------------------------------
@@ -74,42 +71,24 @@ export default async function DashboardPage() {
     ? await getTenantConfigFromDB(tenantHeaders.slug)
     : null
 
-  // 3. Obtener progreso del ciudadano
   const adminClient = createAdminClient()
 
-  const { data: progressData } = await adminClient
-    .from('user_progress')
-    .select(
-      `
-      lesson_id,
-      program_id,
-      completada,
-      porcentaje_completado,
-      program:programs (id, nombre, application_id),
-      lesson:lessons (titulo)
-    `,
-    )
-    .eq('user_id', user.id)
-    .order('fecha_inicio', { ascending: false })
-    .limit(50)
-
-  // 4. Apps activas del municipio
+  // 3. Apps activas del municipio
   let activeApps: ActiveAppRow[] = []
   if (tenant) {
     const { data: appsData } = await adminClient
       .from('municipality_applications')
       .select(
-        `
-        application_id,
+        `application_id,
         application:applications!inner (
           id,
           category_id,
           nombre,
           descripcion,
           thumbnail_url,
-          tipo
-        )
-      `,
+          tipo,
+          app_slug
+        )`,
       )
       .eq('municipality_id', tenant.id)
       .eq('activa', true)
@@ -117,7 +96,21 @@ export default async function DashboardPage() {
     activeApps = (appsData || []) as unknown as ActiveAppRow[]
   }
 
-  // 5. Logros
+  // 4. Apps que el ciudadano ya ha abierto (programas con progreso)
+  const { data: openedProgramIds } = await adminClient
+    .from('user_progress')
+    .select('program_id, program:programs(application_id)')
+    .eq('user_id', user.id)
+    .limit(100)
+
+  // 5. Apps de encuesta que ha respondido
+  const { data: openedSurveyIds } = await adminClient
+    .from('survey_answers')
+    .select('survey_id, survey:surveys(application_id)')
+    .eq('user_id', user.id)
+    .limit(100)
+
+  // 6. Logros
   const { data: achievementsData } = await adminClient
     .from('achievements')
     .select('id, tipo, descripcion, fecha_obtenido')
@@ -125,7 +118,7 @@ export default async function DashboardPage() {
     .order('fecha_obtenido', { ascending: false })
     .limit(10)
 
-  // 6. Perfil del usuario
+  // 7. Perfil del usuario
   const { data: userProfile } = await adminClient
     .from('users')
     .select('nombre, apellidos, email')
@@ -134,23 +127,42 @@ export default async function DashboardPage() {
 
   // ─── Procesar datos ────────────────────────────────────
 
-  const progressRows: ProgressRow[] = (progressData || []) as unknown as ProgressRow[]
-  const totalCompletadas = progressRows.filter((p) => p.completada).length
-  const uniquePrograms = new Map<string, { nombre: string; appId: string }>()
-  progressRows.forEach((p) => {
-    if (p.program && !uniquePrograms.has(p.program.id)) {
-      uniquePrograms.set(p.program.id, {
-        nombre: p.program.nombre,
-        appId: p.program.application_id,
-      })
+  // Conjunto de IDs de apps que el ciudadano ya ha abierto
+  const openedAppIds = new Set<string>()
+
+  // Programas con progreso
+  const progRows = (openedProgramIds || []) as unknown as {
+    program: { application_id: string } | null
+  }[]
+  progRows.forEach((r) => {
+    if (r.program?.application_id) {
+      openedAppIds.add(r.program.application_id)
     }
   })
 
-  const achievements: AchievementRow[] = (achievementsData || []) as unknown as AchievementRow[]
+  // Encuestas respondidas
+  const surveyRows = (openedSurveyIds || []) as unknown as {
+    survey: { application_id: string } | null
+  }[]
+  surveyRows.forEach((r) => {
+    if (r.survey?.application_id) {
+      openedAppIds.add(r.survey.application_id)
+    }
+  })
 
-  // Programa más reciente
-  const latestProgram = progressRows[0]?.program
-  const latestLesson = progressRows[0]?.lesson
+  // Apps válidas
+  const validApps = activeApps
+    .filter((a) => a.application !== null)
+    .map((a) => ({
+      id: a.application!.id,
+      nombre: a.application!.nombre,
+      descripcion: a.application!.descripcion || '',
+      tipo: a.application!.tipo,
+      appSlug: a.application!.app_slug || null,
+    }))
+
+  const appsAbiertas = validApps.filter((a) => openedAppIds.has(a.id))
+  const achievements: AchievementRow[] = (achievementsData || []) as unknown as AchievementRow[]
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -199,154 +211,151 @@ export default async function DashboardPage() {
         {/* Stats rápidas */}
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4 mb-8">
           <div className="bg-white rounded-xl border border-gray-200 p-5">
-            <p className="text-3xl font-bold text-indigo-600">{totalCompletadas}</p>
-            <p className="mt-1 text-sm text-gray-500">Lecciones completadas</p>
+            <p className="text-3xl font-bold text-indigo-600">{validApps.length}</p>
+            <p className="mt-1 text-sm text-gray-500">Apps en tu municipio</p>
           </div>
           <div className="bg-white rounded-xl border border-gray-200 p-5">
-            <p className="text-3xl font-bold text-emerald-600">{uniquePrograms.size}</p>
-            <p className="mt-1 text-sm text-gray-500">Programas en curso</p>
+            <p className="text-3xl font-bold text-emerald-600">{appsAbiertas.length}</p>
+            <p className="mt-1 text-sm text-gray-500">Apps que has abierto</p>
           </div>
           <div className="bg-white rounded-xl border border-gray-200 p-5">
             <p className="text-3xl font-bold text-amber-600">{achievements.length}</p>
-            <p className="mt-1 text-sm text-gray-500">Logros obtenidos</p>
+            <p className="mt-1 text-sm text-gray-500">Logros</p>
           </div>
           <div className="bg-white rounded-xl border border-gray-200 p-5">
-            <p className="text-3xl font-bold text-sky-600">{activeApps.length}</p>
-            <p className="mt-1 text-sm text-gray-500">Apps disponibles</p>
+            <p className="text-3xl font-bold text-sky-600">
+              {validApps.length - appsAbiertas.length}
+            </p>
+            <p className="mt-1 text-sm text-gray-500">Apps por descubrir</p>
           </div>
         </div>
 
         <div className="grid gap-8 lg:grid-cols-3">
           {/* Columna principal */}
           <div className="lg:col-span-2 space-y-8">
-            {/* Continuar donde lo dejaste */}
-            {latestProgram && latestLesson && (
-              <div className="bg-white rounded-xl border border-indigo-200 p-6">
-                <div className="flex items-start justify-between">
-                  <div>
-                    <p className="text-xs font-semibold text-indigo-500 uppercase tracking-wide">
-                      Continuar
-                    </p>
-                    <h2 className="mt-1 text-lg font-bold text-gray-900">
-                      {latestProgram.nombre}
-                    </h2>
-                    <p className="mt-1 text-sm text-gray-500">
-                      Última lección: {latestLesson.titulo}
-                    </p>
-                  </div>
-                  <Link
-                    href={`/app/${latestProgram.application_id}`}
-                    className="shrink-0 inline-flex items-center rounded-lg bg-indigo-600 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 transition-colors"
-                  >
-                    Continuar →
-                  </Link>
-                </div>
-              </div>
-            )}
-
-            {/* Mis programas */}
-            {uniquePrograms.size > 0 && (
-              <div>
-                <h2 className="text-lg font-bold text-gray-900 mb-4">
-                  Mis programas
-                </h2>
-                <div className="space-y-3">
-                  {Array.from(uniquePrograms.entries()).map(
-                    ([programId, { nombre, appId }]) => {
-                      const completed = progressRows.filter(
-                        (p) => p.program?.id === programId && p.completada,
-                      ).length
-                      const total = progressRows.filter(
-                        (p) => p.program?.id === programId,
-                      ).length
-                      const pct = total > 0 ? Math.round((completed / total) * 100) : 0
-
-                      return (
-                        <Link
-                          key={programId}
-                          href={`/app/${appId}`}
-                          className="block bg-white rounded-xl border border-gray-200 p-5 hover:shadow-md hover:border-indigo-200 transition-all"
-                        >
-                          <div className="flex items-center justify-between mb-3">
-                            <h3 className="text-sm font-semibold text-gray-900">
-                              {nombre}
-                            </h3>
-                            <span className="text-sm font-bold text-indigo-600">
-                              {pct}%
-                            </span>
-                          </div>
-                          <div className="w-full h-2 bg-gray-100 rounded-full overflow-hidden">
-                            <div
-                              className="h-full bg-indigo-500 rounded-full transition-all"
-                              style={{ width: `${pct}%` }}
-                            />
-                          </div>
-                          <p className="mt-2 text-xs text-gray-400">
-                            {completed} de {total} lecciones completadas
-                          </p>
-                        </Link>
-                      )
-                    },
-                  )}
-                </div>
-              </div>
-            )}
-
-            {/* Catálogo de apps */}
+            {/* Mis aplicaciones */}
             <div>
               <div className="flex items-center justify-between mb-4">
                 <h2 className="text-lg font-bold text-gray-900">
-                  Catálogo disponible
+                  📱 Mis aplicaciones
                 </h2>
                 <Link
                   href="/"
                   className="text-sm font-medium text-indigo-600 hover:text-indigo-500"
                 >
-                  Ver todo →
+                  Ver catálogo completo →
                 </Link>
               </div>
-              {activeApps.length > 0 ? (
+
+              {validApps.length > 0 ? (
                 <div className="grid gap-3 sm:grid-cols-2">
-                  {activeApps.slice(0, 6).map((a) => {
-                    if (!a.application) return null
+                  {validApps.map((app) => {
+                    const isOpened = openedAppIds.has(app.id)
+                    // Solo mostrar ✓ Abierta para tipos donde podemos trackear uso (programas y encuestas)
+                    const canTrack = app.tipo === 'programa' || app.tipo === 'encuesta'
+                    const showOpened = isOpened && canTrack
+                    const appHref = app.appSlug
+                      ? `https://${app.appSlug}.tecuida.group`
+                      : `/app/${app.id}`
                     return (
                       <Link
-                        key={a.application_id}
-                        href={`/app/${a.application.id}`}
-                        className="block bg-white rounded-lg border border-gray-200 p-4 hover:shadow-sm hover:border-indigo-200 transition-all"
+                        key={app.id}
+                        href={appHref}
+                        target={app.appSlug ? '_blank' : undefined}
+                        rel={app.appSlug ? 'noopener noreferrer' : undefined}
+                        className={`block rounded-xl border p-4 transition-all hover:shadow-md ${
+                          isOpened
+                            ? 'bg-white border-emerald-200 hover:border-emerald-300'
+                            : 'bg-white border-gray-200 hover:border-indigo-200'
+                        }`}
                       >
-                        <p className="text-sm font-semibold text-gray-900">
-                          {a.application.nombre}
-                        </p>
-                        <p className="mt-1 text-xs text-gray-500 line-clamp-2">
-                          {a.application.descripcion || 'Sin descripción'}
-                        </p>
-                        <span className="mt-2 inline-flex items-center text-xs font-medium text-indigo-600">
-                          Acceder →
-                        </span>
+                        <div className="flex items-start gap-3">
+                          <span className="text-2xl shrink-0">
+                            {tipoIcon[app.tipo] || '📦'}
+                          </span>
+                          <div className="flex-1 min-w-0">
+                            <div className="flex items-center gap-2">
+                              <p className="text-sm font-semibold text-gray-900 truncate">
+                                {app.nombre}
+                              </p>
+                              {showOpened && (
+                                <span className="shrink-0 inline-flex items-center rounded-full bg-emerald-50 px-2 py-0.5 text-xs font-medium text-emerald-700">
+                                  ✓ Abierta
+                                </span>
+                              )}
+                            </div>
+                            <p className="mt-1 text-xs text-gray-500 line-clamp-2">
+                              {app.descripcion || 'Sin descripción'}
+                            </p>
+                          </div>
+                        </div>
+                        <div className="mt-3 flex items-center justify-end">
+                          <span className="text-xs font-medium text-indigo-600">
+                            {isOpened ? 'Abrir de nuevo →' : 'Abrir →'}
+                          </span>
+                        </div>
                       </Link>
                     )
                   })}
                 </div>
               ) : (
                 <div className="bg-white rounded-xl border border-gray-200 p-8 text-center">
-                  <svg className="mx-auto h-10 w-10 text-gray-300" fill="none" viewBox="0 0 24 24" strokeWidth={1} stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z" />
-                  </svg>
-                  <p className="mt-3 text-sm text-gray-500">
-                    No hay aplicaciones disponibles en tu municipio aún.
+                  <p className="text-4xl mb-3">📭</p>
+                  <p className="text-sm font-medium text-gray-900">
+                    Tu ayuntamiento aún no ha publicado aplicaciones
+                  </p>
+                  <p className="mt-1 text-xs text-gray-400">
+                    ¡Vuelve pronto! Estamos preparando nuevas herramientas para ti.
                   </p>
                 </div>
               )}
             </div>
+
+            {/* Onboarding para nuevos usuarios */}
+            {appsAbiertas.length === 0 && validApps.length > 0 && (
+              <div className="bg-gradient-to-br from-indigo-50 to-purple-50 rounded-xl border border-indigo-100 p-6">
+                <h3 className="text-lg font-bold text-indigo-900 mb-3">
+                  👋 ¿Acabas de llegar?
+                </h3>
+                <div className="grid gap-3 sm:grid-cols-3">
+                  <div className="bg-white rounded-lg p-4 shadow-sm">
+                    <span className="text-2xl">1️⃣</span>
+                    <p className="mt-2 text-sm font-semibold text-gray-900">
+                      Explora el catálogo
+                    </p>
+                    <p className="text-xs text-gray-500">
+                      Descubre las apps gratuitas que tu ayuntamiento ha preparado para ti.
+                    </p>
+                  </div>
+                  <div className="bg-white rounded-lg p-4 shadow-sm">
+                    <span className="text-2xl">2️⃣</span>
+                    <p className="mt-2 text-sm font-semibold text-gray-900">
+                      Instala las que te interesen
+                    </p>
+                    <p className="text-xs text-gray-500">
+                      Cada app se instala como una aplicación independiente en tu móvil.
+                    </p>
+                  </div>
+                  <div className="bg-white rounded-lg p-4 shadow-sm">
+                    <span className="text-2xl">3️⃣</span>
+                    <p className="mt-2 text-sm font-semibold text-gray-900">
+                      Úsalas cuando quieras
+                    </p>
+                    <p className="text-xs text-gray-500">
+                      Accede directamente desde tu dispositivo, sin volver a iniciar sesión.
+                    </p>
+                  </div>
+                </div>
+              </div>
+            )}
           </div>
 
-          {/* Sidebar: Logros */}
+          {/* Sidebar */}
           <div className="space-y-6">
             {/* Logros */}
             <div className="bg-white rounded-xl border border-gray-200 p-5">
               <h3 className="text-sm font-semibold text-gray-900 mb-4">
-                🏆 Logros
+                🏆 Actividad reciente
               </h3>
               {achievements.length > 0 ? (
                 <div className="space-y-3">
@@ -374,9 +383,12 @@ export default async function DashboardPage() {
                   ))}
                 </div>
               ) : (
-                <p className="text-sm text-gray-400 text-center py-4">
-                  Completa lecciones para ganar logros.
-                </p>
+                <div className="text-center py-4">
+                  <p className="text-3xl mb-2">📱</p>
+                  <p className="text-sm text-gray-400">
+                    Abre tus apps del ayuntamiento para ver tu actividad aquí.
+                  </p>
+                </div>
               )}
             </div>
 
@@ -387,8 +399,26 @@ export default async function DashboardPage() {
             >
               <h3 className="font-bold">Explorar catálogo</h3>
               <p className="mt-1 text-sm text-indigo-100">
-                Descubre todos los programas y herramientas disponibles.
+                Descubre todas las apps gratuitas de tu municipio.
               </p>
+            </Link>
+
+            {/* Perfil */}
+            <Link
+              href="/perfil"
+              className="block bg-white rounded-xl border border-gray-200 p-5 hover:shadow-md transition-all"
+            >
+              <div className="flex items-center gap-3">
+                <div className="flex h-10 w-10 items-center justify-center rounded-full bg-indigo-100">
+                  <span className="text-lg font-bold text-indigo-600">
+                    {userProfile?.nombre?.charAt(0)?.toUpperCase() || '?'}
+                  </span>
+                </div>
+                <div>
+                  <p className="text-sm font-semibold text-gray-900">Mi perfil</p>
+                  <p className="text-xs text-gray-400">{userProfile?.email || user?.email}</p>
+                </div>
+              </div>
             </Link>
 
             {/* Salir */}
@@ -399,4 +429,3 @@ export default async function DashboardPage() {
     </div>
   )
 }
-

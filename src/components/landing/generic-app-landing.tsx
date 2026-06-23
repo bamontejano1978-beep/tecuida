@@ -103,14 +103,11 @@ export default function GenericAppLanding({
       {/* ── Acceso a la app ── */}
       {url_acceso && (
         <section className="mb-10">
-          <h2 className="text-lg font-semibold text-gray-900 mb-3">
-            🔗 Acceder a la aplicación
-          </h2>
           <a
             href={url_acceso}
             target="_blank"
             rel="noopener noreferrer"
-            className="inline-flex items-center gap-2 rounded-xl bg-indigo-600 px-6 py-3.5 text-base font-semibold text-white shadow-sm hover:bg-indigo-500 transition-colors"
+            className="inline-flex items-center gap-2.5 rounded-xl bg-indigo-600 px-8 py-4 text-base font-semibold text-white shadow-lg hover:bg-indigo-500 hover:shadow-xl transition-all hover:-translate-y-0.5"
           >
             <svg
               className="w-5 h-5"
@@ -124,12 +121,18 @@ export default function GenericAppLanding({
               <path
                 strokeLinecap="round"
                 strokeLinejoin="round"
-                d="M13.5 6H5.25A2.25 2.25 0 0 0 3 8.25v10.5A2.25 2.25 0 0 0 5.25 21h10.5A2.25 2.25 0 0 0 18 18.75V10.5m-10.5 6L21 3m0 0h-5.25M21 3v5.25"
+                d="M3 16.5v2.25A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75V16.5M16.5 12 12 16.5m0 0L7.5 12m4.5 4.5V3"
               />
             </svg>
-            Ir a la aplicación web →
+            Instalar aplicación
           </a>
-          <p className="mt-2 text-xs text-gray-400 font-mono truncate">
+          <p className="mt-3 text-sm text-gray-500">
+            Al hacer clic se abrirá la aplicación en una nueva pestaña.{' '}
+            <span className="text-gray-400">
+              Puedes instalarla en tu dispositivo para acceder sin necesidad de volver a iniciar sesión.
+            </span>
+          </p>
+          <p className="mt-1 text-xs text-gray-400 font-mono truncate">
             {url_acceso}
           </p>
         </section>
@@ -158,8 +161,8 @@ export default function GenericAppLanding({
               Próximamente disponible
             </p>
             <p className="mt-1 text-sm text-gray-400">
-              El contenido detallado de esta aplicación se está preparando.
-              Vuelve pronto para ver las instrucciones y el acceso.
+              Esta aplicación se está preparando. Vuelve pronto para ver las
+              instrucciones de instalación y el acceso.
             </p>
           </div>
         </section>

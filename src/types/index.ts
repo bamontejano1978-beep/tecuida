@@ -125,6 +125,10 @@ export interface Application {
   thumbnail_url: string
   tipo: ApplicationType
   activa: boolean
+  /** Slug para el subdominio de la app (ej. "mindful30" → mindful30.tecuida.group) */
+  app_slug?: string | null
+  /** Color de marca en hex (#rrggbb). NULL = el PWA usa el color por defecto del tipo. */
+  brand_color?: string | null
 }
 
 export interface MunicipalityApplication {

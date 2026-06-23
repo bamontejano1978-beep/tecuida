@@ -18,6 +18,7 @@
  */
 
 import { notFound } from 'next/navigation'
+import Link from 'next/link'
 import { getTenantConfigFromDB, getTenantFromHeaders } from '@/lib/tenant/headers'
 import { createAdminClient, createClient } from '@/lib/supabase/server'
 import ProgramPageClient from './program-page-client'
@@ -81,6 +82,20 @@ interface Props {
 }
 
 // ---------------------------------------------------------------------------
+// Helpers
+// ---------------------------------------------------------------------------
+
+/**
+ * El código de Supabase que indica "0 filas encontradas" con .single().
+ * No es un error real; es esperado cuando el recurso no existe.
+ */
+function isNotFoundError(err: unknown): boolean {
+  if (!err || typeof err !== 'object') return false
+  const e = err as Record<string, unknown>
+  return e.code === 'PGRST116'
+}
+
+// ---------------------------------------------------------------------------
 // Página
 // ---------------------------------------------------------------------------
 
@@ -101,6 +116,12 @@ export default async function ProgramPage({ params }: Props) {
     .single()
 
   if (appError || !appData) {
+    console.error(
+      `[ProgramPage] App no encontrada para ID "${params.id}":`,
+      appError
+        ? { code: appError.code, message: appError.message, details: appError.details }
+        : 'data es null',
+    )
     notFound()
   }
 
@@ -108,6 +129,7 @@ export default async function ProgramPage({ params }: Props) {
 
   // 3. Si NO es un programa, renderizar landing genérica
   if (app.tipo !== 'programa') {
+    console.log(`[ProgramPage] App "${app.nombre}" (${app.tipo}) — renderizando landing.`)
     return (
       <div className="min-h-screen bg-gray-50">
         <GenericAppLanding
@@ -123,19 +145,47 @@ export default async function ProgramPage({ params }: Props) {
   }
 
   // 4. Obtener el programa asociado a la aplicación
+  //    Usamos `maybeSingle()` (no `single()`) para no romper apps tipo='programa'
+  //    que se crearon con solo `url_acceso` (sin subir ZIP ni crear registro en
+  //    `programs`). En ese caso la app existe y es accesible, simplemente le
+  //    falta el contenido programático → hacemos fallback a landing genérica
+  //    en lugar de devolver un 404 confuso para el ciudadano.
   const { data: programData, error: progError } = await adminClient
     .from('programs')
     .select('*')
     .eq('application_id', params.id)
-    .single()
+    .maybeSingle()
 
-  if (progError || !programData) {
+  if (progError) {
+    // Error real de DB/RLS — propagamos 404 para no enmascarar fallos reales.
+    console.error(
+      `[ProgramPage] Error al buscar programa para application_id "${params.id}" (app "${app.nombre}"):`,
+      { code: progError.code, message: progError.message, details: progError.details },
+    )
     notFound()
+  }
+
+  if (!programData) {
+    console.warn(
+      `[ProgramPage] App "${app.nombre}" (${app.tipo}) no tiene programa asociado. Renderizando landing genérica.`,
+    )
+    return (
+      <div className="min-h-screen bg-gray-50">
+        <GenericAppLanding
+          nombre={app.nombre}
+          descripcion={app.descripcion}
+          tipo={app.tipo}
+          instrucciones={app.instrucciones}
+          url_acceso={app.url_acceso}
+          categoria_nombre={app.categoria?.nombre ?? null}
+        />
+      </div>
+    )
   }
 
   const prog = programData as unknown as ProgramRow
 
-  // 4. Obtener módulos
+  // 5. Obtener módulos
   const { data: modulesData, error: modError } = await adminClient
     .from('program_modules')
     .select('*')
@@ -147,7 +197,7 @@ export default async function ProgramPage({ params }: Props) {
     notFound()
   }
 
-  // 5. Obtener lecciones (solo si hay módulos)
+  // 6. Obtener lecciones (solo si hay módulos)
   const moduleIds = (modulesData || []).map((m) => m.id)
   const { data: lessonsData, error: lesError } = moduleIds.length > 0
     ? await adminClient
@@ -165,7 +215,7 @@ export default async function ProgramPage({ params }: Props) {
   const rawModules: ModuleRow[] = (modulesData || []) as unknown as ModuleRow[]
   const rawLessons: LessonRow[] = (lessonsData || []) as unknown as LessonRow[]
 
-  // 5. Construir la estructura anidada modules → lessons
+  // 7. Construir la estructura anidada modules → lessons
   const lessonsByModule = new Map<string, Lesson[]>()
   rawLessons.forEach((l) => {
     const lesson: Lesson = {
@@ -205,7 +255,7 @@ export default async function ProgramPage({ params }: Props) {
     modules,
   }
 
-  // 6. Obtener progreso del usuario (si está autenticado)
+  // 8. Obtener progreso del usuario (si está autenticado)
   let completedLessonIds: string[] = []
   try {
     const serverClient = createClient()
@@ -226,10 +276,10 @@ export default async function ProgramPage({ params }: Props) {
     // Usuario no autenticado — sin progreso
   }
 
-  // 7. Aplanar lecciones para navegación secuencial
+  // 9. Aplanar lecciones para navegación secuencial
   const allLessons = modules.flatMap((m) => m.lessons)
 
-  // 8. Computar progreso agregado para el hero (null si el usuario anónimo no ha empezado)
+  // 10. Computar progreso agregado para el hero
   const progress =
     completedLessonIds.length > 0
       ? {
@@ -239,10 +289,10 @@ export default async function ProgramPage({ params }: Props) {
         }
       : null
 
-  // 9. Renderizar
+  // 11. Renderizar
   return (
     <div id="lecciones" className="min-h-screen bg-gray-50">
-      {/* Hero rediseñado (mismo lenguaje visual que MunicipalityHero) */}
+      {/* Hero rediseñado */}
       <ApplicationHero
         nombre={app.nombre}
         descripcion={app.descripcion}

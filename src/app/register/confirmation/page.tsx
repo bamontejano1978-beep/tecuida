@@ -43,6 +43,37 @@ export default function RegisterConfirmationPage() {
           El enlace caduca en 24 horas.
         </p>
 
+        {/* Onboarding: qué esperar */}
+        <div className="mt-6 text-left bg-white/80 rounded-xl border border-gray-200 p-5 space-y-3">
+          <p className="text-sm font-semibold text-gray-700">
+            🎯 Cuando confirmes tu cuenta, podrás:
+          </p>
+          <div className="flex items-start gap-3">
+            <span className="shrink-0 flex h-6 w-6 items-center justify-center rounded-full bg-indigo-100 text-xs font-bold text-indigo-600">
+              1
+            </span>
+            <p className="text-sm text-gray-600">
+              <strong>Explorar el catálogo</strong> de aplicaciones gratuitas de tu ayuntamiento.
+            </p>
+          </div>
+          <div className="flex items-start gap-3">
+            <span className="shrink-0 flex h-6 w-6 items-center justify-center rounded-full bg-indigo-100 text-xs font-bold text-indigo-600">
+              2
+            </span>
+            <p className="text-sm text-gray-600">
+              <strong>Instalar las apps</strong> que más te interesen en tu móvil como aplicaciones independientes.
+            </p>
+          </div>
+          <div className="flex items-start gap-3">
+            <span className="shrink-0 flex h-6 w-6 items-center justify-center rounded-full bg-indigo-100 text-xs font-bold text-indigo-600">
+              3
+            </span>
+            <p className="text-sm text-gray-600">
+              <strong>Usarlas cuando quieras</strong>, directamente desde tu dispositivo, sin volver a iniciar sesión.
+            </p>
+          </div>
+        </div>
+
         <div className="mt-8 flex flex-col sm:flex-row items-center justify-center gap-3">
           <Link
             href="/login"

@@ -5,9 +5,14 @@
  * ni signUp() — solo exchangeCodeForSession() (flujo OAuth) lo hace.
  *
  * Este helper construye las cookies directamente desde los datos
- * de la sesión, usando el formato EXACTO que combineChunks espera:
- *   - Valor: "base64-" + base64(JSON.stringify(session))
- *   - Chunking a 3180 chars (mismo umbral que @supabase/ssr)
+ * de la sesión, usando el formato EXACTO que @supabase/ssr v0.3+
+ * espera:
+ *   - Valor: JSON.stringify(session) — JSON crudo sin base64.
+ *     @supabase/auth-js (getItemAsync → JSON.parse) lo parsea
+ *     directamente; un prefijo "base64-" rompería el parseo.
+ *   - Chunking seguro a 3180 chars (mismo umbral que createChunks).
+ *     Usa encodeURIComponent / decodeURIComponent para no partir
+ *     secuencias %XX en los límites de chunk.
  *   - Nombres: sb-<project-ref>-auth-token[.0, .1, ...]
  */
 
@@ -56,27 +61,60 @@ export interface AuthCookie {
 
 /**
  * Construye la(s) cookie(s) de sesión de Supabase con el formato
- * exacto que combineChunks espera:
- *   "base64-" + base64(JSON.stringify(session))
+ * exacto que @supabase/ssr v0.3+ espera:
  *
- * Aplica chunking si la cookie excede CHUNK_SIZE (3180 chars).
+ *   - Caso común (≤ 3180 chars): 1 cookie con el JSON crudo.
+ *   - Sesiones grandes: chunking con encodeURIComponent para
+ *     preservar integridad de caracteres multi-byte en los límites.
+ *
+ * combineChunks (lectura) recupera los chunks, los une sin
+ * decodificar y getItemAsync (auth-js) los parsea con JSON.parse.
  */
 export function buildAuthCookies(session: Session): AuthCookie[] {
   const projectRef = getProjectRef()
   const baseName = `sb-${projectRef}-auth-token`
 
-  // Formato: "base64-" + base64(JSON.stringify(session))
   const json = JSON.stringify(session)
-  const encoded = `base64-${Buffer.from(json, 'utf8').toString('base64')}`
-
-  // Chunking
   const cookies: AuthCookie[] = []
-  const totalChunks = Math.ceil(encoded.length / CHUNK_SIZE)
 
-  for (let i = 0; i < totalChunks; i++) {
-    const chunk = encoded.slice(i * CHUNK_SIZE, (i + 1) * CHUNK_SIZE)
-    const name = totalChunks > 1 ? `${baseName}.${i}` : baseName
-    cookies.push({ name, value: chunk, options: AUTH_COOKIE_OPTIONS })
+  // Caso común: la sesión cabe en un solo chunk.
+  // createChunks de @supabase/ssr guarda el valor crudo sin encodear.
+  if (json.length <= CHUNK_SIZE) {
+    cookies.push({ name: baseName, value: json, options: AUTH_COOKIE_OPTIONS })
+    return cookies
+  }
+
+  // Caso poco frecuente: sesión grande → chunking seguro.
+  // Replicamos la lógica de createChunks:
+  //   1. encodeURIComponent para manipulación segura de límites
+  //   2. slice evitando partir secuencias %XX
+  //   3. decodeURIComponent de cada slice → valor almacenado
+  const encoded = encodeURIComponent(json)
+  let offset = 0
+  let chunkIndex = 0
+
+  while (offset < encoded.length) {
+    let end = Math.min(offset + CHUNK_SIZE, encoded.length)
+
+    // No partir en medio de una secuencia %XX.
+    // lastIndexOf con fromIndex inclusivo; usamos end-1 porque
+    // slice(offset, end) es exclusivo en 'end'.
+    if (end < encoded.length) {
+      const lastPercent = encoded.lastIndexOf('%', end - 1)
+      if (lastPercent > end - 3) {
+        // Retroceder hasta antes del %XX incompleto
+        end = lastPercent
+      }
+    }
+
+    const encodedChunk = encoded.slice(offset, end)
+    const decodedChunk = decodeURIComponent(encodedChunk)
+    const name = `${baseName}.${chunkIndex}`
+
+    cookies.push({ name, value: decodedChunk, options: AUTH_COOKIE_OPTIONS })
+
+    offset = end
+    chunkIndex++
   }
 
   return cookies

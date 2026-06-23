@@ -20,6 +20,13 @@
 .DS_Store
 *.pem
 
+# OS / Windows quirks
+# `nul` es nombre reservado del sistema en Windows (equivalente a /dev/null).
+# Git falla el index con `error: short read while indexing nul`.
+# Aparece en este repo como fichero stray; lo excluimos para que no rompa
+# `git add -A` ni el commit.
+nul
+
 # debug
 npm-debug.log*
 yarn-debug.log*

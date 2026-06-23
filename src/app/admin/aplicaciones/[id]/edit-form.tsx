@@ -35,6 +35,8 @@ interface ApplicationData {
   instrucciones: string | null
   url_acceso: string | null
   activa: boolean
+  app_slug: string | null
+  brand_color: string | null
 }
 
 // ---------------------------------------------------------------------------
@@ -58,6 +60,8 @@ export default function EditApplicationForm({
     instrucciones: application.instrucciones || '',
     url_acceso: application.url_acceso || '',
     activa: application.activa,
+    app_slug: application.app_slug || '',
+    brand_color: application.brand_color || '',
   })
   const [submitError, setSubmitError] = useState<string | null>(null)
   const [submitOk, setSubmitOk] = useState<string | null>(null)
@@ -92,6 +96,8 @@ export default function EditApplicationForm({
             instrucciones: formData.instrucciones.trim() || undefined,
             url_acceso: formData.url_acceso.trim() || undefined,
             activa: formData.activa,
+            app_slug: formData.app_slug.trim() || undefined,
+            brand_color: formData.brand_color.trim() || undefined,
           }),
         },
       )
@@ -238,6 +244,74 @@ export default function EditApplicationForm({
             </option>
           ))}
         </select>
+      </div>
+
+      {/* Subdominio (slug) */}
+      <div className="rounded-lg bg-indigo-50 border border-indigo-100 p-4 space-y-3">
+        <p className="text-sm font-medium text-indigo-700">
+          🔗 Subdominio de la aplicación
+        </p>
+        <p className="text-xs text-indigo-500 -mt-1">
+          Define un slug para que la app sea accesible en <code className="bg-indigo-100 px-1 rounded">slug.tecuida.group</code>. Déjalo vacío si no necesita subdominio.
+        </p>
+        <div>
+          <label htmlFor="app_slug" className="block text-sm font-medium text-gray-700">
+            Slug{' '}
+            <span className="text-xs font-normal text-gray-400">(opcional)</span>
+          </label>
+          <div className="mt-1 flex items-center gap-1">
+            <input
+              id="app_slug"
+              type="text"
+              value={formData.app_slug}
+              onChange={(e) => updateField('app_slug', e.target.value)}
+              className="block w-full rounded-lg border border-gray-300 px-3 py-2 text-sm shadow-sm focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 outline-none font-mono"
+              placeholder="ej: mindful30"
+            />
+            <span className="text-sm text-gray-400 shrink-0">.tecuida.group</span>
+          </div>
+          {formData.app_slug && (
+            <p className="mt-1 text-xs text-emerald-600">
+              ✓ {formData.app_slug}.tecuida.group
+            </p>
+          )}
+        </div>
+      </div>
+
+      {/* Color de marca */}
+      <div className="rounded-lg bg-purple-50 border border-purple-100 p-4 space-y-3">
+        <p className="text-sm font-medium text-purple-700">
+          🎨 Color de marca
+        </p>
+        <p className="text-xs text-purple-500 -mt-1">
+          Define el color identificativo de esta app (formato hex). Se usa en el hero, topbar, acordeón y botones del PWA.
+        </p>
+        <div className="flex items-center gap-3">
+          <input
+            id="brand_color"
+            type="color"
+            value={formData.brand_color || '#4f46e5'}
+            onChange={(e) => updateField('brand_color', e.target.value)}
+            className="h-10 w-14 rounded-lg border border-gray-300 cursor-pointer"
+          />
+          <input
+            type="text"
+            value={formData.brand_color}
+            onChange={(e) => updateField('brand_color', e.target.value)}
+            className="block w-full rounded-lg border border-gray-300 px-3 py-2 text-sm font-mono shadow-sm focus:border-purple-500 focus:ring-2 focus:ring-purple-200 outline-none"
+            placeholder="#7c3aed"
+            maxLength={7}
+          />
+        </div>
+        {formData.brand_color && /^#[0-9a-fA-F]{6}$/.test(formData.brand_color) && (
+          <div className="flex items-center gap-2 mt-2">
+            <div
+              className="h-8 w-8 rounded-lg border border-gray-200 shadow-sm"
+              style={{ backgroundColor: formData.brand_color }}
+            />
+            <span className="text-xs text-gray-500">Vista previa del color</span>
+          </div>
+        )}
       </div>
 
       {/* Tipo */}

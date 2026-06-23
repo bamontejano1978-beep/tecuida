@@ -127,7 +127,9 @@ export default function ModuleAccordion({
                     {mod.nombre}
                   </h3>
                   <p className="text-xs text-gray-500">
-                    {completedInModule}/{totalInModule} completadas
+                    {completedInModule > 0
+                      ? `${completedInModule}/${totalInModule} completadas`
+                      : `${totalInModule} lecciones`}
                   </p>
                 </div>
               </div>

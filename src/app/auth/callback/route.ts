@@ -15,7 +15,7 @@
 
 import { createServerClient } from '@supabase/ssr'
 import { type NextRequest, NextResponse } from 'next/server'
-import { createAuthCookiesAdapter } from '@/lib/supabase/cookies'
+import { createAuthCookiesAdapter, createReadOnlyCookiesAdapter } from '@/lib/supabase/cookies'
 
 export async function GET(request: NextRequest) {
   const { searchParams, origin } = new URL(request.url)
@@ -70,20 +70,11 @@ export async function GET(request: NextRequest) {
 
   if (metadata?.municipality_slug) {
     try {
-      // Usar admin client para insertar en public.users
-      // (RLS bloquea inserts del propio usuario si aún no tiene fila).
-      // IMPORTANTE: adapter no-op para que @supabase/ssr no reemplace
-      // el service_role_key por el JWT del usuario.
       const adminClient = createServerClient(
         process.env.NEXT_PUBLIC_SUPABASE_URL!,
         process.env.SUPABASE_SERVICE_ROLE_KEY!,
         {
-          cookies: {
-            get: () => undefined,
-            getAll: () => [],
-            // eslint-disable-next-line @typescript-eslint/no-empty-function
-            setAll: () => {},
-          },
+          cookies: createReadOnlyCookiesAdapter(),
           auth: {
             autoRefreshToken: false,
             persistSession: false,
@@ -156,12 +147,7 @@ export async function GET(request: NextRequest) {
         process.env.NEXT_PUBLIC_SUPABASE_URL!,
         process.env.SUPABASE_SERVICE_ROLE_KEY!,
         {
-          cookies: {
-            get: () => undefined,
-            getAll: () => [],
-            // eslint-disable-next-line @typescript-eslint/no-empty-function
-            setAll: () => {},
-          },
+          cookies: createReadOnlyCookiesAdapter(),
           auth: { autoRefreshToken: false, persistSession: false },
         },
       )

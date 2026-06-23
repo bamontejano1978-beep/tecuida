@@ -128,6 +128,24 @@ export interface CookieAdapterOptions {
 }
 
 /**
+ * Adapter no-op para clientes admin (service_role_key).
+ *
+ * Evita que @supabase/ssr reemplace el header Authorization
+ * (service_role_key) por el JWT del usuario autenticado.
+ *
+ * Usar en createServerClient(URL, SERVICE_ROLE_KEY, { cookies: createReadOnlyCookiesAdapter() }).
+ * Se recomienda acompañar con auth: { autoRefreshToken: false, persistSession: false }.
+ */
+export function createReadOnlyCookiesAdapter() {
+  return {
+    get: () => undefined as string | undefined,
+    getAll: () => [] as Array<{ name: string; value: string }>,
+    // eslint-disable-next-line @typescript-eslint/no-empty-function
+    setAll: () => {},
+  }
+}
+
+/**
  * Construye el adapter que `createServerClient(..., { cookies })`
  * de `@supabase/ssr` espera. Reemplaza los 6 bloques inline del
  * codebase. Cumple los 3 métodos que `combineChunks` / `setAll`

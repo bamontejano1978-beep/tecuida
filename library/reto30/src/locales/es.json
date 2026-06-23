@@ -1,0 +1,1981 @@
+{
+  "app": {
+    "title": "Mindful 30",
+    "subtitle": "30 Días de Mindfulness",
+    "loading": "Cargando..."
+  },
+  "landing": {
+    "update_badge": "ACTUALIZACIÓN 2026",
+    "hero_title_prefix": "Transforma tu",
+    "hero_title_highlight": "resiliencia mental.",
+    "hero_description": "Un programa de 30 días basado en ciencia para reprogramar tus hábitos, gestionar emociones y construir una mente más fuerte.",
+    "cta_join": "Unirse al Reto Completo",
+    "cta_download": "Descargar App (APK)",
+    "cta_pwa": "Acceder Versión Web / iOS",
+    "features_tcc_title": "Basado en TCC",
+    "features_tcc_desc": "Estrategias validadas por la psicología cognitiva para resultados reales.",
+    "features_guide_title": "Guía Diaria",
+    "features_guide_desc": "No estás solo. Cada día tienes una lección y un pequeño reto práctico.",
+    "features_offline_title": "Acceso Offline",
+    "features_offline_desc": "Lleva tu progreso contigo. Diseñado para funcionar donde estés.",
+    "pillars_title": "Los Tres Pilares del Cambio",
+    "pillars_subtitle": "METODOLOGÍA HOLÍSTICA",
+    "pillar_thoughts_title": "Pensamientos",
+    "pillar_thoughts_desc": "Identifica y desafía los patrones negativos que limitan tu potencial.",
+    "pillar_activities_title": "Actividades",
+    "pillar_activities_desc": "Reconecta con el placer y el movimiento a través de acciones diarias.",
+    "pillar_relationships_title": "Relaciones",
+    "pillar_relationships_desc": "Fortalece tus vínculos y aprende a establecer límites saludables.",
+    "steps_title": "¿Cómo funciona el viaje?",
+    "steps_subtitle": "Un proceso optimizado para evitar el agobio y maximizar el hábito.",
+    "step_1_title": "Compromiso",
+    "step_1_desc": "Dedica 10-15 minutos diarios a las reflexiones y ejercicios propuestos.",
+    "step_2_title": "Acción",
+    "step_2_desc": "Completa pequeños retos diseñados para cambiar tu perspectiva día a día.",
+    "step_3_title": "Evolución",
+    "step_3_desc": "Observa cómo cambian tus niveles de bienestar con nuestro diario de seguimiento.",
+    "download_title": "Lleva Mindful30 en tu bolsillo",
+    "download_desc": "Descarga nuestra aplicación Android para seguir tu progreso sin distracciones, con notificaciones diarias y acceso inmediato.",
+    "download_compatibility": "Compatible con Android 8.0 o superior",
+    "pricing_access": "ACCESO ILIMITADO",
+    "pricing_title_prefix": "Invierte en tu",
+    "pricing_title_highlight": "bienestar.",
+    "pricing_feature_1": "Pase completo a los 30 días del reto",
+    "pricing_feature_2": "Registro ilimitado de pensamientos y actividades",
+    "pricing_feature_3": "Soporte prioritario via email",
+    "pricing_offer": "OFERTA LANZAMIENTO",
+    "pricing_type": "PAGO ÚNICO",
+    "pricing_cta": "Comenzar Ahora",
+    "pricing_no_subs": "Sin suscripciones. Para siempre.",
+    "faq_title": "Preguntas Frecuentes",
+    "faq_q1": "¿Es una suscripción?",
+    "faq_a1": "No. Es un pago único que te da acceso de por vida a todo el contenido del reto y futuras actualizaciones.",
+    "faq_q2": "¿Necesito conocimientos previos?",
+    "faq_a2": "Para nada. Mindful30 está diseñado para guiarte desde cero con lenguaje claro y ejercicios prácticos.",
+    "faq_q3": "¿Funciona en iOS o iPhone?",
+    "faq_a3": "¡Sí! Mindful30 es una PWA (Progressive Web App). En tu iPhone, simplemente pulsa el botón 'Compartir' en Safari y selecciona 'Añadir a la pantalla de inicio'. Tendrás la app instalada sin pasar por la App Store.",
+    "faq_q4": "¿Son privados mis datos?",
+    "faq_a4": "Totalmente. Tus reflexiones y diario se guardan localmente en tu dispositivo. Nosotros no tenemos acceso a tus pensamientos.",
+    "footer_description": "Empoderando a las personas para recuperar su paz mental a través de la ciencia y la acción diaria.",
+    "footer_rights": "© 2026 Mindful30. Todos los derechos reservados.",
+    "footer_disclaimer": "Nota: Mindful30 es una herramienta de apoyo y no sustituye el tratamiento médico o psicológico profesional.",
+    "nav_about": "Sobre el Reto",
+    "nav_purchase": "Comprar Programa",
+    "nav_download": "Descargar APK",
+    "nav_navigation": "Navegación",
+    "nav_info": "Información",
+    "nav_privacy": "Privacidad",
+    "nav_terms": "Términos",
+    "nav_contact": "Contacto",
+    "security_title": "Instalación Segura",
+    "security_subtitle": "GUÍA DE INSTALACIÓN",
+    "security_desc": "Al instalar una aplicación externa a la Google Play Store, Android muestra avisos de seguridad. Esto es normal y seguro en Mindful30.",
+    "security_warning_title": "¿Por qué aparece un aviso?",
+    "security_warning_desc": "Google Play Protect alerta sobre cualquier aplicación descargada directamente (APK) que no esté aún en su base de datos principal. Nuestra app es 100% segura y no recopila datos personales.",
+    "security_step_1_title": "1. Descarga el APK",
+    "security_step_1_desc": "Pulsa el botón de descarga y confirma que quieres descargar el archivo.",
+    "security_step_2_title": "2. Abrir archivo",
+    "security_step_2_desc": "Una vez descargado, abre el archivo. Si el sistema te pide permisos para 'Instalar desde esta fuente', concédelos.",
+    "security_step_3_title": "3. Ignorar aviso",
+    "security_step_3_desc": "Si aparece 'Aplicación bloqueada', pulsa en 'Más detalles' y luego en 'Instalar de todas formas'."
+  },
+  "paywall": {
+    "title_demo": "Comienza tu viaje",
+    "title_premium": "Contenido Premium",
+    "description_demo": "Para acceder al Reto Mindful30 y comenzar tu transformación, es necesario desbloquear el contenido completo.",
+    "description_premium": "Esta sección requiere el Reto Completo. Desbloquea los 30 días para continuar tu transformación.",
+    "cta": "Obtener Reto Completo",
+    "redeem_text": "¿Ya compraste el reto? Canjea tu código aquí:",
+    "redeem_placeholder": "INTRODUCE TU CÓDIGO",
+    "unlock_title": "Desbloquea tu Bienestar",
+    "unlock_desc": "Has completado tus días gratuitos. Únete a miles de personas que están transformando su vida con el programa completo.",
+    "feature_1": "Acceso completo a los 30 días del reto",
+    "feature_2": "Más de 90 recursos interactivos y guiones",
+    "feature_3": "Diario personal ilimitado y persistente",
+    "feature_4": "Herramientas avanzadas de TCC y Bienestar",
+    "feature_5": "Actualizaciones de contenido gratuitas",
+    "one_time_payment": "PAGO ÚNICO - ACCESO DE POR VIDA",
+    "unlock_now": "DESBLOQUEAR AHORA",
+    "rating": "Valorado con 4.9/5 por la comunidad",
+    "have_code": "¿Tienes un código de promoción o licencia web?"
+  },
+  "completion": {
+    "title": "¡Reto Completado!",
+    "message": "Has dedicado 30 días a tu bienestar mental. Este no es el final, sino el comienzo de una nueva forma de ver la vida. Guárdate todo lo aprendido.",
+    "feedback_title": "Tu opinión es vital",
+    "feedback_desc": "¿Cómo ha sido tu experiencia? Ayúdanos a mejorar Mindful30 para futuras versiones.",
+    "feedback_cta": "Enviar Comentarios",
+    "review_day_30": "Volver a revisar el Día 30"
+  },
+  "dashboard": {
+    "welcome_title": "¡Buenos días!",
+    "welcome_message": "Recuerda completar tus tareas de hoy para seguir fortaleciendo tu resiliencia mental.",
+    "welcome_cta": "¡Vamos allá!",
+    "progress_title": "Tu Progreso",
+    "day_x_of_30": "{{current}} de 30 Días",
+    "day_title": "Día {{day}}",
+    "today_journal": "Tu diario para hoy",
+    "history_review": "Revisando el historial",
+    "complete_button": "He completado las tareas de hoy",
+    "day_completed": "Día completado ✓",
+    "back_to_current": "Volver al día actual",
+    "reset_progress": "Reiniciar reto",
+    "reset_confirm": "¿Seguro que quieres reiniciar tu progreso? Esto reseteará tu fecha de inicio a hoy.",
+    "completed_label": "Completado",
+    "mark_done": "Marcar Hecho",
+    "view_resource": "Ver recurso interactivo",
+    "back_progress": "Volver al progreso",
+    "locked_title": "Día {{day}} Bloqueado",
+    "locked_message": "Este contenido se desbloqueará según progrese el reto real. Vuelve mañana para continuar.",
+    "demo_complete_alert": "¡Felicidades por completar la Demo! El resto del camino te espera en la versión completa.",
+    "next_day_alert": "Buen trabajo. El día {{next}} se desbloqueará mañana."
+  },
+  "common": {
+    "loading": "Cargando..."
+  },
+  "nav": {
+    "dashboard": "Diario",
+    "thoughts": "Pensamientos",
+    "activities": "Actividades",
+    "relationships": "Relaciones",
+    "community": "Comunidad"
+  },
+  "thoughts_page": {
+    "title": "Pensamientos",
+    "subtitle": "Tus ejercicios y reflexiones.",
+    "search_placeholder": "Buscar tareas o temas...",
+    "empty_locked": "Aún no has desbloqueado tareas de pensamientos. ¡Vuelve mañana!",
+    "your_reflection": "TU REFLEXIÓN",
+    "add_reflection": "Añadir reflexión..."
+  },
+  "activities_page": {
+    "title": "Actividades",
+    "subtitle": "Movimiento y bienestar.",
+    "search_placeholder": "Buscar actividades...",
+    "empty_locked": "Comienza el reto para desbloquear actividades físicas y mentales.",
+    "day_label": "DÍA {{day}}",
+    "view_guide": "Ver Guía Completa"
+  },
+  "relationships_page": {
+    "title": "Relaciones",
+    "subtitle": "Vínculos y conexiones.",
+    "search_placeholder": "Buscar temas o guiones...",
+    "empty_locked": "Las herramientas de conexión se desbloquearán con el tiempo. ¡Sigue adelante!",
+    "day_label": "DÍA",
+    "review_script": "REVISAR GUION",
+    "includes_script": "Incluye guion sugerido"
+  },
+  "areas": {
+    "thoughts": "Pensamientos",
+    "activities": "Actividades",
+    "relationships": "Relaciones"
+  },
+  "quotes": {
+    "1": "El primer paso no te lleva a donde quieres ir, pero te saca de donde estás.",
+    "2": "Tu mente es un jardín. Tus pensamientos son las semillas. Puedes cultivar flores o puedes cultivar maleza.",
+    "3": "No tienes que controlar tus pensamientos. Solo tienes que dejar de dejar que ellos te controlen a ti.",
+    "4": "La resiliencia es ver que hay luz a pesar de toda la oscuridad.",
+    "5": "La felicidad no es algo que pospones para el futuro; es algo que diseñas para el presente.",
+    "6": "Lo que niegas te somete. Lo que aceptas te transforma.",
+    "7": "A veces la cosa más valiente que puedes hacer es seguir viviendo cuando quieres rendirte.",
+    "8": "Tus emociones son mensajeros, no maestros. Escúchalas, pero tú diriges el camino.",
+    "9": "La paz interior comienza en el momento en que eliges no permitir que otra persona o evento controle tus emociones.",
+    "10": "No eres tus pensamientos; eres el observador de tus pensamientos.",
+    "11": "La disciplina es elegir entre lo que quieres ahora y lo que más quieres.",
+    "12": "Cada día es una nueva oportunidad para ser la mejor versión de ti mismo.",
+    "13": "El fracaso es solo la oportunidad de comenzar de nuevo, esta vez de forma más inteligente.",
+    "14": "Cuidar de ti mismo no es egoísmo, es supervivencia.",
+    "15": "Estás a mitad de camino. No mires lo que falta, mira todo lo que has avanzado.",
+    "16": "La mente es como un paracaídas: solo funciona si se abre.",
+    "17": "No cuentes los días, haz que los días cuenten.",
+    "18": "La mayor victoria es la victoria sobre uno mismo.",
+    "19": "Respira. Es solo un mal día, no una mal vida.",
+    "20": "La gratitud convierte lo que tenemos en suficiente.",
+    "21": "El perfeccionismo es el enemigo del progreso.",
+    "22": "Tú eres el capitán de tu alma y el dueño de tu destino.",
+    "23": "Incluso el árbol más grande comenzó siendo una pequeña semilla que se mantuvo en su lugar.",
+    "24": "No te compares con los demás, compárate con quien eras ayer.",
+    "25": "La paciencia es amarga, pero su fruto es dulce.",
+    "26": "Sé amable contigo mismo. Estás haciendo lo mejor que puedes.",
+    "27": "El cambio es difícil al principio, desordenado en el medio y precioso al final.",
+    "28": "Tu potencial es infinito. El único límite es el que tú mismo te pones.",
+    "29": "Casi lo tienes. La constancia es el puente entre tus metas y tus logros.",
+    "30": "Hoy celebramos tu compromiso. El bienestar no es una meta, es un estilo de vida."
+  },
+  "resources": {
+    "back_to_dashboard": "Volver al Panel",
+    "back": "Volver",
+    "locked_title": "Contenido Bloqueado",
+    "not_found_title": "Recurso no encontrado",
+    "locked_message": "Este reto se desbloqueará el día {{day}}. Sigue practicando las tareas de hoy.",
+    "not_found_message": "Lo sentimos, el recurso que buscas no existe.",
+    "breathing": {
+      "title": "Respiración Cuadrada",
+      "inhale": "Inhala",
+      "hold": "Mantén",
+      "exhale": "Exhala",
+      "start": "Comenzar",
+      "pause": "Pausar"
+    },
+    "laughter": {
+      "title": "Terapia de la Risa",
+      "message": "La risa libera endorfinas de forma inmediata. Si no tienes un vídeo a mano, prueba a sonreír de forma exagerada durante 1 minuto. ¡Tu cerebro no notará la diferencia!",
+      "cta": "Buscar algo divertido"
+    },
+    "movement": {
+      "title": "Movimiento Consciente",
+      "steps": [
+        {
+          "title": "1. Rotación de Hombros",
+          "desc": "Lleva los hombros hacia arriba, atrás y abajo en círculos lentos. Repite 5 veces."
+        },
+        {
+          "title": "2. Estiramiento de Gato",
+          "desc": "Si estás sentado, encorva la espalda y luego estira el pecho hacia adelante. Repite 3 veces."
+        },
+        {
+          "title": "3. Sacudida de Tensión",
+          "desc": "Sacude tus manos y pies vigorosamente durante 10 segundos para soltar el estrés."
+        }
+      ]
+    },
+    "cbt": {
+      "your_exercise": "Tu Ejercicio:",
+      "placeholder": "Escribe tu reflexión aquí...",
+      "save": "Guardar Reflexión",
+      "saved": "Guardado",
+      "expert_guide": "Guía experta"
+    },
+    "social": {
+      "suggested_script": "GUION SUGERIDO",
+      "copy": "Copiar Guion",
+      "copied": "Copiado",
+      "advice_label": "Consejo"
+    }
+  },
+  "challenges": {
+    "day1": {
+      "thoughts": {
+        "area": "thoughts",
+        "title": "Cazando Pensamientos",
+        "description": "El primer paso para cambiar es darnos cuenta de lo que pasa por nuestra mente.",
+        "actionItem": "Anota 3 pensamientos negativos automáticos que tengas hoy.",
+        "resourceId": "thoughts-1"
+      },
+      "activities": {
+        "area": "activities",
+        "title": "Pequeños Placeres",
+        "description": "Reconectar con actividades que disfrutamos mejora el estado de ánimo.",
+        "actionItem": "Dedicate 15 minutos a una actividad que disfrutes (leer, escuchar música, caminar).",
+        "resourceId": "activities-1"
+      },
+      "relationships": {
+        "area": "relationships",
+        "title": "Conexión Consciente",
+        "description": "Nuestras relaciones son fundamentales para el bienestar.",
+        "actionItem": "Envía un mensaje de gratitud a alguien importante para ti.",
+        "resourceId": "relationships-1"
+      }
+    },
+    "day2": {
+      "thoughts": {
+        "area": "thoughts",
+        "title": "Realidad vs. Pensamiento",
+        "description": "Aprende a distinguir entre lo que ocurre y lo que tu mente interpreta.",
+        "actionItem": "Elige un pensamiento de ayer y busca 2 pruebas objetivas de que sea cierto y 2 de que no.",
+        "resourceId": "thoughts-2"
+      },
+      "activities": {
+        "area": "activities",
+        "title": "Movimiento Suave",
+        "description": "El ejercicio ligero libera endorfinas y reduce el cortisol.",
+        "actionItem": "Realiza 10 minutos de estiramientos o yoga suave al despertar o antes de dormir.",
+        "resourceId": "activities-2"
+      },
+      "relationships": {
+        "area": "relationships",
+        "title": "Escucha Activa",
+        "description": "Escuchar profundamente fortalece los vínculos.",
+        "actionItem": "En tu próxima conversación, escucha sin interrumpir y resume lo que la otra persona dijo antes de responder.",
+        "resourceId": "relationships-2"
+      }
+    },
+    "day3": {
+      "thoughts": {
+        "area": "thoughts",
+        "title": "El Filtro Mental",
+        "description": "A veces solo vemos lo negativo, ignorando lo positivo que sucede.",
+        "actionItem": "Anota 3 cosas buenas que hayan pasado hoy, por pequeñas que parezcan.",
+        "resourceId": "thoughts-3"
+      },
+      "activities": {
+        "area": "activities",
+        "title": "Desconexión Digital",
+        "description": "La sobreestimulación digital agota nuestros recursos mentales.",
+        "actionItem": "Pasa una hora completa sin consultar el teléfono o redes sociales.",
+        "resourceId": "activities-3"
+      },
+      "relationships": {
+        "area": "relationships",
+        "title": "Decir que No",
+        "description": "Poner límites es una forma de autocuidado.",
+        "actionItem": "Identifica una petición a la que querrías decir \"no\" y ensaya el guion de asertividad.",
+        "resourceId": "relationships-3"
+      }
+    },
+    "day4": {
+      "thoughts": {
+        "area": "thoughts",
+        "title": "Catastrofismo",
+        "description": "Nuestra mente a veces se adelanta al peor escenario posible.",
+        "actionItem": "Si te preocupa algo, pregúntate: \"¿Qué es lo peor que podría pasar? ¿Qué tan probable es?\"",
+        "resourceId": "thoughts-4"
+      },
+      "activities": {
+        "area": "activities",
+        "title": "Nutrición Consciente",
+        "description": "Lo que comemos influye en cómo nos sentimos.",
+        "actionItem": "Realiza una comida hoy sin distracciones (TV, móvil), enfocándote solo en los sabores.",
+        "resourceId": "activities-4"
+      },
+      "relationships": {
+        "area": "relationships",
+        "title": "Pedir Ayuda",
+        "description": "Reconocer que necesitamos a otros nos hace humanos y nos une.",
+        "actionItem": "Pide ayuda hoy para algo pequeño, incluso si podrías hacerlo solo.",
+        "resourceId": "relationships-4"
+      }
+    },
+    "day5": {
+      "thoughts": {
+        "area": "thoughts",
+        "title": "Etiquetas Negativas",
+        "description": "Las etiquetas que nos ponemos suelen ser injustas y limitantes.",
+        "actionItem": "Cambia un \"Soy un desastre\" por \"He cometido un error en esta tarea específica\".",
+        "resourceId": "thoughts-5"
+      },
+      "activities": {
+        "area": "activities",
+        "title": "Entorno Ordenado",
+        "description": "El orden exterior ayuda a promover el orden interior.",
+        "actionItem": "Ordena durante 10 minutos un cajón o rincón que tengas descuidado.",
+        "resourceId": "activities-5"
+      },
+      "relationships": {
+        "area": "relationships",
+        "title": "Cumplido Sincero",
+        "description": "Reconocer lo bueno en los demás genera una espiral positiva.",
+        "actionItem": "Hazle un cumplido sincero a un compañero de trabajo o amigo.",
+        "resourceId": "relationships-5"
+      }
+    },
+    "day6": {
+      "thoughts": {
+        "area": "thoughts",
+        "title": "Razonamiento Emocional",
+        "description": "\"Si me siento mal, es porque algo va mal\". Sentir no es razonar.",
+        "actionItem": "Identifica un momento hoy donde tus emociones guiaron tu juicio y trata de ver los hechos.",
+        "resourceId": "thoughts-6"
+      },
+      "activities": {
+        "area": "activities",
+        "title": "Creatividad Libre",
+        "description": "Expresarnos creativamente es una vía de escape para el estrés.",
+        "actionItem": "Dibuja, escribe o cocina algo nuevo hoy, sin buscar la perfección.",
+        "resourceId": "activities-6"
+      },
+      "relationships": {
+        "area": "relationships",
+        "title": "Tiempo de Calidad",
+        "description": "Lo importante no es el tiempo, sino la presencia.",
+        "actionItem": "Llama a un familiar o amigo cercano y dedica 15 minutos de presencia plena.",
+        "resourceId": "relationships-6"
+      }
+    },
+    "day7": {
+      "thoughts": {
+        "area": "thoughts",
+        "title": "Revisión Semanal",
+        "description": "Observa tus patrones de pensamiento de esta semana.",
+        "actionItem": "¿Qué distorsión ha sido la más frecuente en tus registros de pensamientos?",
+        "resourceId": "thoughts-7"
+      },
+      "activities": {
+        "area": "activities",
+        "title": "Baño Relajante",
+        "description": "El agua templada ayuda a relajar la tensión muscular acumulada.",
+        "actionItem": "Toma una ducha o baño consciente, prestando atención a la sensación del agua.",
+        "resourceId": "activities-7"
+      },
+      "relationships": {
+        "area": "relationships",
+        "title": "Círculo de Confianza",
+        "description": "Refuerza tu red de apoyo.",
+        "actionItem": "Anota quiénes son las 3 personas en las que más confías y por qué.",
+        "resourceId": "relationships-7"
+      }
+    },
+    "day8": {
+      "thoughts": {
+        "area": "thoughts",
+        "title": "Personalización",
+        "description": "No todo lo que ocurre a tu alrededor es por tu culpa o sobre ti.",
+        "actionItem": "Si alguien está de mal humor, busca 3 razones externas que no tengan que ver contigo.",
+        "resourceId": "thoughts-8"
+      },
+      "activities": {
+        "area": "activities",
+        "title": "Nueva Ruta",
+        "description": "La novedad estimula la neuroplasticidad del cerebro.",
+        "actionItem": "Camina o conduce por un camino diferente al habitual para ir a un lugar común.",
+        "resourceId": "activities-8"
+      },
+      "relationships": {
+        "area": "relationships",
+        "title": "Límites Digitales",
+        "description": "Nuestra disponibilidad constante puede ser agotadora.",
+        "actionItem": "Informa que no responderás mensajes de trabajo o compromiso después de cierta hora.",
+        "resourceId": "relationships-8"
+      }
+    },
+    "day9": {
+      "thoughts": {
+        "area": "thoughts",
+        "title": "Los \"Debería\"",
+        "description": "Las exigencias rígidas (\"debería hacer...\", \"debería ser...\") generan culpa.",
+        "actionItem": "Cambia un \"Debo\" por un \"Me gustaría\" o \"Elijo hacerlo\".",
+        "resourceId": "thoughts-9"
+      },
+      "activities": {
+        "area": "activities",
+        "title": "Música para el Ánimo",
+        "description": "La música tiene el poder de cambiar nuestra química cerebral.",
+        "actionItem": "Crea una lista de reproducción con 5 canciones que siempre te suban el ánimo.",
+        "resourceId": "activities-9"
+      },
+      "relationships": {
+        "area": "relationships",
+        "title": "Disculpa Sincera",
+        "description": "Pedir perdón libera carga emocional y repara vínculos.",
+        "actionItem": "Si tienes algo pendiente, pide disculpas sinceramente por un pequeño error pasado.",
+        "resourceId": "relationships-9"
+      }
+    },
+    "day10": {
+      "thoughts": {
+        "area": "thoughts",
+        "title": "Visión de Túnel",
+        "description": "Cuando estamos mal, solo vemos el problema, ignorando soluciones.",
+        "actionItem": "Para un problema actual, escribe 3 posibles soluciones, aunque parezcan difíciles.",
+        "resourceId": "thoughts-10"
+      },
+      "activities": {
+        "area": "activities",
+        "title": "Lectura Inspiradora",
+        "description": "Sumergirnos en otras historias nos da perspectiva.",
+        "actionItem": "Lee 10 páginas de ese libro que tienes pendiente en tu mesilla.",
+        "resourceId": "activities-10"
+      },
+      "relationships": {
+        "area": "relationships",
+        "title": "Contacto Visual",
+        "description": "El contacto visual fomenta la empatía y la conexión.",
+        "actionItem": "Practica mantener el contacto visual un poco más de lo habitual hoy.",
+        "resourceId": "relationships-10"
+      }
+    },
+    "day11": {
+      "thoughts": {
+        "area": "thoughts",
+        "title": "Lectura de Pensamiento",
+        "description": "Creemos saber qué piensan los demás de nosotros, y solemos ser negativos.",
+        "actionItem": "Escribe un pensamiento sobre lo que crees que alguien piensa de ti y busca una explicación alternativa.",
+        "resourceId": "thoughts-11"
+      },
+      "activities": {
+        "area": "activities",
+        "title": "Autocuidado Físico",
+        "description": "Cuidar el cuerpo es una señal de respeto hacia uno mismo.",
+        "actionItem": "Dedica tiempo extra a tu rutina de cuidado personal (crema, afeitado, etc.).",
+        "resourceId": "activities-11"
+      },
+      "relationships": {
+        "area": "relationships",
+        "title": "Expresar Necesidades",
+        "description": "Los demás no pueden adivinar lo que necesitamos.",
+        "actionItem": "Usa el guion: \"Me siento [emoción] y necesitaría [petición]\" con alguien cercano.",
+        "resourceId": "relationships-11"
+      }
+    },
+    "day12": {
+      "thoughts": {
+        "area": "thoughts",
+        "title": "Polarización",
+        "description": "Vemos el mundo en blanco o negro, olvidando los matices grises.",
+        "actionItem": "Para una situación que evalúes como \"desastre\", busca 2 elementos que no sean tan malos.",
+        "resourceId": "thoughts-12"
+      },
+      "activities": {
+        "area": "activities",
+        "title": "Infusión y Pausa",
+        "description": "El calor de una bebida reconforta el sistema nervioso.",
+        "actionItem": "Prepara tu té o café favorito y bébelo despacio, sin hacer nada más.",
+        "resourceId": "activities-12"
+      },
+      "relationships": {
+        "area": "relationships",
+        "title": "Reencuentro",
+        "description": "Retomar el contacto con personas valiosas aumenta el bienestar.",
+        "actionItem": "Contacta con ese amigo con el que hace tiempo que no hablas.",
+        "resourceId": "relationships-12"
+      }
+    },
+    "day13": {
+      "thoughts": {
+        "area": "thoughts",
+        "title": "Generalización Excesiva",
+        "description": "Un fallo puntual no significa que \"siempre\" falles.",
+        "actionItem": "Identifica el uso de palabras como \"siempre\", \"nunca\", \"todos\" en tus pensamientos hoy.",
+        "resourceId": "thoughts-13"
+      },
+      "activities": {
+        "area": "activities",
+        "title": "Canto o Baile",
+        "description": "Expresar alegría corporalmente engaña al cerebro para sentirse mejor.",
+        "actionItem": "Canta una canción o baila un tema completo en la privacidad de tu casa.",
+        "resourceId": "activities-13"
+      },
+      "relationships": {
+        "area": "relationships",
+        "title": "Evitar el Cotilleo",
+        "description": "Hablar mal de otros genera un ambiente de desconfianza.",
+        "actionItem": "Hoy, si surge un comentario negativo sobre alguien, intenta cambiar de tema o decir algo neutro.",
+        "resourceId": "relationships-13"
+      }
+    },
+    "day14": {
+      "thoughts": {
+        "area": "thoughts",
+        "title": "Falacia de Control",
+        "description": "No podemos controlarlo todo, y no somos responsables de todo.",
+        "actionItem": "Dibuja dos círculos: uno con lo que puedes controlar hoy y otro con lo que no.",
+        "resourceId": "thoughts-14"
+      },
+      "activities": {
+        "area": "activities",
+        "title": "Naturaleza Cercana",
+        "description": "El verde de las plantas y el aire libre reducen la ansiedad.",
+        "actionItem": "Ve a un parque o jardín y siéntate 10 minutos simplemente a observar.",
+        "resourceId": "activities-14"
+      },
+      "relationships": {
+        "area": "relationships",
+        "title": "Pequeño Detalle",
+        "description": "La generosidad sin motivo fortalece las relaciones.",
+        "actionItem": "Ten un detalle con alguien (un post-it con un mensaje, un dulce, un café).",
+        "resourceId": "relationships-14"
+      }
+    },
+    "day15": {
+      "thoughts": {
+        "area": "thoughts",
+        "title": "Ecuador del Reto",
+        "description": "Momento de reflexionar sobre los cambios logrados.",
+        "actionItem": "Escribe una carta breve a tu \"yo\" del día 1 animándole a seguir.",
+        "resourceId": "thoughts-15"
+      },
+      "activities": {
+        "area": "activities",
+        "title": "Siesta Reparadora",
+        "description": "Un descanso breve reinicia la capacidad cognitiva.",
+        "actionItem": "Si puedes, toma una siesta de máximo 20 minutos durante el día.",
+        "resourceId": "activities-15"
+      },
+      "relationships": {
+        "area": "relationships",
+        "title": "Diálogo Interior",
+        "description": "Cómo te hablas a ti mismo influye en cómo te relacionas.",
+        "actionItem": "Hoy, trátate con la misma amabilidad con la que tratarías a tu mejor amigo.",
+        "resourceId": "relationships-15"
+      }
+    },
+    "day16": {
+      "thoughts": {
+        "area": "thoughts",
+        "title": "Magnificación",
+        "description": "A veces hacemos de un grano de arena una montaña.",
+        "actionItem": "Pregúntate: \"¿Esto que me preocupa será importante dentro de un año?\"",
+        "resourceId": "thoughts-16"
+      },
+      "activities": {
+        "area": "activities",
+        "title": "Cocina con Amor",
+        "description": "Alimentarnos bien es un acto de amor propio.",
+        "actionItem": "Prepara una receta saludable que te guste especialmente.",
+        "resourceId": "activities-16"
+      },
+      "relationships": {
+        "area": "relationships",
+        "title": "Validación Emocional",
+        "description": "Validar las emociones de otros los hace sentir escuchados.",
+        "actionItem": "Cuando alguien te cuente algo, dile: \"Entiendo que te sientas así, es normal\".",
+        "resourceId": "relationships-16"
+      }
+    },
+    "day17": {
+      "thoughts": {
+        "area": "thoughts",
+        "title": "Minimización",
+        "description": "Quitarle importancia a tus logros te impide sentirte capaz.",
+        "actionItem": "Anota un pequeño logro de hoy y permítete sentir orgullo por haberlo hecho.",
+        "resourceId": "thoughts-17"
+      },
+      "activities": {
+        "area": "activities",
+        "title": "Puzzles o Juegos",
+        "description": "Concentrarnos en un reto lúdico descansa la mente de preocupaciones.",
+        "actionItem": "Haz un crucigrama, un sudoku o juega a un juego de mesa 15 minutos.",
+        "resourceId": "activities-17"
+      },
+      "relationships": {
+        "area": "relationships",
+        "title": "Pregunta Abierta",
+        "description": "Las preguntas abiertas invitan a compartir más profundamente.",
+        "actionItem": "En lugar de \"¿Qué tal?\", pregunta \"¿Qué ha sido lo más interesante de tu día?\".",
+        "resourceId": "relationships-17"
+      }
+    },
+    "day18": {
+      "thoughts": {
+        "area": "thoughts",
+        "title": "Inferencia Arbitraria",
+        "description": "Llegamos a conclusiones sin tener pruebas.",
+        "actionItem": "Cuestiona una conclusión que hayas sacado hoy sobre un evento ambiguo.",
+        "resourceId": "thoughts-18"
+      },
+      "activities": {
+        "area": "activities",
+        "title": "Visitar un Museo o Expo",
+        "description": "El arte inspira y nos saca de nuestra rutina mental.",
+        "actionItem": "Busca una exposición online o física y dedica un tiempo a contemplar.",
+        "resourceId": "activities-18"
+      },
+      "relationships": {
+        "area": "relationships",
+        "title": "Evitar el Conflicto",
+        "description": "Afrontar los desacuerdos con calma es mejor que evitarlos.",
+        "actionItem": "Si algo te molesta hoy, no lo evites; exprésalo usando un mensaje \"Yo\".",
+        "resourceId": "relationships-18"
+      }
+    },
+    "day19": {
+      "thoughts": {
+        "area": "thoughts",
+        "title": "Abstracción Selectiva",
+        "description": "Centrarse solo en el detalle negativo de una situación amplia.",
+        "actionItem": "Para un evento de hoy, busca 3 detalles positivos que hayan pasado desapercibidos.",
+        "resourceId": "thoughts-19"
+      },
+      "activities": {
+        "area": "activities",
+        "title": "Aroma-terapia",
+        "description": "Los olores conectan directamente con el sistema límbico (emociones).",
+        "actionItem": "Enciende una vela aromática o usa un aceite esencial que te relaje.",
+        "resourceId": "activities-19"
+      },
+      "relationships": {
+        "area": "relationships",
+        "title": "Reconocer el Esfuerzo",
+        "description": "Agradecer el esfuerzo de otros mejora el clima relacional.",
+        "actionItem": "Agradece a alguien un esfuerzo que suele pasar desapercibido.",
+        "resourceId": "relationships-19"
+      }
+    },
+    "day20": {
+      "thoughts": {
+        "area": "thoughts",
+        "title": "Atribución Errónea",
+        "description": "Asignar causas equivocadas a tus sentimientos.",
+        "actionItem": "Si estás cansado, no pienses que \"tu vida es un desastre\"; piensa \"estoy cansado\".",
+        "resourceId": "thoughts-20"
+      },
+      "activities": {
+        "area": "activities",
+        "title": "Limpieza Digital",
+        "description": "El desorden digital también genera estrés.",
+        "actionItem": "Borra fotos o archivos innecesarios de tu móvil durante 10 minutos.",
+        "resourceId": "activities-20"
+      },
+      "relationships": {
+        "area": "relationships",
+        "title": "Abrazo Largo",
+        "description": "El contacto físico seguro libera oxitocina, la hormona del vínculo.",
+        "actionItem": "Da un abrazo de más de 10 segundos a alguien con quien tengas confianza.",
+        "resourceId": "relationships-20"
+      }
+    },
+    "day21": {
+      "thoughts": {
+        "area": "thoughts",
+        "title": "Perfeccionismo",
+        "description": "Buscar la perfection es la receta para la insatisfacción.",
+        "actionItem": "Haz algo hoy y déjalo \"suficientemente bien\" en lugar de \"perfecto\".",
+        "resourceId": "thoughts-21"
+      },
+      "activities": {
+        "area": "activities",
+        "title": "Podcast o Audio-libro",
+        "description": "Escuchar nuevas ideas nos ayuda a salir de nuestro bucle mental.",
+        "actionItem": "Escucha un episodio de un podcast que te interese mientras haces otra cosa.",
+        "resourceId": "activities-21"
+      },
+      "relationships": {
+        "area": "relationships",
+        "title": "Decir lo que te Gusta",
+        "description": "A menudo solo hablamos de lo que no nos gusta de los demás.",
+        "actionItem": "Dile a alguien algo específico que aprecias de su personalidad.",
+        "resourceId": "relationships-21"
+      }
+    },
+    "day22": {
+      "thoughts": {
+        "area": "thoughts",
+        "title": "Descalificación de lo Positivo",
+        "description": "\"Lo he hecho bien, pero ha sido suerte\". No te quites mérito.",
+        "actionItem": "Hoy, cuando te pase algo bueno, di en voz alta: \"Me lo merezco\" o \"Lo he logrado yo\".",
+        "resourceId": "thoughts-22"
+      },
+      "activities": {
+        "area": "activities",
+        "title": "Manualidades",
+        "description": "Usar las manos nos ancla en el presente.",
+        "actionItem": "Haz algo manual: tejer, arreglar algo roto, montar un mueble.",
+        "resourceId": "activities-22"
+      },
+      "relationships": {
+        "area": "relationships",
+        "title": "Sonrisa Consciente",
+        "description": "La sonrisa es contagiosa y relaja el ambiente.",
+        "actionItem": "Sonríe conscientemente al saludar a las personas con las que interactúes hoy.",
+        "resourceId": "relationships-22"
+      }
+    },
+    "day23": {
+      "thoughts": {
+        "area": "thoughts",
+        "title": "Fantasía de Recompensa",
+        "description": "Esperar que los demás cambien o nos premien por ser \"buenos\".",
+        "actionItem": "Haz algo bueno hoy por ti, sin esperar que nadie más se dé cuenta o te lo agradezca.",
+        "resourceId": "thoughts-23"
+      },
+      "activities": {
+        "area": "activities",
+        "title": "Paseo en Soledad",
+        "description": "Estar con uno mismo nos ayuda a conocernos mejor.",
+        "actionItem": "Pasea 15 minutos a solas, disfrutando de tu propia compañía.",
+        "resourceId": "activities-23"
+      },
+      "relationships": {
+        "area": "relationships",
+        "title": "Interés Genuino",
+        "description": "La curiosidad por otros es la base de la amistad.",
+        "actionItem": "Pregunta a alguien sobre un hobby o tema que sepas que le apasiona.",
+        "resourceId": "relationships-23"
+      }
+    },
+    "day24": {
+      "thoughts": {
+        "area": "thoughts",
+        "title": "Comparación Social",
+        "description": "Comparar tu interior con el exterior de los demás es injusto.",
+        "actionItem": "Si te comparas hoy, recuerda: \"Solo veo su mejor versión, no su realidad completa\".",
+        "resourceId": "thoughts-24"
+      },
+      "activities": {
+        "area": "activities",
+        "title": "Escritura Libre",
+        "description": "Poner palabras al caos mental lo ordena.",
+        "actionItem": "Escribe durante 5 minutos todo lo que pase por tu cabeza, sin filtros.",
+        "resourceId": "activities-24"
+      },
+      "relationships": {
+        "area": "relationships",
+        "title": "Respetar el Silencio",
+        "description": "Estar cómodos en silencio es señal de una relación profunda.",
+        "actionItem": "No te sientas obligado a llenar todos los silencios en tus conversaciones de hoy.",
+        "resourceId": "relationships-24"
+      }
+    },
+    "day25": {
+      "thoughts": {
+        "area": "thoughts",
+        "title": "Sesgo de Confirmación",
+        "description": "Solo buscamos lo que confirma lo que ya creemos.",
+        "actionItem": "Busca una prueba de algo positivo sobre ti que contradiga una creencia negativa antigua.",
+        "resourceId": "thoughts-25"
+      },
+      "activities": {
+        "area": "activities",
+        "title": "Mirar las Estrellas o el Cielo",
+        "description": "Contemplar la inmensidad reduce la importancia de nuestros problemas.",
+        "actionItem": "Pasa unos minutos mirando el cielo, las nubes o las estrellas.",
+        "resourceId": "activities-25"
+      },
+      "relationships": {
+        "area": "relationships",
+        "title": "Gratitud Social",
+        "description": "Agradecer a la comunidad nos hace sentir parte de algo.",
+        "actionItem": "Da las gracias de forma especial al cajero, conductor o camarero que te atienda.",
+        "resourceId": "relationships-25"
+      }
+    },
+    "day26": {
+      "thoughts": {
+        "area": "thoughts",
+        "title": "La Falacia de Cambio",
+        "description": "Esperar que los demás cambien para que nosotros podamos ser felices.",
+        "actionItem": "Identifica algo que te molesta de alguien y busca cómo puedes tú manejarlo mejor sin que el otro cambie.",
+        "resourceId": "thoughts-26"
+      },
+      "activities": {
+        "area": "activities",
+        "title": "Cuidar una Planta",
+        "description": "Cuidar de otro ser vivo fomenta la responsabilidad y la calma.",
+        "actionItem": "Riega tus plantas o quita las hojas secas, haciéndolo con plena atención.",
+        "resourceId": "activities-26"
+      },
+      "relationships": {
+        "area": "relationships",
+        "title": "No Juzgar",
+        "description": "Aceptar a los demás como son reduce nuestra propia tensión.",
+        "actionItem": "Hoy, ante una conducta ajena que suela juzgar, repítete: \"No conozco su historia completa\".",
+        "resourceId": "relationships-26"
+      }
+    },
+    "day27": {
+      "thoughts": {
+        "area": "thoughts",
+        "title": "Tener Razón",
+        "description": "La necesidad obsesiva de demostrar que tenemos razón agota y aleja a los demás.",
+        "actionItem": "En tu próxima discusión, elige \"ser amable\" en lugar de \"tener razón\".",
+        "resourceId": "thoughts-27"
+      },
+      "activities": {
+        "area": "activities",
+        "title": "Risa Terapéutica",
+        "description": "Reír libera tensiones de forma inmediata.",
+        "actionItem": "Mira un vídeo cómico o llama a esa persona que siempre te hace reír.",
+        "resourceId": "activities-27"
+      },
+      "relationships": {
+        "area": "relationships",
+        "title": "Planes de Futuro",
+        "description": "Tener algo que esperar juntos fortalece el vínculo.",
+        "actionItem": "Propón un plan agradable para la próxima semana a un amigo o pareja.",
+        "resourceId": "relationships-27"
+      }
+    },
+    "day28": {
+      "thoughts": {
+        "area": "thoughts",
+        "title": "Culpabilidad",
+        "description": "La culpa nos ancla en el pasado. La responsabilidad nos mueve al futuro.",
+        "actionItem": "Si te sientes culpable por algo, pregúntate: \"¿Qué puedo aprender y cómo puedo repararlo?\"",
+        "resourceId": "thoughts-28"
+      },
+      "activities": {
+        "area": "activities",
+        "title": "Pausa de \"No Hacer\"",
+        "description": "Aprender a estar en silencio y quietud sin sentir que perdemos el tiempo.",
+        "actionItem": "Siéntate 5 minutos sin móvil, sin música, sin hacer nada, solo existiendo.",
+        "resourceId": "activities-28"
+      },
+      "relationships": {
+        "area": "relationships",
+        "title": "Ayuda Inesperada",
+        "description": "Ser útil a los demás da sentido a nuestra vida.",
+        "actionItem": "Ayuda a alguien hoy en algo que no te haya pedido pero que sepas que necesita.",
+        "resourceId": "relationships-28"
+      }
+    },
+    "day29": {
+      "thoughts": {
+        "area": "thoughts",
+        "title": "Mente Sabia",
+        "description": "El equilibrio entre tu mente racional y tu mente emocional.",
+        "actionItem": "Ante una decisión hoy, pregúntate: \"¿Qué dice mi lógica? ¿Qué dice mi corazón? ¿Qué dice mi sabiduría?\"",
+        "resourceId": "thoughts-29"
+      },
+      "activities": {
+        "area": "activities",
+        "title": "Repaso de Logros",
+        "description": "Celebrar el camino recorrido refuerza el hábito.",
+        "actionItem": "Dedica 10 minutos a releer tus notas de estos 29 días.",
+        "resourceId": "activities-29"
+      },
+      "relationships": {
+        "area": "relationships",
+        "title": "Gratitud Extensa",
+        "description": "Agradecer a quienes nos rodean por su presencia en nuestra vida.",
+        "actionItem": "Dile a tus personas más cercanas cuánto valoras haber compartido este mes con ellas.",
+        "resourceId": "relationships-29"
+      }
+    },
+    "day30": {
+      "thoughts": {
+        "area": "thoughts",
+        "title": "Compromiso Futuro",
+        "description": "El bienestar es un camino, no una meta.",
+        "actionItem": "Escribe 3 hábitos que hayas practicado este mes y que quieras mantener siempre.",
+        "resourceId": "thoughts-30"
+      },
+      "activities": {
+        "area": "activities",
+        "title": "Celebración del Éxito",
+        "description": "Has completado 30 días de cuidado consciente. ¡Enhorabuena!",
+        "actionItem": "Haz algo especial hoy para celebrar tu constancia y tu progreso.",
+        "resourceId": "activities-30"
+      },
+      "relationships": {
+        "area": "relationships",
+        "title": "Celebrar Juntos",
+        "description": "Compartir los logros los hace más reales y duraderos.",
+        "actionItem": "Comparte tu alegría por haber terminado el reto con alguien que te aprecie.",
+        "resourceId": "relationships-30"
+      }
+    }
+  },
+  "resources_data": {
+    "thoughts-1": {
+      "id": "thoughts-1",
+      "type": "cbt",
+      "title": "Cazando Pensamientos",
+      "content": {
+        "prompt": "Anota 3 pensamientos negativos que hayas tenido hoy.",
+        "guide": "Los pensamientos automáticos suelen ser rápidos y pasar desapercibidos. ¡Detente y obsérvalos!"
+      }
+    },
+    "activities-1": {
+      "id": "activities-1",
+      "type": "guide",
+      "title": "Pequeños Placeres",
+      "content": {
+        "steps": [
+          "Elige algo de menos de 15 min.",
+          "Elimina distracciones.",
+          "Enfócate en los sentidos.",
+          "Nota tu cambio de ánimo."
+        ]
+      }
+    },
+    "relationships-1": {
+      "id": "relationships-1",
+      "type": "social",
+      "title": "Mensaje de Gratitud",
+      "content": {
+        "script": " \"Hola [Nombre], quería agradecerte por [razón]. Me hace sentir muy bien contar contigo.\"",
+        "advice": "No esperes respuesta, el objetivo es dar."
+      }
+    },
+    "thoughts-2": {
+      "id": "thoughts-2",
+      "type": "cbt",
+      "title": "Pruebas de Realidad",
+      "content": {
+        "prompt": "Busca 2 pruebas a favor y 2 en contra de un pensamiento negativo.",
+        "guide": "Actúa como un juez imparcial con tu propia mente."
+      }
+    },
+    "activities-2": {
+      "id": "activities-2",
+      "type": "tool",
+      "title": "Movimiento Suave",
+      "content": {
+        "description": "Ejercicios ligeros para liberar tensión."
+      }
+    },
+    "relationships-2": {
+      "id": "relationships-2",
+      "type": "social",
+      "title": "Escucha Activa",
+      "content": {
+        "script": "\"Entiendo lo que dices. Entonces, desde tu punto de vista, ¿lo que pasó fue [resumen]? No me había dado cuenta de eso.\"",
+        "advice": "Parafrasear valida al otro y demuestra que realmente estás escuchando."
+      }
+    },
+    "thoughts-3": {
+      "id": "thoughts-3",
+      "type": "cbt",
+      "title": "Filtro Mental",
+      "content": {
+        "prompt": "Anota 3 cosas buenas de hoy que tu mente esté ignorando.",
+        "guide": "El filtro mental solo deja pasar lo gris. ¡Limpia tus gafas!"
+      }
+    },
+    "activities-3": {
+      "id": "activities-3",
+      "type": "guide",
+      "title": "Desconexión Digital",
+      "content": {
+        "steps": [
+          "Móvil en otra sala.",
+          "Modo No Molestar.",
+          "Observa la urgencia y déjala pasar.",
+          "Disfruta del silencio."
+        ]
+      }
+    },
+    "relationships-3": {
+      "id": "relationships-3",
+      "type": "social",
+      "title": "Decir que No",
+      "content": {
+        "script": "\"Gracias por pensar en mí, pero ahora mismo no puedo comprometerme.\"",
+        "advice": "Decir no a otros es decir sí a ti."
+      }
+    },
+    "thoughts-4": {
+      "id": "thoughts-4",
+      "type": "cbt",
+      "title": "Catastrofismo",
+      "content": {
+        "prompt": "Escribe el peor, mejor y más probable escenario.",
+        "guide": "Solemos saltar al abismo sin mirar el camino seguro."
+      }
+    },
+    "activities-4": {
+      "id": "activities-4",
+      "type": "guide",
+      "title": "Nutrición Consciente",
+      "content": {
+        "steps": [
+          "Observa colores.",
+          "Huele antes de comer.",
+          "Mastica 20 veces.",
+          "Nota la saciedad."
+        ]
+      }
+    },
+    "relationships-4": {
+      "id": "relationships-4",
+      "type": "social",
+      "title": "Pedir Ayuda",
+      "content": {
+        "script": "\"¿Me echarías una mano con [tema]? Me vendría genial tu ayuda.\"",
+        "advice": "Pedir ayuda es un acto de conexión."
+      }
+    },
+    "thoughts-5": {
+      "id": "thoughts-5",
+      "type": "cbt",
+      "title": "Etiquetas",
+      "content": {
+        "prompt": "Describe un fallo sin usar adjetivos negativos sobre ti.",
+        "guide": "Tú no eres tus errores, tú cometes errores."
+      }
+    },
+    "activities-5": {
+      "id": "activities-5",
+      "type": "guide",
+      "title": "Entorno Ordenado",
+      "content": {
+        "steps": [
+          "Elige un rincón pequeño.",
+          "Vacía y limpia.",
+          "Organiza con calma.",
+          "Disfruta de la vista."
+        ]
+      }
+    },
+    "relationships-5": {
+      "id": "relationships-5",
+      "type": "social",
+      "title": "Cumplido Sincero",
+      "content": {
+        "script": "\"Admiro mucho cómo has [acción]. Tienes mucho talento para esto.\"",
+        "advice": "Sé específico para que sea creíble."
+      }
+    },
+    "thoughts-6": {
+      "id": "thoughts-6",
+      "type": "cbt",
+      "title": "Razonamiento Emocional",
+      "content": {
+        "prompt": "¿Qué hechos lógicos contradicen cómo te sientes ahora?",
+        "guide": "Sentir no es razonar. Las emociones son nubes, no la montaña."
+      }
+    },
+    "activities-6": {
+      "id": "activities-6",
+      "type": "guide",
+      "title": "Creatividad Libre",
+      "content": {
+        "steps": [
+          "Material a mano.",
+          "Juega, no produzcas.",
+          "Silencia al crítico interno.",
+          "Disfruta el caos."
+        ]
+      }
+    },
+    "relationships-6": {
+      "id": "relationships-6",
+      "type": "social",
+      "title": "Presencia en la Charla",
+      "content": {
+        "script": "\"Cuéntame más sobre eso, me interesa mucho tu perspectiva sobre [tema].\"",
+        "advice": "Hacer preguntas abiertas invita a una conexión más profunda."
+      }
+    },
+    "thoughts-7": {
+      "id": "thoughts-7",
+      "type": "cbt",
+      "title": "Revisión Semanal",
+      "content": {
+        "prompt": "¿Qué distorsión ha sido tu \"estrella\" esta semana?",
+        "guide": "Conocer tu patrón es el primer paso para romperlo."
+      }
+    },
+    "activities-7": {
+      "id": "activities-7",
+      "type": "tool",
+      "title": "Respiración Cuadrada",
+      "content": {
+        "description": "Inhala, mantén y exhala en tiempos de 4 segundos."
+      }
+    },
+    "relationships-7": {
+      "id": "relationships-7",
+      "type": "cbt",
+      "title": "Red de Apoyo",
+      "content": {
+        "prompt": "Mapea a las 3 personas que más te cuidan.",
+        "guide": "Sentirse sostenido reduce el cortisol inmediatamente."
+      }
+    },
+    "thoughts-8": {
+      "id": "thoughts-8",
+      "type": "cbt",
+      "title": "Personalización",
+      "content": {
+        "prompt": "Anota 3 razones externas para el mal humor de alguien.",
+        "guide": "No todo es sobre ti. Los demás también tienen sus batallas."
+      }
+    },
+    "activities-8": {
+      "id": "activities-8",
+      "type": "guide",
+      "title": "Nueva Ruta",
+      "content": {
+        "steps": [
+          "Cambia el camino usual.",
+          "Mira los detalles nuevos.",
+          "Siente la curiosidad.",
+          "Despierta a tu cerebro."
+        ]
+      }
+    },
+    "relationships-8": {
+      "id": "relationships-8",
+      "type": "social",
+      "title": "Límites Digitales",
+      "content": {
+        "script": "\"Estaré desconectado a partir de las [hora]. Hablamos mañana.\"",
+        "advice": "Tu disponibilidad no es un derecho ajeno."
+      }
+    },
+    "thoughts-9": {
+      "id": "thoughts-9",
+      "type": "cbt",
+      "title": "Los \"Debería\"",
+      "content": {
+        "prompt": "Cambia tus obligaciones por deseos.",
+        "guide": "La rigidez rompe, la flexibilidad sana."
+      }
+    },
+    "activities-9": {
+      "id": "activities-9",
+      "type": "guide",
+      "title": "Música para el Ánimo",
+      "content": {
+        "steps": [
+          "Busca temas alegres.",
+          "Cierra los ojos.",
+          "Nota la vibración.",
+          "Déjate llevar."
+        ]
+      }
+    },
+    "relationships-9": {
+      "id": "relationships-9",
+      "type": "social",
+      "title": "Disculpa Sincera",
+      "content": {
+        "script": "\"Lo siento, me equivoqué al [acción]. Gracias por entenderlo.\"",
+        "advice": "Pedir perdón limpia el aire entre dos personas."
+      }
+    },
+    "thoughts-10": {
+      "id": "thoughts-10",
+      "type": "cbt",
+      "title": "Visión de Túnel",
+      "content": {
+        "prompt": "Para un problema, busca 3 soluciones \"locas\".",
+        "guide": "Ampliar la mirada te da libertad de elección."
+      }
+    },
+    "activities-10": {
+      "id": "activities-10",
+      "type": "guide",
+      "title": "Lectura Inspiradora",
+      "content": {
+        "steps": [
+          "Sin ruidos externos.",
+          "Lee con calma.",
+          "Visualiza la historia.",
+          "Reflexiona al final."
+        ]
+      }
+    },
+    "relationships-10": {
+      "id": "relationships-10",
+      "type": "social",
+      "title": "Sintonía Visual",
+      "content": {
+        "script": "\"Hacía tiempo que no hablábamos así, me gusta mucho poder compartir este momento contigo.\"",
+        "advice": "El contacto visual sumado a una frase cálida multiplica la sensación de seguridad."
+      }
+    },
+    "thoughts-11": {
+      "id": "thoughts-11",
+      "type": "cbt",
+      "title": "Lectura de Mente",
+      "content": {
+        "prompt": "¿Qué otra cosa podría estar pensando esa persona?",
+        "guide": "No somos adivinos, solo proyectamos nuestros miedos."
+      }
+    },
+    "activities-11": {
+      "id": "activities-11",
+      "type": "guide",
+      "title": "Ritual de Cuidado",
+      "content": {
+        "steps": [
+          "Música suave.",
+          "Atención al tacto.",
+          "Lentitud.",
+          "Gratitud al cuerpo."
+        ]
+      }
+    },
+    "relationships-11": {
+      "id": "relationships-11",
+      "type": "social",
+      "title": "Expresar Necesidades",
+      "content": {
+        "script": "\"Me siento [emoción] y me ayudaría que [acción].\"",
+        "advice": "Ser claro es ser amable con el otro."
+      }
+    },
+    "thoughts-12": {
+      "id": "thoughts-12",
+      "type": "cbt",
+      "title": "Polarización",
+      "content": {
+        "prompt": "Encuentra 2 matices grises en un conflicto.",
+        "guide": "La vida no es blanco o negro, es un arcoiris complejo."
+      }
+    },
+    "activities-12": {
+      "id": "activities-12",
+      "type": "guide",
+      "title": "Meditación del Té",
+      "content": {
+        "steps": [
+          "Nota el calor.",
+          "Huele el aroma.",
+          "Sabor minucioso.",
+          "Presencia total."
+        ]
+      }
+    },
+    "relationships-12": {
+      "id": "relationships-12",
+      "type": "social",
+      "title": "Reencuentro",
+      "content": {
+        "script": "\"¡Hola! Me he acordado mucho de ti. ¿Hablamos un rato?\"",
+        "advice": "El afecto no necesita excusas para manifestarse."
+      }
+    },
+    "thoughts-13": {
+      "id": "thoughts-13",
+      "type": "cbt",
+      "title": "Palabras Absolutas",
+      "content": {
+        "prompt": "Cambia un \"siempre\" por un \"a veces\".",
+        "guide": "Tus palabras diseñan tu mundo emocional. Elige bien."
+      }
+    },
+    "activities-13": {
+      "id": "activities-13",
+      "type": "guide",
+      "title": "Libera tu Cuerpo",
+      "content": {
+        "steps": [
+          "Canción con ritmo.",
+          "Muévete libremente.",
+          "Sin espejos.",
+          "Nota la alegría."
+        ]
+      }
+    },
+    "relationships-13": {
+      "id": "relationships-13",
+      "type": "social",
+      "title": "Frenar el Cotilleo",
+      "content": {
+        "script": "\"Bueno, prefiero no hablar de eso si no está presente. Por cierto, ¿viste lo que logró [Nombre] ayer? Fue impresionante.\"",
+        "advice": "Cambiar el tema hacia un logro positivo es la forma más elegante de evitar la negatividad."
+      }
+    },
+    "thoughts-14": {
+      "id": "thoughts-14",
+      "type": "tool",
+      "title": "Círculo de Control",
+      "content": {
+        "steps": [
+          "Escribe qué controlas.",
+          "Identifica qué no.",
+          "Suelta lo ajeno.",
+          "Acciona lo propio."
+        ]
+      }
+    },
+    "activities-14": {
+      "id": "activities-14",
+      "type": "guide",
+      "title": "Baño de Bosque",
+      "content": {
+        "steps": [
+          "Aire libre.",
+          "Caminata lenta.",
+          "Sonidos naturales.",
+          "Conexión tierra."
+        ]
+      }
+    },
+    "relationships-14": {
+      "id": "relationships-14",
+      "type": "social",
+      "title": "Pequeño Detalle",
+      "content": {
+        "script": "Un post-it: \"¡Eres genial, gracias por estar aquí!\"",
+        "advice": "Lo pequeño es grande en el corazón."
+      }
+    },
+    "thoughts-15": {
+      "id": "thoughts-15",
+      "type": "cbt",
+      "title": "Carta al Futuro",
+      "content": {
+        "prompt": "3 lecciones de tus primeros 15 días.",
+        "guide": "Eres más capaz de lo que eras hace dos semanas."
+      }
+    },
+    "activities-15": {
+      "id": "activities-15",
+      "type": "guide",
+      "title": "Siesta Reparadora",
+      "content": {
+        "steps": [
+          "Oscuridad.",
+          "20 minutos.",
+          "Respiración.",
+          "Hidratación final."
+        ]
+      }
+    },
+    "relationships-15": {
+      "id": "relationships-15",
+      "type": "cbt",
+      "title": "Auto-bondad",
+      "content": {
+        "prompt": "¿Qué le dirías a alguien que amas en tu situación?",
+        "guide": "Tú también mereces tu propio amor."
+      }
+    },
+    "thoughts-16": {
+      "id": "thoughts-16",
+      "type": "cbt",
+      "title": "Zoom de Tiempo",
+      "content": {
+        "prompt": "¿Esto será importante en 1 año?",
+        "guide": "La urgencia del ahora nubla la perspectiva real."
+      }
+    },
+    "activities-16": {
+      "id": "activities-16",
+      "type": "guide",
+      "title": "Cocina con Amor",
+      "content": {
+        "steps": [
+          "Lava con atención.",
+          "Corta con ritmo.",
+          "Huele especias.",
+          "Saborea el éxito."
+        ]
+      }
+    },
+    "relationships-16": {
+      "id": "relationships-16",
+      "type": "social",
+      "title": "Validar a Otros",
+      "content": {
+        "script": "\"Entiendo que te sientas así, es muy normal.\"",
+        "advice": "Escuchar es el mejor regalo que puedes dar."
+      }
+    },
+    "thoughts-17": {
+      "id": "thoughts-17",
+      "type": "cbt",
+      "title": "Reclama Logros",
+      "content": {
+        "prompt": "Anota un éxito hoy y siéntelo tuyo.",
+        "guide": "No es suerte, es tu esfuerzo diario."
+      }
+    },
+    "activities-17": {
+      "id": "activities-17",
+      "type": "guide",
+      "title": "Estado de Flow",
+      "content": {
+        "steps": [
+          "Reto medio.",
+          "Tarea fija.",
+          "Olvida el reloj.",
+          "Disfruta el hacer."
+        ]
+      }
+    },
+    "relationships-17": {
+      "id": "relationships-17",
+      "type": "social",
+      "title": "Preguntas con Sentido",
+      "content": {
+        "script": "\"¿Qué ha sido lo mejor de tu día hoy?\"",
+        "advice": "Busca la historia detrás de la persona."
+      }
+    },
+    "thoughts-18": {
+      "id": "thoughts-18",
+      "type": "cbt",
+      "title": "Pruebas Judiciales",
+      "content": {
+        "prompt": "¿Qué evidencias reales tiene tu miedo?",
+        "guide": "Tu mente miente a veces. Pide pruebas."
+      }
+    },
+    "activities-18": {
+      "id": "activities-18",
+      "type": "guide",
+      "title": "Inspiración Artística",
+      "content": {
+        "steps": [
+          "Obra visual.",
+          "2 min de pausa.",
+          "Nota emociones.",
+          "Investiga autor."
+        ]
+      }
+    },
+    "relationships-18": {
+      "id": "relationships-18",
+      "type": "social",
+      "title": "Hablar con Calma",
+      "content": {
+        "script": "\"Me gustaría charlar sobre [tema]. Siento que...\"",
+        "advice": "La paz viene de la comunicación, no del silencio."
+      }
+    },
+    "thoughts-19": {
+      "id": "thoughts-19",
+      "type": "cbt",
+      "title": "Foco Positivo",
+      "content": {
+        "prompt": "Busca 3 detalles buenos ocultos en lo malo.",
+        "guide": "Donde pones la atención, pones tu vida."
+      }
+    },
+    "activities-19": {
+      "id": "activities-19",
+      "type": "guide",
+      "title": "Mundo de Aromas",
+      "content": {
+        "steps": [
+          "Elegir aroma.",
+          "Inhalar.",
+          "Identificar recuerdos.",
+          "Presencia total."
+        ]
+      }
+    },
+    "relationships-19": {
+      "id": "relationships-19",
+      "type": "social",
+      "title": "Reconocer Esfuerzo",
+      "content": {
+        "script": "\"Valoro mucho el esfuerzo que has puesto en [esto].\"",
+        "advice": "Agradecer el proceso es más potente que el resultado."
+      }
+    },
+    "thoughts-20": {
+      "id": "thoughts-20",
+      "type": "cbt",
+      "title": "Causa Real",
+      "content": {
+        "prompt": "¿Es el problema o es tu cansancio?",
+        "guide": "Asegúrate de haber dormido y comido antes de juzgar tu vida."
+      }
+    },
+    "activities-20": {
+      "id": "activities-20",
+      "type": "guide",
+      "title": "Limpieza Digital",
+      "content": {
+        "steps": [
+          "Fotos viejas.",
+          "Borrar.",
+          "Libertad visual.",
+          "Repetir."
+        ]
+      }
+    },
+    "relationships-20": {
+      "id": "relationships-20",
+      "type": "social",
+      "title": "Pedir un Abrazo",
+      "content": {
+        "script": "\"He tenido un día un poco intenso, ¿me das un abrazo de esos largos? Realmente lo necesito ahora.\"",
+        "advice": "Ser vulnerable con personas seguras fortalece el vínculo de confianza."
+      }
+    },
+    "thoughts-21": {
+      "id": "thoughts-21",
+      "type": "cbt",
+      "title": "Basta de Perfección",
+      "content": {
+        "prompt": "Deja algo al 80% y siéntete libre.",
+        "guide": "Lo perfecto es enemigo de lo que te hace feliz."
+      }
+    },
+    "activities-21": {
+      "id": "activities-21",
+      "type": "guide",
+      "title": "Nuevas Ideas",
+      "content": {
+        "steps": [
+          "Podcast nuevo.",
+          "Escucha total.",
+          "Aprende un punto.",
+          "Reflexiona."
+        ]
+      }
+    },
+    "relationships-21": {
+      "id": "relationships-21",
+      "type": "social",
+      "title": "Dilo en Voz Alta",
+      "content": {
+        "script": "\"Me encanta tu forma de [cualidad]. Es inspirador.\"",
+        "advice": "No guardes las palabras bonitas, suéltalas."
+      }
+    },
+    "thoughts-22": {
+      "id": "thoughts-22",
+      "type": "cbt",
+      "title": "Aceptar el Éxito",
+      "content": {
+        "prompt": "Di \"He sido yo\" ante un logro hoy.",
+        "guide": "Eres el arquitecto de tu bienestar."
+      }
+    },
+    "activities-22": {
+      "id": "activities-22",
+      "type": "guide",
+      "title": "Manos a la Obra",
+      "content": {
+        "steps": [
+          "Tarea manual.",
+          "Atención al tacto.",
+          "Sin pantallas.",
+          "Orgullo final."
+        ]
+      }
+    },
+    "relationships-22": {
+      "id": "relationships-22",
+      "type": "social",
+      "title": "Saludar con Sonrisa",
+      "content": {
+        "script": "\"¡Buenos días! Qué alegría verte hoy. ¿Cómo va todo?\"",
+        "advice": "Una sonrisa y una frase amable al inicio del día cambian la química del ambiente."
+      }
+    },
+    "thoughts-23": {
+      "id": "thoughts-23",
+      "type": "cbt",
+      "title": "Secreto de Amor Propio",
+      "content": {
+        "prompt": "Haz algo bueno por ti que nadie sepa.",
+        "guide": "Tu propia aprobación es la única que necesitas."
+      }
+    },
+    "activities-23": {
+      "id": "activities-23",
+      "type": "guide",
+      "title": "Cita Contigo",
+      "content": {
+        "steps": [
+          "Sitio agradable.",
+          "Solo tú.",
+          "Sin móvil.",
+          "Disfruta de ti."
+        ]
+      }
+    },
+    "relationships-23": {
+      "id": "relationships-23",
+      "type": "social",
+      "title": "Curiosidad Genuina",
+      "content": {
+        "script": "\"¿Qué es lo que más te apasiona de [hobby]?\"",
+        "advice": "Mostrar interés es amar al otro."
+      }
+    },
+    "thoughts-24": {
+      "id": "thoughts-24",
+      "type": "cbt",
+      "title": "Cero Comparación",
+      "content": {
+        "prompt": "Encuentra tu mejora del día 1 a hoy.",
+        "guide": "Tu rival es tu shadow de ayer, nadie más."
+      }
+    },
+    "activities-24": {
+      "id": "activities-24",
+      "type": "guide",
+      "title": "Vuelca tu Mente",
+      "content": {
+        "steps": [
+          "Escribir sin parar.",
+          "Sin filtros.",
+          "5 minutos.",
+          "Libera espacio."
+        ]
+      }
+    },
+    "relationships-24": {
+      "id": "relationships-24",
+      "type": "social",
+      "title": "Compañía en Silencio",
+      "content": {
+        "script": "\"No hace falta que hablemos si no te apetece, me gusta simplemente estar aquí contigo.\"",
+        "advice": "Validar el silencio quita presión y crea un espacio de aceptación total."
+      }
+    },
+    "thoughts-25": {
+      "id": "thoughts-25",
+      "type": "cbt",
+      "title": "Prueba Positiva",
+      "content": {
+        "prompt": "¿Qué ha salido MEJOR hoy de lo esperado?",
+        "guide": "Tu cerebro busca errores. Ayúdale a ver aciertos."
+      }
+    },
+    "activities-25": {
+      "id": "activities-25",
+      "type": "guide",
+      "title": "Mirada al Cielo",
+      "content": {
+        "steps": [
+          "Mirar arriba.",
+          "Inmensidad.",
+          "Sentir proporción.",
+          "Paz estelar."
+        ]
+      }
+    },
+    "relationships-25": {
+      "id": "relationships-25",
+      "type": "social",
+      "title": "Gratitud Social",
+      "content": {
+        "script": "\"¡Muchas gracias! Me has dado un servicio excelente.\"",
+        "advice": "Ser amable es gratis y lo cambia todo."
+      }
+    },
+    "thoughts-26": {
+      "id": "thoughts-26",
+      "type": "cbt",
+      "title": "Adaptabilidad",
+      "content": {
+        "prompt": "¿Cómo puedes fluir con este cambio hoy?",
+        "guide": "La rigidez te hace infeliz, la fluidez te hace libre."
+      }
+    },
+    "activities-26": {
+      "id": "activities-26",
+      "type": "guide",
+      "title": "Cuidado de Vida",
+      "content": {
+        "steps": [
+          "Plantas.",
+          "Tocar hojas.",
+          "Agua con calma.",
+          "Oxígeno y vida."
+        ]
+      }
+    },
+    "relationships-26": {
+      "id": "relationships-26",
+      "type": "social",
+      "title": "Respuesta sin Juicio",
+      "content": {
+        "script": "\"Es una situación difícil, entiendo que hagas lo que creas mejor. Aquí estoy si necesitas hablar.\"",
+        "advice": "Aceptar al otro sin intentar corregirlo es el mayor acto de amor."
+      }
+    },
+    "thoughts-27": {
+      "id": "thoughts-27",
+      "type": "cbt",
+      "title": "Refugio Interior",
+      "content": {
+        "prompt": "Dite algo tierno hoy.",
+        "guide": "Tienes una casa dentro de ti, cuídala."
+      }
+    },
+    "activities-27": {
+      "id": "activities-27",
+      "type": "tool",
+      "title": "Terapia de la Risa",
+      "content": {
+        "description": "Libera endorfinas a través de la risa."
+      }
+    },
+    "relationships-27": {
+      "id": "relationships-27",
+      "type": "social",
+      "title": "Futuro Juntos",
+      "content": {
+        "script": "\"¿Hacemos algo divertido el sábado que viene?\"",
+        "advice": "Las promesas de ocio alimentan el alma."
+      }
+    },
+    "thoughts-28": {
+      "id": "thoughts-28",
+      "type": "cbt",
+      "title": "Logro Final",
+      "content": {
+        "prompt": "¿Cómo ha cambiado tu voz interna?",
+        "guide": "Eres el resultado de 28 días de amor propio."
+      }
+    },
+    "activities-28": {
+      "id": "activities-28",
+      "type": "guide",
+      "title": "Pausa Absoluta",
+      "content": {
+        "steps": [
+          "No hacer NADA.",
+          "5 min.",
+          "Observar mente.",
+          "Sentir centro."
+        ]
+      }
+    },
+    "relationships-28": {
+      "id": "relationships-28",
+      "type": "social",
+      "title": "Ayuda Oculta",
+      "content": {
+        "script": "\"He visto que tenías [tarea] pendiente y me he tomado la libertad de adelantarte un poco. ¡Espero que te sirva!\"",
+        "advice": "La ayuda inesperada genera un sentimiento de gratitud recíproca."
+      }
+    },
+    "thoughts-29": {
+      "id": "thoughts-29",
+      "type": "cbt",
+      "title": "Mente Sabia",
+      "content": {
+        "prompt": "Busca el equilibrio entre lógica y emoción.",
+        "guide": "La sabiduría es el abrazo de tus dos mitades."
+      }
+    },
+    "activities-29": {
+      "id": "activities-29",
+      "type": "guide",
+      "title": "Repaso de Camino",
+      "content": {
+        "steps": [
+          "Volver atrás.",
+          "Releer notas.",
+          "Ver cambios.",
+          "Orgullo total."
+        ]
+      }
+    },
+    "relationships-29": {
+      "id": "relationships-29",
+      "type": "social",
+      "title": "Gratitud Final",
+      "content": {
+        "script": "\"Gracias por compartir este mes de bienestar conmigo.\"",
+        "advice": "Celebrar unidos es más valioso."
+      }
+    },
+    "thoughts-30": {
+      "id": "thoughts-30",
+      "type": "cbt",
+      "title": "Compromiso Eterno",
+      "content": {
+        "prompt": "¿Qué hábito te llevas para siempre?",
+        "guide": "Hoy termina el reto, pero empieza tu nueva vida."
+      }
+    },
+    "activities-30": {
+      "id": "activities-30",
+      "type": "guide",
+      "title": "Gran Fiesta Propia",
+      "content": {
+        "steps": [
+          "Hacer lo que más ames.",
+          "Presencia total.",
+          "Celebrar.",
+          "Respirar paz."
+        ]
+      }
+    },
+    "relationships-30": {
+      "id": "relationships-30",
+      "type": "social",
+      "title": "Celebrar Unidos",
+      "content": {
+        "script": "\"¡Lo hemos conseguido! Brindo por nosotros.\"",
+        "advice": "Inspirar a otros es tu nueva misión."
+      }
+    }
+  },
+  "privacy": {
+    "title": "Protocolo de Privacidad",
+    "last_updated": "Última actualización: 24 de enero de 2026",
+    "intro_title": "1. Información que Recopilamos",
+    "intro_desc": "En Mindful30, recopilamos la siguiente información:",
+    "intro_item_1_title": "Información de cuenta técnica:",
+    "intro_item_1_desc": "Utilizamos identificadores anónimos para gestionar tu acceso.",
+    "intro_item_2_title": "Datos de estado:",
+    "intro_item_2_desc": "Sincronizamos únicamente tu estado \"Premium\" y tu fecha de inicio del reto para garantizar tu acceso.",
+    "intro_item_3_title": "Datos privados (Local):",
+    "intro_item_3_desc": "Tus reflexiones personales, respuestas a ejercicios y diario se almacenan exclusivamente en tu dispositivo. Nosotros NO tenemos acceso a este contenido.",
+    "usage_title": "2. Cómo Usamos tu Información",
+    "usage_desc": "Utilizamos la información recopilada para:",
+    "usage_item_1": "Verificar tu estado de suscripción (Premium)",
+    "usage_item_2": "Manejar la fecha de inicio de tu reto",
+    "usage_item_3": "Asegurar que mantienes tu acceso si cambias de dispositivo (solo estado de cuenta)",
+    "usage_item_4": "Cumplir con obligaciones legales",
+    "usage_note": "Nota importante: Al no sincronizar tus reflexiones en la nube por privacidad, si desinstalas la aplicación o borras los datos de tu navegador, perderás tus escritos personales. Te recomendamos hacer copias de seguridad manuales si lo deseas.",
+    "protection_title": "3. Protección de Datos",
+    "protection_desc": "Tomamos la seguridad de tus datos muy en serio:",
+    "protection_item_1": "Utilizamos Firebase Authentication para gestión segura de cuentas",
+    "protection_item_2": "Todas las contraseñas están encriptadas",
+    "protection_item_3": "Los datos se almacenan en servidores seguros de Google Cloud",
+    "protection_item_4": "Implementamos medidas de seguridad técnicas y organizativas",
+    "protection_item_5": "No compartimos tus datos personales con terceros sin tu consentimiento",
+    "rights_title": "4. Tus Derechos",
+    "rights_desc": "Según el RGPD (Reglamento General de Protección de Datos), tienes derecho a:",
+    "rights_item_1_title": "Acceso:",
+    "rights_item_1_desc": "Solicitar una copia de tus datos personales",
+    "rights_item_2_title": "Rectificación:",
+    "rights_item_2_desc": "Corregir datos inexactos o incompletos",
+    "rights_item_3_title": "Supresión:",
+    "rights_item_3_desc": "Solicitar la eliminación de tus datos",
+    "rights_item_4_title": "Portabilidad:",
+    "rights_item_4_desc": "Recibir tus datos en formato estructurado",
+    "rights_item_5_title": "Oposición:",
+    "rights_item_5_desc": "Oponerte al procesamiento de tus datos",
+    "rights_item_6_title": "Limitación:",
+    "rights_item_6_desc": "Solicitar la limitación del procesamiento",
+    "rights_contact": "Para ejercer cualquiera de estos derechos, contacta con nosotros en",
+    "cookies_title": "5. Cookies y Tecnologías Similares",
+    "cookies_desc": "Utilizamos cookies y tecnologías similares para mantener tu sesión activa y mejorar tu experiencia. Puedes configurar tu navegador para rechazar cookies, aunque esto puede afectar la funcionalidad de la aplicación.",
+    "retention_title": "6. Retención de Datos",
+    "retention_desc": "Conservamos tus datos personales mientras tu cuenta esté activa o según sea necesario para proporcionarte nuestros servicios. Si solicitas la eliminación de tu cuenta, eliminaremos tus datos personales, salvo que estemos obligados legalmente a conservarlos.",
+    "changes_title": "7. Cambios en esta Política",
+    "changes_desc": "Podemos actualizar esta política de privacidad ocasionalmente. Te notificaremos sobre cambios significativos publicando la nueva política en esta página y actualizando la fecha de \"última actualización\".",
+    "contact_title": "8. Contacto",
+    "contact_desc": "Si tienes preguntas sobre esta política de privacidad o sobre cómo manejamos tus datos, puedes contactarnos en:",
+    "back_to_home": "Volver al inicio"
+  },
+  "terms": {
+    "title": "Términos y Condiciones",
+    "last_updated": "Última actualización: 24 de enero de 2026",
+    "acceptance_title": "1. Aceptación de los Términos",
+    "acceptance_desc": "Al acceder y utilizar Mindful30 (\"la Aplicación\"), aceptas estar sujeto a estos Términos y Condiciones. Si no estás de acuerdo con alguna parte de estos términos, no debes utilizar la Aplicación.",
+    "service_title": "2. Descripción del Servicio",
+    "service_desc_intro": "Mindful30 es un programa digital de bienestar mental de 30 días basado en técnicas de Terapia Cognitivo-Conductual (TCC).",
+    "service_desc_list_intro": "El servicio incluye:",
+    "service_item_1": "Acceso completo al programa de 30 días",
+    "service_item_2": "Herramientas de registro de pensamientos y actividades",
+    "service_item_3": "Contenido educativo y ejercicios prácticos",
+    "service_item_4": "Soporte por email",
+    "disclaimer_title": "3. Limitación de Responsabilidad Médica",
+    "disclaimer_important": "IMPORTANTE: Mindful30 es una herramienta de apoyo y bienestar mental, NO sustituye el tratamiento médico o psicológico profesional.",
+    "disclaimer_list_1": "No proporcionamos diagnósticos médicos ni tratamiento clínico",
+    "disclaimer_list_2": "Si experimentas síntomas graves de salud mental, busca ayuda profesional inmediata",
+    "disclaimer_list_3": "En caso de emergencia, contacta con servicios de emergencia locales",
+    "disclaimer_list_4": "Consulta siempre con un profesional de la salud antes de tomar decisiones importantes sobre tu bienestar",
+    "payment_title": "4. Pago y Facturación",
+    "payment_intro": "Mindful30 opera bajo un modelo de pago único:",
+    "payment_item_1_title": "Pago único:",
+    "payment_item_1_desc": "€7,49 (precio de lanzamiento) por acceso de por vida",
+    "payment_item_2_title": "Sin suscripciones:",
+    "payment_item_2_desc": "No hay cargos recurrentes ni renovaciones automáticas",
+    "payment_item_3_title": "Procesamiento seguro:",
+    "payment_item_3_desc": "Los pagos se procesan a través de Stripe, un proveedor de pagos certificado PCI-DSS",
+    "payment_item_4_title": "Acceso inmediato:",
+    "payment_item_4_desc": "Una vez completado el pago, recibirás acceso completo al programa",
+    "refund_title": "5. Política de Reembolso",
+    "refund_intro": "Ofrecemos una garantía de satisfacción de 14 días:",
+    "refund_item_1": "Puedes solicitar un reembolso completo dentro de los primeros 14 días desde la compra",
+    "refund_item_2": "Para solicitar un reembolso, envía un email a info@retomindful30.online",
+    "refund_item_3": "Los reembolsos se procesarán en un plazo de 5-10 días laborables",
+    "refund_item_4": "Después de 14 días, no se aceptarán solicitudes de reembolso",
+    "ip_title": "6. Propiedad Intelectual",
+    "ip_desc": "Todo el contenido de Mindful30, incluyendo textos, gráficos, logotipos, iconos, imágenes y software, es propiedad de Mindful30 y está protegido por las leyes de propiedad intelectual.",
+    "ip_item_1": "No puedes reproducir, distribuir o crear trabajos derivados sin autorización",
+    "ip_item_2": "El acceso es para uso personal y no comercial",
+    "ip_item_3": "No puedes compartir tu cuenta con terceros",
+    "usage_title": "7. Uso Aceptable",
+    "usage_intro": "Al utilizar Mindful30, te comprometes a:",
+    "usage_item_1": "Proporcionar información precisa y actualizada",
+    "usage_item_2": "Mantener la confidencialidad de tu cuenta",
+    "usage_item_3": "No utilizar la aplicación para fines ilegales o no autorizados",
+    "usage_item_4": "No intentar acceder a áreas restringidas del sistema",
+    "usage_item_5": "No interferir con el funcionamiento de la aplicación",
+    "modifications_title": "8. Modificaciones del Servicio",
+    "modifications_desc": "Nos reservamos el derecho de modificar o discontinuar, temporal o permanentemente, el servicio (o cualquier parte del mismo) con o sin previo aviso. No seremos responsables ante ti ni ante terceros por cualquier modificación, suspensión o interrupción del servicio.",
+    "liability_title": "9. Limitación de Responsabilidad",
+    "liability_desc": "En la máxima medida permitida por la ley, Mindful30 no será responsable de ningún daño indirecto, incidental, especial, consecuente o punitivo, ni de ninguna pérdida de beneficios o ingresos, ya sea directa o indirectamente, ni de ninguna pérdida de datos, uso, fondo de comercio u otras pérdidas intangibles resultantes de:",
+    "liability_item_1": "Tu acceso o uso (o incapacidad de acceso o uso) del servicio",
+    "liability_item_2": "Cualquier conducta o contenido de terceros en el servicio",
+    "liability_item_3": "Cualquier contenido obtenido del servicio",
+    "liability_item_4": "Acceso no autorizado, uso o alteración de tus transmisiones o contenido",
+    "law_title": "10. Ley Aplicable",
+    "law_desc": "Estos Términos se regirán e interpretarán de acuerdo con las leyes de España, sin dar efecto a ningún principio de conflictos de leyes.",
+    "changes_title": "11. Cambios en los Términos",
+    "changes_desc": "Nos reservamos el derecho de modificar estos términos en cualquier momento. Te notificaremos sobre cambios significativos publicando los nuevos términos en esta página y actualizando la fecha de \"última actualización\". Tu uso continuado del servicio después de dichos cambios constituye tu aceptación de los nuevos términos.",
+    "contact_title": "12. Contacto",
+    "contact_desc": "Si tienes preguntas sobre estos Términos y Condiciones, puedes contactarnos en:",
+    "back_to_home": "Volver al inicio"
+  }
+}

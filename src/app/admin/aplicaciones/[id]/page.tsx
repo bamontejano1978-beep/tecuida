@@ -84,6 +84,8 @@ export default async function EditApplicationPage({
           instrucciones: (app.instrucciones as string) || null,
           url_acceso: (app.url_acceso as string) || null,
           activa: app.activa as boolean,
+          app_slug: (app.app_slug as string) || null,
+          brand_color: (app.brand_color as string) || null,
         }}
         categories={categoriesList}
       />

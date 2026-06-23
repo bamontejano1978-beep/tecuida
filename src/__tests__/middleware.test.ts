@@ -33,8 +33,20 @@ jest.mock('@/lib/tenant/cache', () => ({
   },
 }))
 
+/**
+ * Mock de @supabase/ssr — createServerClient devuelve un cliente
+ * encadenable que simula from().select().eq().single() → { data: null }.
+ */
 jest.mock('@supabase/ssr', () => ({
-  createServerClient: jest.fn(),
+  createServerClient: jest.fn().mockReturnValue({
+    from: jest.fn().mockReturnThis(),
+    select: jest.fn().mockReturnThis(),
+    eq: jest.fn().mockReturnThis(),
+    single: jest.fn().mockResolvedValue({
+      data: null,
+      error: { message: 'Not found' },
+    }),
+  }),
 }))
 
 /**
@@ -363,19 +375,17 @@ describe('Resolución de tenant', () => {
     ;(updateSession as jest.Mock).mockResolvedValue(
       defaultSessionResponse(mockUser()),
     )
-    // Cache vacía + DB mock sin configurar → resolveTenant hace catch → null
+    // Cache vacía → resolveTenant consulta DB mockeada → null
     ;(tenantCache.get as jest.Mock).mockResolvedValue(null)
 
     const req = makeRequest('https://inexistente.tecuida.group/')
 
-    await middleware(req)
+    const res = await middleware(req)
 
     // Con usuario autenticado, el check de auth pasa.
     // Al resolver tenant y no encontrarlo → redirect /404?slug=inexistente
-    expect(NextResponse.redirect).toHaveBeenCalledTimes(1)
-    const redirectUrl = (NextResponse.redirect as jest.Mock).mock.calls[0][0] as URL
-    expect(redirectUrl.pathname).toBe('/404')
-    expect(redirectUrl.searchParams.get('slug')).toBe('inexistente')
+    expect(res.status).toBe(307)
+    expect(res.headers.get('location')).toContain('/404?slug=inexistente')
   })
 
   it('redirige a /login cuando no hay sesión en tenant inexistente (auth check primero)', async () => {

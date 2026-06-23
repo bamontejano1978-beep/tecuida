@@ -6,7 +6,7 @@
  *   - Enlace correcto a /app/:id
  *   - Fallback de descripción cuando no se proporciona
  *   - Renderizado condicional de categoría
- *   - CTA "Acceder →" siempre presente
+ *   - CTA según tipo: "Abrir →" (programa/encuesta), "Instalar →" (herramienta/recurso)
  *   - Comportamiento con tipos y niveles desconocidos (fallback)
  */
 
@@ -138,11 +138,28 @@ describe('ApplicationCard', () => {
 
   // ─── CTA ──────────────────────────────────────────────────────
 
-  it('siempre muestra el CTA "Acceder →"', () => {
-    const app = createApp()
+  it('muestra "Abrir →" para tipo programa', () => {
+    const app = createApp({ tipo: 'programa' })
     render(<ApplicationCard application={app} />)
+    expect(screen.getByText('Abrir →')).toBeInTheDocument()
+  })
 
-    expect(screen.getByText('Acceder →')).toBeInTheDocument()
+  it('muestra "Instalar →" para tipo herramienta', () => {
+    const app = createApp({ tipo: 'herramienta' })
+    render(<ApplicationCard application={app} />)
+    expect(screen.getByText('Instalar →')).toBeInTheDocument()
+  })
+
+  it('muestra "Abrir →" para tipo encuesta', () => {
+    const app = createApp({ tipo: 'encuesta' })
+    render(<ApplicationCard application={app} />)
+    expect(screen.getByText('Abrir →')).toBeInTheDocument()
+  })
+
+  it('muestra "Instalar →" para tipo recurso', () => {
+    const app = createApp({ tipo: 'recurso' })
+    render(<ApplicationCard application={app} />)
+    expect(screen.getByText('Instalar →')).toBeInTheDocument()
   })
 
   // ─── Varios elementos en la misma card ────────────────────────
@@ -160,7 +177,7 @@ describe('ApplicationCard', () => {
     expect(screen.getByText('Planes de alimentación y recetas saludables.')).toBeInTheDocument()
     expect(screen.getAllByText('Herramienta')).toHaveLength(2)
     expect(screen.getByText('Salud comunitaria')).toBeInTheDocument()
-    expect(screen.getByText('Acceder →')).toBeInTheDocument()
+    expect(screen.getByText('Instalar →')).toBeInTheDocument()
 
     const link = screen.getByRole('link')
     expect(link).toHaveAttribute('href', '/app/cccccccc-0000-0000-0000-000000000003')

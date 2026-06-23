@@ -4,7 +4,8 @@
  * Construye cookies manualmente porque signInWithPassword() NO
  * llama a setAll() en @supabase/ssr (solo exchangeCodeForSession
  * lo hace). Usa buildAuthCookies() con el formato exacto que
- * combineChunks espera: "base64-" + base64(session JSON).
+ * @supabase/ssr v0.3+ espera: JSON crudo, chunking con
+ * encodeURIComponent/decodeURIComponent cuando excede 3180 chars.
  *
  * Redirect usa 303 See Other (fuerza GET en el navegador;
  * NextResponse.redirect() usa 307 por defecto, que preserva POST
@@ -106,7 +107,7 @@ export async function POST(request: NextRequest) {
     }
 
     // 4. Construir cookies de sesión con el formato exacto
-    //    que @supabase/ssr espera (prefijo "base64-" + base64 estándar).
+    //    que @supabase/ssr v0.3+ espera: JSON crudo (no base64).
     //    Las ponemos en un response intermedio y luego las copiamos
     //    al finalResponse (mismo patrón probado de /auth/callback).
     const authCookies = buildAuthCookies(signInData.session)

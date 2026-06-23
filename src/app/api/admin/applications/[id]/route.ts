@@ -148,6 +148,8 @@ export async function PUT(
     if (updates.url_acceso !== undefined)
       updateData.url_acceso = updates.url_acceso
     if (updates.activa !== undefined) updateData.activa = updates.activa
+    if (updates.app_slug !== undefined) updateData.app_slug = updates.app_slug || null
+    if (updates.brand_color !== undefined) updateData.brand_color = updates.brand_color || null
 
     if (Object.keys(updateData).length === 0) {
       return NextResponse.json(

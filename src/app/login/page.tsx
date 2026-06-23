@@ -89,15 +89,25 @@ function LoginForm() {
           {submitting ? 'Iniciando sesión…' : 'Iniciar sesión'}
         </button>
 
-        <p className="text-center text-sm text-gray-500">
-          ¿No tienes cuenta?{' '}
-          <Link
-            href="/register"
-            className="font-semibold text-indigo-600 hover:text-indigo-500"
-          >
-            Regístrate aquí
-          </Link>
-        </p>
+        <div className="space-y-3">
+          <p className="text-center text-sm text-gray-500">
+            ¿No tienes cuenta?{' '}
+            <Link
+              href="/register"
+              className="font-semibold text-indigo-600 hover:text-indigo-500"
+            >
+              Regístrate aquí
+            </Link>
+          </p>
+          <p className="text-center">
+            <Link
+              href="/recuperar"
+              className="text-xs text-gray-400 hover:text-indigo-600 transition-colors"
+            >
+              ¿Olvidaste tu contraseña?
+            </Link>
+          </p>
+        </div>
       </form>
     </>
   )

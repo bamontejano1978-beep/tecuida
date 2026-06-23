@@ -15,6 +15,8 @@ import Image from 'next/image'
 import { getTenantConfigFromDB, getTenantFromHeaders } from '@/lib/tenant/headers'
 import { createClient, createAdminClient } from '@/lib/supabase/server'
 import ProfileForm from './profile-form'
+import NotificationSettings from '@/components/ui/notification-settings'
+import type { NotificationPrefs } from '@/components/ui/notification-settings'
 import SignOutButton from '@/components/ui/sign-out-button'
 
 // ---------------------------------------------------------------------------
@@ -39,9 +41,16 @@ export default async function ProfilePage() {
   const adminClient = createAdminClient()
   const { data: userProfile } = await adminClient
     .from('users')
-    .select('nombre, apellidos, email, telefono, fecha_nacimiento, created_at')
+    .select('nombre, apellidos, email, telefono, fecha_nacimiento, created_at, notificaciones')
     .eq('id', user.id)
     .single()
+
+  const notifRaw = (userProfile?.notificaciones || {}) as Record<string, unknown>
+  const notificaciones: NotificationPrefs = {
+    recordatorio_activo: (notifRaw.recordatorio_activo as boolean) || false,
+    frecuencia: (notifRaw.frecuencia as NotificationPrefs['frecuencia']) || 'diaria',
+    hora: (notifRaw.hora as string) || '09:00',
+  }
 
   const profile = {
     nombre: (userProfile?.nombre as string) || '',
@@ -164,8 +173,9 @@ export default async function ProfilePage() {
           </div>
 
           {/* Formulario de edición */}
-          <div className="lg:col-span-2">
+          <div className="lg:col-span-2 space-y-6">
             <ProfileForm userId={user.id} initialData={profile} />
+            <NotificationSettings userId={user.id} initialPrefs={notificaciones} />
           </div>
         </div>
       </main>

@@ -147,6 +147,8 @@ export async function POST(request: Request) {
         instrucciones: dto.instrucciones ?? null,
         url_acceso: dto.url_acceso ?? null,
         activa: dto.activa ?? true,
+        app_slug: dto.app_slug || null,
+        brand_color: dto.brand_color || null,
       })
       .select()
       .single()

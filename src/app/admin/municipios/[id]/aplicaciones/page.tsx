@@ -15,6 +15,7 @@ import {
   getMunicipioLandingUrl,
   cleanHostname,
 } from '@/lib/tenant/landing'
+import LandingPreviewButton from '@/components/ui/landing-preview-button'
 import ManageAppsForm from './manage-apps-form'
 
 // ---------------------------------------------------------------------------
@@ -124,29 +125,10 @@ export default async function ManageAppsPage({ params }: ManageAppsPageProps) {
           Selecciona las aplicaciones disponibles para este municipio.
         </p>
         <div className="mt-4 flex items-center gap-3">
-          <a
+          <LandingPreviewButton
             href={catalogUrl}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="inline-flex items-center gap-2 rounded-lg bg-indigo-600 px-4 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 transition-colors"
-          >
-            <svg
-              className="w-4 h-4"
-              fill="none"
-              viewBox="0 0 24 24"
-              strokeWidth={2}
-              stroke="currentColor"
-              aria-hidden="true"
-              focusable="false"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                d="M13.5 6H5.25A2.25 2.25 0 0 0 3 8.25v10.5A2.25 2.25 0 0 0 5.25 21h10.5A2.25 2.25 0 0 0 18 18.75V10.5m-10.5 6L21 3m0 0h-5.25M21 3v5.25"
-              />
-            </svg>
-            Ver catálogo público
-          </a>
+            label="Ver catálogo público"
+          />
           {showResolvedUrl && (
             <span
               className="text-xs text-gray-400 font-mono truncate max-w-[280px]"

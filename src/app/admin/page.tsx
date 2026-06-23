@@ -65,6 +65,30 @@ async function getDashboardStats() {
     console.error('[Admin Dashboard] applications:', appError.message)
   }
 
+  // Apps asignadas a municipios (instalaciones totales)
+  const { count: totalAsignaciones, error: asigError } = await supabase
+    .from('municipality_applications')
+    .select('*', { count: 'exact', head: true })
+    .eq('activa', true)
+
+  if (asigError) {
+    console.error('[Admin Dashboard] municipality_applications:', asigError.message)
+  }
+
+  // Usuarios activos (con progreso o encuestas en los últimos 30 días)
+  const treintaDiasAtras = new Date(
+    Date.now() - 30 * 24 * 60 * 60 * 1000,
+  ).toISOString()
+
+  const { count: usuariosActivos, error: activosError } = await supabase
+    .from('user_progress')
+    .select('user_id', { count: 'exact', head: true })
+    .gte('fecha_inicio', treintaDiasAtras)
+
+  if (activosError) {
+    console.error('[Admin Dashboard] usuarios activos:', activosError.message)
+  }
+
   return {
     totalMunicipios,
     activos,
@@ -73,6 +97,8 @@ async function getDashboardStats() {
     totalCiudadanos: totalCiudadanos || 0,
     programasCompletados: programasCompletados || 0,
     totalApps: totalApps || 0,
+    totalAsignaciones: totalAsignaciones || 0,
+    usuariosActivos: usuariosActivos || 0,
   }
 }
 
@@ -167,9 +193,14 @@ export default async function AdminDashboardPage() {
               color="emerald"
             />
             <StatCard
-              label="Aplicaciones en catálogo"
-              value={stats.totalApps}
-              color="indigo"
+              label="Apps asignadas"
+              value={stats.totalAsignaciones}
+              color="sky"
+            />
+            <StatCard
+              label="Usuarios activos (30d)"
+              value={stats.usuariosActivos}
+              color="emerald"
             />
           </div>
 

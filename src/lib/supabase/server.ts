@@ -21,7 +21,7 @@
 
 import { createServerClient } from '@supabase/ssr'
 import { cookies } from 'next/headers'
-import { createAuthCookiesAdapter } from '@/lib/supabase/cookies'
+import { createAuthCookiesAdapter, createReadOnlyCookiesAdapter } from '@/lib/supabase/cookies'
 
 /**
  * Crea un cliente Supabase para Server Components, Server Actions y Route Handlers.
@@ -65,21 +65,11 @@ export function createClient() {
  * const { data } = await supabase.from('municipalities').select('*')
  */
 export function createAdminClient() {
-  // IMPORTANTE: NO inyectar cookies reales. @supabase/ssr detecta el
-  // JWT del usuario en las cookies y reemplaza el header Authorization
-  // (service_role_key) por el JWT del ciudadano. Con un adapter
-  // no-op garantizamos que todas las llamadas usen service_role_key
-  // y bypaseen RLS correctamente.
   return createServerClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.SUPABASE_SERVICE_ROLE_KEY!,
     {
-      cookies: {
-        get: () => undefined,
-        getAll: () => [],
-        // eslint-disable-next-line @typescript-eslint/no-empty-function
-        setAll: () => {},
-      },
+      cookies: createReadOnlyCookiesAdapter(),
       auth: {
         autoRefreshToken: false,
         persistSession: false,

@@ -18,6 +18,7 @@ import { tenantCache } from '@/lib/tenant/cache'
 import { getDemoTenant } from '@/lib/demo-data'
 import { createServerClient } from '@supabase/ssr'
 import { NextResponse, type NextRequest } from 'next/server'
+import { createReadOnlyCookiesAdapter } from '@/lib/supabase/cookies'
 import type { MunicipalityConfig, CorporateColors, InstitutionalTexts } from '@/types'
 
 // ---------------------------------------------------------------------------
@@ -39,6 +40,9 @@ const PUBLIC_ASSET_PREFIXES = [
 
 /** Caminos de error — deben saltarse para evitar bucles de redirección */
 const ERROR_PATHS = ['/404', '/suspendido']
+
+/** Caché en memoria de apps resueltas por slug (evita query en cada request) */
+const appSlugCache = new Map<string, { id: string; nombre: string; tipo: string; url_acceso?: string | null; brand_color?: string | null; thumbnail_url?: string | null; descripcion?: string | null; categoria_nombre?: string | null } | null>()
 
 /** Rutas que requieren que el usuario esté autenticado */
 const PROTECTED_PREFIXES = ['/app/', '/perfil', '/dashboard']
@@ -122,6 +126,53 @@ function mapRowToConfig(row: Record<string, unknown>): MunicipalityConfig {
  *
  * Devuelve null si el municipio no existe.
  */
+/**
+ * Resuelve una aplicación por su app_slug.
+ * Usa caché en memoria para evitar queries repetidos.
+ */
+async function resolveAppBySlug(
+  slug: string,
+): Promise<{ id: string; nombre: string; tipo: string; url_acceso?: string | null; brand_color?: string | null; thumbnail_url?: string | null; descripcion?: string | null; categoria_nombre?: string | null } | null> {
+  if (appSlugCache.has(slug)) return appSlugCache.get(slug) ?? null
+
+  try {
+    const supabase = createServerClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.SUPABASE_SERVICE_ROLE_KEY!,
+      {
+        cookies: createReadOnlyCookiesAdapter(),
+        auth: { autoRefreshToken: false, persistSession: false },
+      },
+    )
+
+    const { data } = await supabase
+      .from('applications')
+      .select('id, nombre, tipo, url_acceso, brand_color, thumbnail_url, descripcion, categoria:categories(nombre)')
+      .eq('app_slug', slug)
+      .eq('activa', true)
+      .maybeSingle()
+
+    const result = data
+      ? {
+          id: data.id as string,
+          nombre: data.nombre as string,
+          tipo: data.tipo as string,
+          url_acceso: data.url_acceso as string | null,
+          brand_color: data.brand_color as string | null,
+          thumbnail_url: data.thumbnail_url as string | null,
+          descripcion: data.descripcion as string | null,
+          categoria_nombre: (data.categoria as unknown as { nombre: string } | null)?.nombre ?? null,
+        }
+      : null
+
+    appSlugCache.set(slug, result)
+    return result
+  } catch {
+    appSlugCache.set(slug, null)
+    return null
+  }
+}
+
 async function resolveTenant(
   slug: string,
 ): Promise<MunicipalityConfig | null> {
@@ -144,12 +195,7 @@ async function resolveTenant(
       process.env.NEXT_PUBLIC_SUPABASE_URL!,
       process.env.SUPABASE_SERVICE_ROLE_KEY!,
       {
-        cookies: {
-          get: () => undefined,
-          getAll: () => [],
-          // eslint-disable-next-line @typescript-eslint/no-empty-function
-          setAll: () => {},
-        },
+        cookies: createReadOnlyCookiesAdapter(),
         auth: {
           autoRefreshToken: false,
           persistSession: false,
@@ -224,11 +270,22 @@ export async function middleware(request: NextRequest) {
         'redirect',
         request.nextUrl.pathname + request.nextUrl.search,
       )
+      // Diagnóstico: ayuda a detectar si las cookies de sesión
+      // no se están leyendo correctamente (ej. formato incorrecto).
+      if (process.env.NODE_ENV !== 'production') {
+        const hasCookies =
+          request.cookies.getAll().some((c) => c.name.includes('auth-token'))
+        console.warn(
+          `[middleware] Sin sesión en ruta protegida ${pathname}. ` +
+            `Cookies auth presentes: ${hasCookies ? 'sí' : 'no'}. ` +
+            `Tenant: ${tenantSlug || 'ninguno'}.`,
+        )
+      }
       return NextResponse.redirect(loginUrl)
     }
   }
 
-  // 4. Extraer slug del tenant
+  // 4. Extraer slug del hostname
   const slug = extractTenantSlug(request)
   if (!slug) {
     // Sin tenant: el dominio raíz o localhost sin ?tenant=
@@ -236,40 +293,68 @@ export async function middleware(request: NextRequest) {
     return supabaseResponse
   }
 
-  // 5. Resolver tenant (caché → DB)
+  // 5. Resolver tenant (caché → DB) — los municipios tienen prioridad
   const config = await resolveTenant(slug)
 
+  // 6. Si no es un municipio, ¿es un subdominio de app?
+  //    Solo aplica si la ruta no empieza con /apps/ (evitar loop)
+  if (!config && !pathname.startsWith('/apps/')) {
+    const app = await resolveAppBySlug(slug)
+    if (app) {
+      const appUrl = request.nextUrl.clone()
+      appUrl.pathname = `/apps/${slug}`
+
+      const appHeaders = new Headers(request.headers)
+      appHeaders.set('x-app-id', app.id)
+      appHeaders.set('x-app-name', app.nombre)
+      appHeaders.set('x-app-type', app.tipo)
+      if (app.url_acceso) appHeaders.set('x-app-url', app.url_acceso)
+      if (app.brand_color) appHeaders.set('x-app-brand-color', app.brand_color)
+      if (app.thumbnail_url) appHeaders.set('x-app-thumbnail', app.thumbnail_url)
+      if (app.descripcion) appHeaders.set('x-app-description', app.descripcion)
+      if (app.categoria_nombre) appHeaders.set('x-app-category', app.categoria_nombre)
+
+      const appResponse = NextResponse.rewrite(appUrl, {
+        request: { headers: appHeaders },
+      })
+      supabaseResponse.cookies.getAll().forEach((cookie) => {
+        appResponse.cookies.set(cookie.name, cookie.value, cookie)
+      })
+      return appResponse
+    }
+    // Ni municipio ni app: 404
+    return NextResponse.redirect(new URL(`/404?slug=${slug}`, request.url))
+  }
+
+  // 7. El tenant no existe y no es app: 404
   if (!config) {
     return NextResponse.redirect(new URL(`/404?slug=${slug}`, request.url))
   }
 
-  // 6. Verificar estado de suscripción
+  // 8. Verificar estado de suscripción
   if (
     config.estado_suscripcion === 'suspendida' ||
     config.estado_suscripcion === 'cancelada'
   ) {
-    // Redirigir a una página de municipio suspendido.
-    // Los Server Components pueden leer x-tenant-subscription-status
-    // para mostrar un mensaje contextual, o podemos redirigir aquí.
     return NextResponse.redirect(
       new URL(`/suspendido?tenant=${slug}`, request.url),
     )
   }
 
-  // 7. Inyectar headers del tenant en la request
-  const requestHeaders = new Headers(request.headers)
-  requestHeaders.set('x-tenant-id', config.id)
-  requestHeaders.set('x-tenant-slug', config.slug)
-  requestHeaders.set('x-tenant-name', config.nombre_municipio)
-  requestHeaders.set('x-tenant-domain', config.dominio)
-  requestHeaders.set('x-tenant-subscription-status', config.estado_suscripcion)
-  requestHeaders.set('x-tenant-accent', config.colores_corporativos.accent)
-  requestHeaders.set('x-tenant-text', config.colores_corporativos.text)
+  // 9. Inyectar headers del tenant en la request
+  const tenantHeaders = new Headers(request.headers)
+  tenantHeaders.set('x-tenant-id', config.id)
+  tenantHeaders.set('x-tenant-slug', config.slug)
+  tenantHeaders.set('x-tenant-name', config.nombre_municipio)
+  tenantHeaders.set('x-tenant-domain', config.dominio)
+  tenantHeaders.set('x-tenant-subscription-status', config.estado_suscripcion)
+  tenantHeaders.set('x-tenant-accent', config.colores_corporativos.accent)
+  tenantHeaders.set('x-tenant-text', config.colores_corporativos.text)
 
-  // 8. Propagar la petición con los headers de tenant
-  //    y copiar las cookies de sesión del paso 1
+  // 10. Propagar la petición con los headers de tenant
+  //     y copiar las cookies de sesión del paso 1
   const response = NextResponse.next({
-    request: { headers: requestHeaders },
+    request: { headers: tenantHeaders },
   })
 
   supabaseResponse.cookies.getAll().forEach((cookie) => {

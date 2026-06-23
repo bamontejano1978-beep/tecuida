@@ -87,9 +87,17 @@ export default function ApplicationCard({
   const typeColor = typeColors[application.tipo] || typeColors.programa
   const tier = tierBadges[application.tipo] || tierBadges.programa
 
+  // Si la app tiene subdominio, enlazar directamente a él
+  const href = application.app_slug
+    ? `https://${application.app_slug}.tecuida.group`
+    : `/app/${application.id}`
+  const isExternal = !!application.app_slug
+
   return (
     <Link
-      href={`/app/${application.id}`}
+      href={href}
+      target={isExternal ? '_blank' : undefined}
+      rel={isExternal ? 'noopener noreferrer' : undefined}
       className="group relative flex flex-col rounded-xl border border-gray-200 bg-white p-6 shadow-sm transition-all duration-200 hover:shadow-lg hover:border-indigo-200 hover:-translate-y-1 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
     >
       {/* Badge de nivel */}
@@ -133,7 +141,9 @@ export default function ApplicationCard({
           <span className="text-xs text-gray-400">{categoryName}</span>
         )}
         <span className="text-xs font-medium text-indigo-600 group-hover:translate-x-0.5 transition-transform">
-          Acceder →
+          {application.tipo === 'herramienta' || application.tipo === 'recurso'
+            ? 'Instalar →'
+            : 'Abrir →'}
         </span>
       </div>
     </Link>

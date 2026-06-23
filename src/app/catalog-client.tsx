@@ -12,6 +12,17 @@ import ApplicationCard from '@/components/catalog/application-card'
 import CategoryFilter from '@/components/catalog/category-filter'
 import type { Application } from '@/types'
 
+// ---------------------------------------------------------------------------
+// Helpers
+// ---------------------------------------------------------------------------
+
+function normalize(str: string): string {
+  return str
+    .toLowerCase()
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+}
+
 interface Category {
   id: string
   nombre: string
@@ -31,11 +42,23 @@ export default function CatalogClient({
 }: CatalogClientProps) {
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null)
 
-  // Filtrar aplicaciones por categoría seleccionada
+  // Búsqueda por nombre
+  const [searchQuery, setSearchQuery] = useState('')
+
+  // Filtrar aplicaciones por categoría seleccionada + búsqueda
   const filteredApps = useMemo(() => {
-    if (!selectedCategory) return apps
-    return apps.filter((app) => app.categoria_id === selectedCategory)
-  }, [apps, selectedCategory])
+    let result = apps
+    if (selectedCategory) {
+      result = result.filter((app) => app.categoria_id === selectedCategory)
+    }
+    const q = normalize(searchQuery.trim())
+    if (q) {
+      result = result.filter((app) =>
+        normalize(app.nombre).includes(q),
+      )
+    }
+    return result
+  }, [apps, selectedCategory, searchQuery])
 
   // Actualizar conteos según la selección
   const categoriesWithDynamicCounts = useMemo(() => {
@@ -54,14 +77,34 @@ export default function CatalogClient({
 
   return (
     <>
-      {/* Filtros */}
-      <div className="mb-8">
+      {/* Filtros + Búsqueda */}
+      <div className="mb-8 space-y-4">
         <CategoryFilter
           categories={categoriesWithDynamicCounts}
           selected={selectedCategory}
           onSelect={setSelectedCategory}
           primaryColor={primaryColor}
         />
+        {/* Barra de búsqueda */}
+        <div className="relative max-w-sm">
+          <svg
+            className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400 pointer-events-none"
+            fill="none"
+            viewBox="0 0 24 24"
+            strokeWidth={2}
+            stroke="currentColor"
+            aria-hidden="true"
+          >
+            <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z" />
+          </svg>
+          <input
+            type="search"
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            placeholder="Buscar aplicaciones…"
+            className="block w-full rounded-lg border border-gray-300 pl-10 pr-4 py-2 text-sm shadow-sm placeholder:text-gray-400 focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
+          />
+        </div>
       </div>
 
       {/* Grid de aplicaciones */}
@@ -84,7 +127,9 @@ export default function CatalogClient({
             Sin resultados
           </h3>
           <p className="mt-1 text-sm text-gray-500">
-            No hay aplicaciones en esta categoría.
+            {searchQuery.trim()
+              ? 'No hay aplicaciones que coincidan con tu búsqueda.'
+              : 'No hay aplicaciones en esta categoría.'}
           </p>
         </div>
       ) : (

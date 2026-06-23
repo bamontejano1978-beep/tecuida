@@ -49,7 +49,7 @@ exports[`ApplicationCard coincide con el snapshot (estructura estable) 1`] = `
     <span
       class="text-xs font-medium text-indigo-600 group-hover:translate-x-0.5 transition-transform"
     >
-      Acceder →
+      Abrir →
     </span>
   </div>
 </a>
