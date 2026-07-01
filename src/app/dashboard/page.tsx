@@ -15,6 +15,7 @@ import Link from 'next/link'
 import Image from 'next/image'
 import { getTenantConfigFromDB, getTenantFromHeaders } from '@/lib/tenant/headers'
 import { createClient, createAdminClient } from '@/lib/supabase/server'
+import { normalizeExternalUrl } from '@/lib/urls'
 import SignOutButton from '@/components/ui/sign-out-button'
 
 // ---------------------------------------------------------------------------
@@ -31,6 +32,13 @@ interface ActiveAppRow {
     thumbnail_url: string | null
     tipo: string
     app_slug?: string | null
+    /**
+     * URL externa de la app. Si está presente y NO hay app_slug,
+     * el link del dashboard salta `/app/<id>` y va directo a esta URL.
+     * Defensa contra el bug 404 típico de apps tipo='programa' con URL
+     * externa huérfanas (migrations 029/031 + fallback GenericLanding).
+     */
+    url_acceso?: string | null
   } | null
 }
 
@@ -87,7 +95,8 @@ export default async function DashboardPage() {
           descripcion,
           thumbnail_url,
           tipo,
-          app_slug
+          app_slug,
+          url_acceso
         )`,
       )
       .eq('municipality_id', tenant.id)
@@ -121,9 +130,15 @@ export default async function DashboardPage() {
   // 7. Perfil del usuario
   const { data: userProfile } = await adminClient
     .from('users')
-    .select('nombre, apellidos, email')
+    .select('alias, nombre, apellidos, email')
     .eq('id', user.id)
     .single()
+
+  // RGPD: mostrar alias si existe, fallback a nombre legacy, o 'vecino/a'
+  const displayName =
+    (userProfile?.alias as string) ||
+    (userProfile?.nombre as string) ||
+    ''
 
   // ─── Procesar datos ────────────────────────────────────
 
@@ -150,7 +165,10 @@ export default async function DashboardPage() {
     }
   })
 
-  // Apps válidas
+  // Apps válidas. Pre-normalizamos url_acceso aquí (no en JSX) para que
+  // el bloque Link quede limpio — la función `normalizeExternalUrl` añade
+  // "https://" si el operador guardó "example.com" sin scheme y devuelve
+  // `null` si el valor era vacío / sólo whitespace.
   const validApps = activeApps
     .filter((a) => a.application !== null)
     .map((a) => ({
@@ -159,6 +177,7 @@ export default async function DashboardPage() {
       descripcion: a.application!.descripcion || '',
       tipo: a.application!.tipo,
       appSlug: a.application!.app_slug || null,
+      urlAcceso: normalizeExternalUrl(a.application!.url_acceso),
     }))
 
   const appsAbiertas = validApps.filter((a) => openedAppIds.has(a.id))
@@ -189,7 +208,7 @@ export default async function DashboardPage() {
                   {tenant.nombre_ayuntamiento}
                 </p>
                 <h1 className="text-2xl font-bold text-white">
-                  ¡Hola{userProfile ? `, ${userProfile.nombre}` : ''}!
+                  ¡Hola{displayName ? `, ${displayName}` : ''}!
                 </h1>
               </div>
             </div>
@@ -254,15 +273,24 @@ export default async function DashboardPage() {
                     // Solo mostrar ✓ Abierta para tipos donde podemos trackear uso (programas y encuestas)
                     const canTrack = app.tipo === 'programa' || app.tipo === 'encuesta'
                     const showOpened = isOpened && canTrack
-                    const appHref = app.appSlug
+                    // Misma prioridad de href que application-card.tsx:
+                    //   app_slug > url_acceso > /app/<id>
+                    // urlAcceso ya viene normalizado del mapping arriba
+                    // (con https:// antepuesto por lib/urls si era host puro).
+                    const hasAppSlug = !!app.appSlug
+                    const hasExternalUrl = !hasAppSlug && app.urlAcceso != null
+                    const appHref = hasAppSlug
                       ? `https://${app.appSlug}.tecuida.group`
-                      : `/app/${app.id}`
+                      : hasExternalUrl
+                        ? app.urlAcceso!
+                        : `/app/${app.id}`
+                    const isAppExternal = hasAppSlug || hasExternalUrl
                     return (
                       <Link
                         key={app.id}
                         href={appHref}
-                        target={app.appSlug ? '_blank' : undefined}
-                        rel={app.appSlug ? 'noopener noreferrer' : undefined}
+                        target={isAppExternal ? '_blank' : undefined}
+                        rel={isAppExternal ? 'noopener noreferrer' : undefined}
                         className={`block rounded-xl border p-4 transition-all hover:shadow-md ${
                           isOpened
                             ? 'bg-white border-emerald-200 hover:border-emerald-300'
@@ -411,7 +439,7 @@ export default async function DashboardPage() {
               <div className="flex items-center gap-3">
                 <div className="flex h-10 w-10 items-center justify-center rounded-full bg-indigo-100">
                   <span className="text-lg font-bold text-indigo-600">
-                    {userProfile?.nombre?.charAt(0)?.toUpperCase() || '?'}
+                    {displayName ? displayName.charAt(0).toUpperCase() : (userProfile?.email || user?.email || '?').charAt(0).toUpperCase()}
                   </span>
                 </div>
                 <div>

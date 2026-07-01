@@ -75,12 +75,25 @@ export interface UserRow {
   id: UUID
   municipality_id: UUID
   email: string
-  nombre: string
-  apellidos: string
+  /** Pseudónimo opcional RGPD-safe (migración 032). Sustituye a nombre real. */
+  alias?: string | null
+  /** Nombre real — nullable desde migración 032 (RGPD). Solo usuarios legacy. */
+  nombre?: string | null
+  /** Apellidos reales — nullable desde migración 032 (RGPD). Solo usuarios legacy. */
+  apellidos?: string | null
+  /** Género auto-declarado (opcional). Propósito: análisis estadístico anónimo de impacto. Migración 033. NULL = prefiero no responder. */
+  genero?: 'hombre' | 'mujer' | 'no_binario' | null
+  /** Año de nacimiento (opcional, solo año). Propósito: franjas etarias anónimas para métricas. Migración 033. */
+  anio_nacimiento?: number | null
   telefono?: string
+  /** @deprecated Solo usuarios legacy. Los nuevos usan anio_nacimiento (más RGPD-safe). */
   fecha_nacimiento?: Date
   rol: 'ciudadano' | 'superadmin'
   avatar_url?: string
+  /** Token de confirmación para eliminación de cuenta (RGPD). Migración 034. */
+  deletion_token?: string | null
+  /** Timestamp de solicitud de eliminación. Migración 034. */
+  deletion_requested_at?: Date | null
   created_at: Date
 }
 
@@ -129,6 +142,14 @@ export interface Application {
   app_slug?: string | null
   /** Color de marca en hex (#rrggbb). NULL = el PWA usa el color por defecto del tipo. */
   brand_color?: string | null
+  /**
+   * URL externa de la app (modo "🔗 URL externa" del create-form).
+   * Si NO está vacía y la app no tiene `app_slug`, la card del catálogo
+   * enlaza directamente a ella — saltándose `/app/<id>` para evitar el
+   * escenario típico del bug 404 en apps tipo='programa' huérfanas
+   * (ver migrations 029/031).
+   */
+  url_acceso?: string | null
 }
 
 export interface MunicipalityApplication {
@@ -256,10 +277,12 @@ export interface UpdateMunicipalityAppsDTO {
 export interface RegisterCitizenDTO {
   email: string
   password: string
-  nombre: string
-  apellidos: string
-  telefono?: string
-  fecha_nacimiento?: string
+  /** Pseudónimo opcional (RGPD-safe). Se guarda en users.alias. */
+  alias?: string
+  /** Género auto-declarado opcional. Propósito: métricas anónimas de impacto. */
+  genero?: 'hombre' | 'mujer' | 'no_binario'
+  /** Año de nacimiento opcional. Solo año, no fecha completa (RGPD-safe). */
+  anio_nacimiento?: number
 }
 
 export interface MarkLessonCompleteDTO {

@@ -122,7 +122,9 @@ export async function POST(request: Request) {
       textos_institucionales: {
         bienvenida: `Bienvenido/a al portal de bienestar de ${dto.nombre_ayuntamiento}`,
         descripcion: `Portal de salud y bienestar del municipio de ${dto.nombre_municipio}`,
-        pie_pagina: `© ${dto.nombre_ayuntamiento} — TE CUIDA`,
+        pie_pagina: `© ${dto.nombre_ayuntamiento} — TE CUIDA · Tu privacidad, protegida`,
+        // RGPD: el enlace a /privacidad se renderiza automáticamente
+        // en el footer de la landing page del tenant (columna Enlaces).
       },
     }
 

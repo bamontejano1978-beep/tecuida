@@ -31,6 +31,16 @@ interface AppRow {
     thumbnail_url: string | null
     tipo: string
     activa: boolean
+    /**
+     * Slug del subdominio propio de la app (p.ej. "mindful30") y URL externa.
+     * La card del catálogo usa estos campos para decidir el href:
+     *   app_slug      → <slug>.tecuida.group
+     *   url_acceso    → URL externa directo (evita /app/<id> → 404 en apps huérfanas)
+     * Ambos llegan nullable porque vienen del join de Supabase; ver
+     * migrations 029/031 y el fallback GenericLanding en /app/[id]/page.tsx.
+     */
+    app_slug?: string | null
+    url_acceso?: string | null
   } | null
 }
 
@@ -192,6 +202,10 @@ function RootLanding() {
             <Link href="/register" className="block mt-1.5 text-white/75 no-underline hover:text-white">Registrarse</Link>
             <a href="#catalogo" className="block mt-1.5 text-white/75 no-underline hover:text-white">Programas</a>
           </div>
+          <div>
+            <b className="text-white">Legal</b>
+            <Link href="/privacidad" className="block mt-1.5 text-white/75 no-underline hover:text-white">Política de privacidad</Link>
+          </div>
         </div>
       </footer>
     </div>
@@ -225,6 +239,15 @@ async function TenantPage({
     thumbnail_url: string
     tipo: 'programa' | 'herramienta' | 'encuesta' | 'recurso'
     activa: boolean
+    /**
+     * Slug del subdominio propio de la app (p.ej. "mindful30") y/o URL
+     * externa. La card del catálogo usa estos campos para decidir el href:
+     *   app_slug      → <slug>.tecuida.group
+     *   url_acceso    → URL externa directo (evita /app/<id> → 404 en apps huérfanas)
+     * Ambos llegan nullable desde el join de Supabase; ver migraciones 029/031.
+     */
+    app_slug: string | null
+    url_acceso: string | null
   }[]
   categoriesWithCounts: { id: string; nombre: string; count: number }[]
 }) {
@@ -448,6 +471,7 @@ async function TenantPage({
             <Link href="/login" className="block mt-1.5 text-white/75 no-underline hover:text-white">Iniciar sesión</Link>
             <Link href="/register" className="block mt-1.5 text-white/75 no-underline hover:text-white">Registrarse</Link>
             <Link href="/dashboard" className="block mt-1.5 text-white/75 no-underline hover:text-white">Dashboard</Link>
+            <Link href="/privacidad" className="block mt-1.5 text-white/75 no-underline hover:text-white">Privacidad</Link>
           </div>
           <div>
             <b className="text-white">{tenant.nombre_ayuntamiento}</b>
@@ -505,7 +529,9 @@ export default async function HomePage() {
           descripcion,
           thumbnail_url,
           tipo,
-          activa
+          activa,
+          app_slug,
+          url_acceso
         )`,
       )
       .eq('municipality_id', tenant.id)
@@ -557,8 +583,7 @@ export default async function HomePage() {
         hero_image_url: tenant.hero_image_url,
         colores_corporativos: tenant.colores_corporativos as unknown as Record<string, string>,
         textos_institucionales: tenant.textos_institucionales as unknown as Record<string, string>,
-      }}
-      validApps={goodApps
+      }}      validApps={goodApps
         .filter((a) => a.application !== null)
         .map((a) => ({
           id: a.application!.id,
@@ -568,7 +593,10 @@ export default async function HomePage() {
           thumbnail_url: a.application!.thumbnail_url || '',
           tipo: a.application!.tipo as 'programa' | 'herramienta' | 'encuesta' | 'recurso',
           activa: a.application!.activa,
-        }))}
+          app_slug: a.application!.app_slug || null,
+          url_acceso: a.application!.url_acceso || null,
+        }))
+      }
       categoriesWithCounts={categoriesWithCounts}
     />
   )

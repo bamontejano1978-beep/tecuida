@@ -17,6 +17,7 @@
 
 import { useCallback, useRef } from 'react'
 import { createClient } from '@/lib/supabase/client'
+import { getConsentSync } from '@/lib/analytics/consent'
 
 // ---------------------------------------------------------------------------
 // Tipos
@@ -88,6 +89,9 @@ export function useAnalytics(
 
   const track = useCallback(
     (evento: AnalyticsEventName, payload: AnalyticsPayload = {}) => {
+      // RGPD: solo trackear si el usuario aceptó explícitamente
+      if (getConsentSync() !== 'accepted') return
+
       queueRef.current.push({
         evento,
         payload: {

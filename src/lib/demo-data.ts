@@ -26,7 +26,7 @@ export function getDemoTenant(slug: string): MunicipalityConfig {
       'Bienvenido/a al portal de bienestar de tu municipio. Este es un entorno de demostración.',
     descripcion:
       'Explora los programas y herramientas disponibles para tu salud y bienestar.',
-    pie_pagina: `© Ayuntamiento de ${slug} — TE CUIDA · Modo Demo`,
+    pie_pagina: `© Ayuntamiento de ${slug} — TE CUIDA · Tu privacidad, protegida · Modo Demo`,
   }
 
   return {

@@ -84,7 +84,7 @@ export default async function AdminLayout({
   const adminClient = createAdminClient()
   const { data: userRow } = await adminClient
     .from('users')
-    .select('rol, nombre, apellidos, email')
+    .select('rol, nombre, apellidos, email, alias')
     .eq('id', user.id)
     .single()
 
@@ -122,7 +122,7 @@ export default async function AdminLayout({
         <div className="border-t border-gray-200 px-3 py-4">
           <div className="mb-3 px-3">
             <p className="text-sm font-medium text-gray-900 truncate">
-              {userRow.nombre} {userRow.apellidos}
+              {userRow.alias || userRow.nombre || userRow.email}
             </p>
             <p className="text-xs text-gray-500 truncate">{userRow.email}</p>
           </div>

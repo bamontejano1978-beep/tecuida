@@ -34,36 +34,6 @@ function RegisterForm() {
         onSubmit={() => setSubmitting(true)}
       >
         <div className="space-y-4">
-          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-            <div>
-              <label htmlFor="nombre" className="block text-sm font-medium text-gray-700">
-                Nombre
-              </label>
-              <input
-                id="nombre"
-                name="nombre"
-                type="text"
-                autoComplete="given-name"
-                required
-                className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 text-gray-900 shadow-sm placeholder:text-gray-400 focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500 sm:text-sm"
-                placeholder="Tu nombre"
-              />
-            </div>
-            <div>
-              <label htmlFor="apellidos" className="block text-sm font-medium text-gray-700">
-                Apellidos
-              </label>
-              <input
-                id="apellidos"
-                name="apellidos"
-                type="text"
-                autoComplete="family-name"
-                required
-                className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 text-gray-900 shadow-sm placeholder:text-gray-400 focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500 sm:text-sm"
-                placeholder="Tus apellidos"
-              />
-            </div>
-          </div>
           <div>
             <label htmlFor="email" className="block text-sm font-medium text-gray-700">
               Correo electrónico
@@ -94,30 +64,96 @@ function RegisterForm() {
             />
           </div>
           <div>
-            <label htmlFor="telefono" className="block text-sm font-medium text-gray-700">
-              Teléfono{' '}
+            <label htmlFor="alias" className="block text-sm font-medium text-gray-700">
+              Alias{' '}
               <span className="text-gray-400 font-normal">(opcional)</span>
             </label>
             <input
-              id="telefono"
-              name="telefono"
-              type="tel"
-              autoComplete="tel"
+              id="alias"
+              name="alias"
+              type="text"
+              autoComplete="nickname"
               className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 text-gray-900 shadow-sm placeholder:text-gray-400 focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500 sm:text-sm"
-              placeholder="+34 600 000 000"
+              placeholder="¿Cómo quieres que te llamemos?"
             />
+            <p className="mt-1 text-xs text-gray-400">
+              Un pseudónimo para identificarte en la plataforma. No uses tu nombre real si prefieres mantener el anonimato.
+            </p>
           </div>
-          <div>
-            <label htmlFor="fecha_nacimiento" className="block text-sm font-medium text-gray-700">
-              Fecha de nacimiento{' '}
-              <span className="text-gray-400 font-normal">(opcional)</span>
-            </label>
-            <input
-              id="fecha_nacimiento"
-              name="fecha_nacimiento"
-              type="date"
-              className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 text-gray-900 shadow-sm placeholder:text-gray-400 focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500 sm:text-sm"
-            />
+
+          {/* ── Datos estadísticos anónimos (RGPD) ── */}
+          <div className="rounded-lg bg-amber-50 border border-amber-200 p-4 space-y-3">
+            <p className="text-sm font-medium text-amber-800 flex items-center gap-2">
+              <svg className="w-4 h-4 shrink-0" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" aria-hidden="true">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M9 12.75 11.25 15 15 9.75m-3-7.036A11.959 11.959 0 0 1 3.598 6 11.99 11.99 0 0 0 3 9.749c0 5.592 3.824 10.29 9 11.623 5.176-1.332 9-6.03 9-11.622 0-1.31-.21-2.571-.598-3.751h-.152c-3.196 0-6.1-1.248-8.25-3.285Z" />
+              </svg>
+              Datos estadísticos anónimos
+            </p>
+
+            {/* ── Aviso RGPD ── */}
+            <div className="rounded-md bg-white/60 border border-amber-300 p-3 text-xs text-amber-800 leading-relaxed space-y-2">
+              <p>
+                <strong>🔒 Tu privacidad es nuestra prioridad.</strong> Estos datos se rigen por el Reglamento General de Protección de Datos (RGPD):
+              </p>
+              <ul className="list-disc pl-4 space-y-1 text-amber-700">
+                <li><strong>Totalmente opcionales.</strong> Puedes crear tu cuenta sin responder a estas preguntas.</li>
+                <li><strong>Uso exclusivamente estadístico.</strong> Solo se utilizan para medir el impacto agregado de los programas en la comunidad (ej. «el 60% de las personas que completaron Mindful30 son mujeres entre 25 y 34 años»).</li>
+                <li><strong>Nunca se muestran individualmente.</strong> Tus respuestas no son visibles para otros usuarios, ni para tu ayuntamiento, ni aparecen en tu perfil público.</li>
+                <li><strong>Se almacenan de forma seudonimizada.</strong> El año de nacimiento se guarda sin mes ni día (menos identificable). El género se guarda como categoría agregable.</li>
+                <li><strong>Puedes cambiar o eliminar estos datos</strong> en cualquier momento desde tu perfil (/perfil).</li>
+              </ul>
+              <p className="text-amber-600 italic">
+                Al compartir estos datos, ayudas a tu ayuntamiento a entender qué programas funcionan mejor para cada grupo de ciudadanos. Gracias por contribuir.
+              </p>
+              <p className="text-amber-700 border-t border-amber-300 pt-2 mt-1">
+                Para más información, consulta nuestra{' '}
+                <Link href="/privacidad" className="font-semibold text-indigo-600 underline hover:text-indigo-500">
+                  política de privacidad
+                </Link>
+                .
+              </p>
+            </div>
+
+            {/* Género */}
+            <div>
+              <label htmlFor="genero" className="block text-sm font-medium text-gray-700">
+                Género{' '}
+                <span className="text-gray-400 font-normal">(opcional)</span>
+              </label>
+              <select
+                id="genero"
+                name="genero"
+                className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 text-sm shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
+                defaultValue=""
+              >
+                <option value="">Prefiero no responder</option>
+                <option value="hombre">Hombre</option>
+                <option value="mujer">Mujer</option>
+                <option value="no_binario">No binario</option>
+              </select>
+            </div>
+
+            {/* Año de nacimiento */}
+            <div>
+              <label htmlFor="anio_nacimiento" className="block text-sm font-medium text-gray-700">
+                Año de nacimiento{' '}
+                <span className="text-gray-400 font-normal">(opcional)</span>
+              </label>
+              <select
+                id="anio_nacimiento"
+                name="anio_nacimiento"
+                className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 text-sm shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
+                defaultValue=""
+              >
+                <option value="">Prefiero no responder</option>
+                {Array.from({ length: 83 }, (_, i) => new Date().getFullYear() - 17 - i).map((year) => (
+                  <option key={year} value={year}>{year}</option>
+                ))}
+              </select>
+              <p className="mt-1 text-xs text-gray-400">
+                Solo guardamos el año, no la fecha completa. Lo usamos para calcular franjas etarias en nuestras estadísticas de impacto.
+              </p>
+            </div>
           </div>
         </div>
 

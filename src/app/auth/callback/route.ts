@@ -105,10 +105,11 @@ export async function GET(request: NextRequest) {
             id: user.id,
             municipality_id: municipality.id,
             email: user.email,
-            nombre: (metadata.nombre as string) || '',
-            apellidos: (metadata.apellidos as string) || '',
-            telefono: (metadata.telefono as string) || null,
-            fecha_nacimiento: (metadata.fecha_nacimiento as string) || null,
+            alias: (metadata.alias as string) || null,
+            genero: (metadata.genero as string) || null,
+            anio_nacimiento: (metadata.anio_nacimiento as number) || null,
+            nombre: null,
+            apellidos: null,
             rol: 'ciudadano',
           })
 

@@ -17,10 +17,26 @@ import { z } from 'zod'
 const registerSchema = z.object({
   email: z.string().email('Correo electrónico inválido'),
   password: z.string().min(6, 'La contraseña debe tener al menos 6 caracteres'),
-  nombre: z.string().min(1, 'El nombre es obligatorio'),
-  apellidos: z.string().min(1, 'Los apellidos son obligatorios'),
-  telefono: z.string().optional(),
-  fecha_nacimiento: z.string().optional(),
+  // RGPD (migración 032): solo email + password obligatorios.
+  // alias es un pseudónimo opcional no identificable.
+  alias: z.string().max(60, 'El alias no puede superar los 60 caracteres').optional(),
+  // Datos estadísticos anónimos (migración 033) — totalmente opcionales
+  genero: z
+    .enum(['hombre', 'mujer', 'no_binario'])
+    .optional()
+    .or(z.literal('').transform(() => undefined)),
+  anio_nacimiento: z
+    .string()
+    .optional()
+    .transform((val) => {
+      if (!val || val === '') return undefined
+      const n = parseInt(val, 10)
+      if (Number.isNaN(n)) return undefined
+      const currentYear = new Date().getFullYear()
+      // Validar rango razonable: entre 1900 y (año actual - 10)
+      if (n < 1900 || n > currentYear - 10) return undefined
+      return n
+    }),
 })
 
 function getTenantSlug(request: NextRequest): string | null {
@@ -67,15 +83,14 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // 2. Parsear form data
+    // 2. Parsear form data (RGPD: solo email + password + alias opcional + demografía opcional)
     const formData = await request.formData()
     const parsed = registerSchema.safeParse({
       email: formData.get('email'),
       password: formData.get('password'),
-      nombre: formData.get('nombre'),
-      apellidos: formData.get('apellidos'),
-      telefono: formData.get('telefono') || undefined,
-      fecha_nacimiento: formData.get('fecha_nacimiento') || undefined,
+      alias: formData.get('alias') || undefined,
+      genero: formData.get('genero') || undefined,
+      anio_nacimiento: formData.get('anio_nacimiento') || undefined,
     })
 
     if (!parsed.success) {
@@ -107,10 +122,9 @@ export async function POST(request: NextRequest) {
         emailRedirectTo: callbackUrl,
         data: {
           municipality_slug: slug,
-          nombre: parsed.data.nombre,
-          apellidos: parsed.data.apellidos,
-          telefono: parsed.data.telefono || null,
-          fecha_nacimiento: parsed.data.fecha_nacimiento || null,
+          alias: parsed.data.alias || null,
+          genero: parsed.data.genero || null,
+          anio_nacimiento: parsed.data.anio_nacimiento || null,
         },
       },
     })
@@ -167,10 +181,11 @@ export async function POST(request: NextRequest) {
             id: signUpData.user.id,
             municipality_id: mun.id,
             email: parsed.data.email,
-            nombre: parsed.data.nombre,
-            apellidos: parsed.data.apellidos,
-            telefono: parsed.data.telefono || null,
-            fecha_nacimiento: parsed.data.fecha_nacimiento || null,
+            alias: parsed.data.alias || null,
+            genero: parsed.data.genero || null,
+            anio_nacimiento: parsed.data.anio_nacimiento || null,
+            nombre: null,
+            apellidos: null,
             rol: 'ciudadano',
           })
         }

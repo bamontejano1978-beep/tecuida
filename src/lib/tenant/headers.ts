@@ -125,5 +125,5 @@ const DEFAULT_TEXTS: InstitutionalTexts = {
   bienvenida: 'Bienvenido/a al portal de bienestar de tu municipio',
   descripcion:
     'Explora los programas y herramientas disponibles para tu salud y bienestar.',
-  pie_pagina: 'TE CUIDA — Plataforma de bienestar ciudadano',
+  pie_pagina: 'TE CUIDA — Plataforma de bienestar ciudadano · Tu privacidad, protegida',
 }

@@ -14,6 +14,7 @@
 'use client'
 
 import Link from 'next/link'
+import { normalizeExternalUrl } from '@/lib/urls'
 import type { Application, ApplicationType } from '@/types'
 
 // ---------------------------------------------------------------------------
@@ -87,11 +88,27 @@ export default function ApplicationCard({
   const typeColor = typeColors[application.tipo] || typeColors.programa
   const tier = tierBadges[application.tipo] || tierBadges.programa
 
-  // Si la app tiene subdominio, enlazar directamente a él
-  const href = application.app_slug
+  // Prioridad de href para evitar 404 al click:
+  //    1) app_slug      → subdominio propio (<slug>.tecuida.group) gestionado por el middleware
+  //    2) url_acceso    → URL externa (normalizada: si el operador escribió
+  //                       "example.com" sin scheme, aquí se le antepone
+  //                       "https://" para que el navegador no lo trate como
+  //                       una ruta relativa y no caiga en /404). Defensa
+  //                       contra el bug típico de apps tipo='programa'
+  //                       huérfanas con URL externa (migrations 029/031 +
+  //                       fallback GenericLanding en /app/[id]/page.tsx).
+  //    3) fallback      → /app/<id> (programas reales, recursos internos, etc.)
+  const normalizedUrlAcceso = normalizeExternalUrl(application.url_acceso)
+  const hasAppSlug = !!application.app_slug
+  const hasExternalUrl = !hasAppSlug && normalizedUrlAcceso != null
+
+  const href = hasAppSlug
     ? `https://${application.app_slug}.tecuida.group`
-    : `/app/${application.id}`
-  const isExternal = !!application.app_slug
+    : hasExternalUrl
+      ? normalizedUrlAcceso!
+      : `/app/${application.id}`
+
+  const isExternal = hasAppSlug || hasExternalUrl
 
   return (
     <Link

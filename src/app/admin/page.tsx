@@ -11,6 +11,7 @@
 
 import { createAdminClient } from '@/lib/supabase/server'
 import Link from 'next/link'
+import DemographicStats from '@/components/admin/demographic-stats'
 
 // ---------------------------------------------------------------------------
 // Helpers
@@ -89,6 +90,17 @@ async function getDashboardStats() {
     console.error('[Admin Dashboard] usuarios activos:', activosError.message)
   }
 
+  // Usuarios con datos demográficos (cobertura de métricas de impacto)
+  const { count: usuariosConDemograficos, error: demError } = await supabase
+    .from('users')
+    .select('id', { count: 'exact', head: true })
+    .not('genero', 'is', null)
+    .not('anio_nacimiento', 'is', null)
+
+  if (demError) {
+    console.error('[Admin Dashboard] usuarios demográficos:', demError.message)
+  }
+
   return {
     totalMunicipios,
     activos,
@@ -99,6 +111,7 @@ async function getDashboardStats() {
     totalApps: totalApps || 0,
     totalAsignaciones: totalAsignaciones || 0,
     usuariosActivos: usuariosActivos || 0,
+    usuariosConDemograficos: usuariosConDemograficos || 0,
   }
 }
 
@@ -111,11 +124,13 @@ function StatCard({
   value,
   href,
   color,
+  subtitle,
 }: {
   label: string
   value: number
   href?: string
-  color: 'indigo' | 'emerald' | 'amber' | 'red' | 'sky'
+  color: 'indigo' | 'emerald' | 'amber' | 'red' | 'sky' | 'violet'
+  subtitle?: string
 }) {
   const colorClasses = {
     indigo: 'bg-indigo-50 border-indigo-200 text-indigo-700',
@@ -123,6 +138,7 @@ function StatCard({
     amber: 'bg-amber-50 border-amber-200 text-amber-700',
     red: 'bg-red-50 border-red-200 text-red-700',
     sky: 'bg-sky-50 border-sky-200 text-sky-700',
+    violet: 'bg-violet-50 border-violet-200 text-violet-700',
   }
 
   const Card = href ? Link : 'div'
@@ -134,6 +150,7 @@ function StatCard({
     >
       <p className="text-3xl font-bold">{value.toLocaleString('es')}</p>
       <p className="mt-1 text-sm font-medium opacity-80">{label}</p>
+      {subtitle && <p className="mt-0.5 text-xs opacity-60">{subtitle}</p>}
     </Card>
   )
 }
@@ -142,8 +159,14 @@ function StatCard({
 // Página
 // ---------------------------------------------------------------------------
 
-export default async function AdminDashboardPage() {
+export default async function AdminDashboardPage({
+  searchParams,
+}: {
+  searchParams: Record<string, string | string[] | undefined>
+}) {
   const stats = await getDashboardStats()
+  const municipioId =
+    typeof searchParams['municipio'] === 'string' ? searchParams['municipio'] : undefined
 
   return (
     <div className="px-4 py-8 sm:px-6 lg:px-8">
@@ -202,6 +225,12 @@ export default async function AdminDashboardPage() {
               value={stats.usuariosActivos}
               color="emerald"
             />
+            <StatCard
+              label="Cobertura demográfica"
+              value={stats.usuariosConDemograficos}
+              subtitle={stats.totalCiudadanos > 0 ? `${Math.round((stats.usuariosConDemograficos / stats.totalCiudadanos) * 100)}% del total` : '—'}
+              color="violet"
+            />
           </div>
 
           {/* Quick actions */}
@@ -226,6 +255,11 @@ export default async function AdminDashboardPage() {
                 Gestionar municipios
               </Link>
             </div>
+          </div>
+
+          {/* ── Estadísticas demográficas ── */}
+          <div className="mt-10">
+            <DemographicStats municipioId={municipioId} />
           </div>
         </>
       )}

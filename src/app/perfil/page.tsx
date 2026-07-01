@@ -16,6 +16,7 @@ import { getTenantConfigFromDB, getTenantFromHeaders } from '@/lib/tenant/header
 import { createClient, createAdminClient } from '@/lib/supabase/server'
 import ProfileForm from './profile-form'
 import NotificationSettings from '@/components/ui/notification-settings'
+import DeleteAccountSection from '@/components/ui/delete-account-section'
 import type { NotificationPrefs } from '@/components/ui/notification-settings'
 import SignOutButton from '@/components/ui/sign-out-button'
 
@@ -41,7 +42,7 @@ export default async function ProfilePage() {
   const adminClient = createAdminClient()
   const { data: userProfile } = await adminClient
     .from('users')
-    .select('nombre, apellidos, email, telefono, fecha_nacimiento, created_at, notificaciones')
+    .select('alias, nombre, apellidos, email, genero, anio_nacimiento, telefono, fecha_nacimiento, created_at, notificaciones')
     .eq('id', user.id)
     .single()
 
@@ -52,10 +53,22 @@ export default async function ProfilePage() {
     hora: (notifRaw.hora as string) || '09:00',
   }
 
+  // RGPD: mostrar alias si existe, fallback a nombre legacy, o email
+  const displayName =
+    (userProfile?.alias as string) ||
+    (userProfile?.nombre as string) ||
+    ''
+  const displayInitial = displayName
+    ? displayName.charAt(0).toUpperCase()
+    : (userProfile?.email as string || user.email || '?').charAt(0).toUpperCase()
+
   const profile = {
+    alias: (userProfile?.alias as string) || '',
     nombre: (userProfile?.nombre as string) || '',
     apellidos: (userProfile?.apellidos as string) || '',
     email: (userProfile?.email as string) || user.email || '',
+    genero: (userProfile?.genero as string) || '',
+    anio_nacimiento: userProfile?.anio_nacimiento ? String(userProfile.anio_nacimiento) : '',
     telefono: (userProfile?.telefono as string) || '',
     fecha_nacimiento: (userProfile?.fecha_nacimiento as string) || '',
     created_at: (userProfile?.created_at as string) || '',
@@ -128,12 +141,11 @@ export default async function ProfilePage() {
             <div className="bg-white rounded-xl border border-gray-200 p-6 text-center">
               <div className="mx-auto flex h-20 w-20 items-center justify-center rounded-full bg-indigo-100">
                 <span className="text-2xl font-bold text-indigo-600">
-                  {profile.nombre.charAt(0).toUpperCase()}
-                  {profile.apellidos.charAt(0).toUpperCase()}
+                  {displayInitial}
                 </span>
               </div>
               <h2 className="mt-4 text-lg font-semibold text-gray-900">
-                {profile.nombre} {profile.apellidos}
+                {displayName || 'Usuario'}
               </h2>
               <p className="mt-1 text-sm text-gray-500">{profile.email}</p>
               {tenant && (
@@ -176,6 +188,7 @@ export default async function ProfilePage() {
           <div className="lg:col-span-2 space-y-6">
             <ProfileForm userId={user.id} initialData={profile} />
             <NotificationSettings userId={user.id} initialPrefs={notificaciones} />
+            <DeleteAccountSection userEmail={profile.email} />
           </div>
         </div>
       </main>

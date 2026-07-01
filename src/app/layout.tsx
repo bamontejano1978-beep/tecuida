@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { headers } from "next/headers";
 import localFont from "next/font/local";
+import CookieConsentBanner from "@/components/ui/cookie-consent-banner";
 import "./globals.css";
 
 const geistSans = localFont({
@@ -117,6 +118,7 @@ export default function RootLayout({
         style={tenantStyle}
       >
         {children}
+        <CookieConsentBanner />
       </body>
     </html>
   );

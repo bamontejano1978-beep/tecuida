@@ -24,6 +24,11 @@ const config = {
     '**/?(*.)+(spec|test).[jt]s?(x)',
   ],
 
+  // Excluir library/ — contiene proyectos externos (template, apps de prueba)
+  // que no forman parte de la app principal y pueden tener configuraciones
+  // incompatibles (package.json huérfanos, etc.)
+  modulePathIgnorePatterns: ['<rootDir>/library/'],
+
   // Extensiones de módulos que Jest debe procesar
   moduleFileExtensions: ['ts', 'tsx', 'js', 'jsx', 'json'],
 
