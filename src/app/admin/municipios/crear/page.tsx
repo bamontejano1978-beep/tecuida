@@ -26,6 +26,8 @@ interface FormData {
   color_primary: string
   color_secondary: string
   color_accent: string
+  email_contacto: string
+  telefono_contacto: string
 }
 
 interface FormErrors {
@@ -41,6 +43,7 @@ export default function CrearMunicipioPage() {
   const router = useRouter()
   const heroRef = useRef<ImageUploadFieldHandle>(null)
   const escudoRef = useRef<ImageUploadFieldHandle>(null)
+  const logoRef = useRef<ImageUploadFieldHandle>(null)
 
   const [formData, setFormData] = useState<FormData>({
     nombre_municipio: '',
@@ -50,6 +53,8 @@ export default function CrearMunicipioPage() {
     color_primary: '#1e40af',
     color_secondary: '#3b82f6',
     color_accent: '#f59e0b',
+    email_contacto: '',
+    telefono_contacto: '',
   })
   const [errors, setErrors] = useState<FormErrors[]>([])
   const [submitError, setSubmitError] = useState<string | null>(null)
@@ -114,8 +119,9 @@ export default function CrearMunicipioPage() {
       const uploadPromises = [
         heroRef.current?.upload(slug) ?? Promise.resolve(null),
         escudoRef.current?.upload(slug) ?? Promise.resolve(null),
+        logoRef.current?.upload(slug) ?? Promise.resolve(null),
       ]
-      const [heroUrl, escudoUrl] = await Promise.all(uploadPromises)
+      const [heroUrl, escudoUrl, logoUrl] = await Promise.all(uploadPromises)
 
       // 2. Crear el municipio
       const body: Record<string, unknown> = {
@@ -135,6 +141,11 @@ export default function CrearMunicipioPage() {
 
       if (heroUrl) body.hero_image_url = heroUrl
       if (escudoUrl) body.escudo_url = escudoUrl
+      if (logoUrl) body.logo_url = logoUrl
+
+      // Campos de contacto opcionales (P3)
+      if (formData.email_contacto.trim()) body.email_contacto = formData.email_contacto.trim()
+      if (formData.telefono_contacto.trim()) body.telefono_contacto = formData.telefono_contacto.trim()
 
       const res = await fetch('/api/admin/municipalities', {
         method: 'POST',
@@ -279,24 +290,6 @@ export default function CrearMunicipioPage() {
             </div>
           </div>
 
-          {/* Provincia */}
-          <div>
-            <label htmlFor="provincia" className="block text-sm font-medium text-gray-700">
-              Provincia *
-            </label>
-            <input
-              id="provincia"
-              type="text"
-              value={formData.provincia}
-              onChange={(e) => updateField('provincia', e.target.value)}
-              className="mt-1 block w-full rounded-lg border border-gray-300 px-3 py-2 text-sm shadow-sm focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 outline-none"
-              placeholder="Ej: Badajoz"
-            />
-            {getFieldError('provincia') && (
-              <p className="mt-1 text-xs text-red-600">{getFieldError('provincia')}</p>
-            )}
-          </div>
-
           {/* ── Imagen principal (hero) ── */}
           <ImageUploadField
             ref={heroRef}
@@ -314,6 +307,54 @@ export default function CrearMunicipioPage() {
             kind="escudo"
             aspect={1}
           />
+
+          {/* ── Logo del municipio ── */}
+          <ImageUploadField
+            ref={logoRef}
+            label="Logo del municipio"
+            description="Logo institucional (JPEG, PNG, SVG o WebP, máx. 5 MB). Se muestra en la topbar."
+            kind="logo"
+            aspect={3}
+          />
+
+          {/* ── Datos de contacto (opcionales al crear) ── */}
+          <div>
+            <p className="text-sm font-medium text-gray-700 mb-3">
+              Datos de contacto públicos
+              <span className="ml-1.5 inline-flex items-center rounded-full bg-gray-100 px-2 py-0.5 text-[10px] font-semibold text-gray-500">Opcional</span>
+            </p>
+            <p className="text-xs text-gray-400 mb-3">
+              Podrás editarlos más adelante desde la ficha del municipio.
+            </p>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <div>
+                <label htmlFor="email_contacto_new" className="block text-xs text-gray-500 mb-1">
+                  Email de contacto
+                </label>
+                <input
+                  id="email_contacto_new"
+                  type="email"
+                  value={formData.email_contacto}
+                  onChange={(e) => updateField('email_contacto', e.target.value)}
+                  className="mt-1 block w-full rounded-lg border border-gray-300 px-3 py-2 text-sm shadow-sm focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 outline-none"
+                  placeholder="info@ayuntamiento.es"
+                />
+              </div>
+              <div>
+                <label htmlFor="telefono_contacto_new" className="block text-xs text-gray-500 mb-1">
+                  Teléfono de contacto
+                </label>
+                <input
+                  id="telefono_contacto_new"
+                  type="text"
+                  value={formData.telefono_contacto}
+                  onChange={(e) => updateField('telefono_contacto', e.target.value)}
+                  className="mt-1 block w-full rounded-lg border border-gray-300 px-3 py-2 text-sm shadow-sm focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 outline-none"
+                  placeholder="+34 924 00 00 00"
+                />
+              </div>
+            </div>
+          </div>
 
           {/* Colores corporativos */}
           <div>

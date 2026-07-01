@@ -22,6 +22,23 @@ const corporateColorsSchema = z.object({
   text: hexColorSchema,
 })
 
+// Sub-esquema de textos institucionales
+const institutionalTextsSchema = z.object({
+  bienvenida: z.string().optional(),
+  descripcion: z.string().optional(),
+  pie_pagina: z.string().optional(),
+  // Títulos y contenidos configurables de la landing (P4)
+  stats_titulo: z.string().optional(),
+  stats_subtitulo: z.string().optional(),
+  programas_titulo: z.string().optional(),
+  programas_subtitulo: z.string().optional(),
+  cta_titulo: z.string().optional(),
+  cta_texto: z.string().optional(),
+  seccion_stats_visible: z.boolean().optional(),
+  seccion_programas_visible: z.boolean().optional(),
+  seccion_cta_visible: z.boolean().optional(),
+})
+
 /**
  * Esquema de validación para crear un nuevo municipio.
  * Req 11.5: rechaza slugs reservados
@@ -42,6 +59,10 @@ export const CreateMunicipalitySchema = z.object({
   colores_corporativos: corporateColorsSchema,
   hero_image_url: z.string().url('La URL de la imagen principal debe ser una URL válida').nullable().optional(),
   escudo_url: z.string().url('La URL del escudo debe ser una URL válida').nullable().optional(),
+  logo_url: z.string().url('La URL del logo debe ser una URL válida').nullable().optional(),
+  email_contacto: z.string().email('Debe ser un email válido').nullable().optional(),
+  telefono_contacto: z.string().max(30, 'El teléfono no puede superar los 30 caracteres').nullable().optional(),
+  textos_institucionales: institutionalTextsSchema.optional(),
 })
 
 export type CreateMunicipalityDTO = z.infer<typeof CreateMunicipalitySchema>

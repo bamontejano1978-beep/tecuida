@@ -135,6 +135,28 @@ export async function POST(request: Request) {
     if (dto.escudo_url) {
       insertRow.escudo_url = dto.escudo_url
     }
+    if (dto.logo_url) {
+      insertRow.logo_url = dto.logo_url
+    }
+
+    // Campos de contacto (P3)
+    if (dto.email_contacto) {
+      insertRow.email_contacto = dto.email_contacto
+    }
+    if (dto.telefono_contacto) {
+      insertRow.telefono_contacto = dto.telefono_contacto
+    }
+
+    // Textos institucionales personalizados (P2): si el admin los envía, se usan;
+    // si no, se mantienen los defaults generados arriba.
+    if (dto.textos_institucionales) {
+      insertRow.textos_institucionales = {
+        ...insertRow.textos_institucionales as Record<string, unknown>,
+        ...Object.fromEntries(
+          Object.entries(dto.textos_institucionales).filter(([_, v]) => v !== undefined),
+        ),
+      }
+    }
 
     // Insertar en la base de datos
     const { data, error } = await supabase

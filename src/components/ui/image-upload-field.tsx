@@ -55,7 +55,7 @@ export interface ImageUploadFieldProps {
   /** Descripción secundaria (formatos, tamaño). */
   description: string
   /** Tipo de imagen: determina el path en el bucket y el aspect ratio. */
-  kind: 'hero' | 'escudo'
+  kind: 'hero' | 'escudo' | 'logo'
   /** URL actual de la imagen (modo edición). */
   currentUrl?: string | null
   /** Relación de aspecto para el recorte (hero = 2.5, escudo = 1). */
@@ -95,7 +95,9 @@ export const ImageUploadField = forwardRef<
     aspect = kind === 'hero' ? 2.5 : 1,
     previewClassName = kind === 'hero'
       ? 'w-full h-40 object-cover'
-      : 'max-h-32 object-contain',
+      : kind === 'logo'
+        ? 'max-h-16 object-contain'
+        : 'max-h-32 object-contain',
     emptyMessage,
     onChange,
   },
@@ -300,7 +302,9 @@ export const ImageUploadField = forwardRef<
   const defaultEmptyMsg =
     kind === 'hero'
       ? 'Opcional. Si no se selecciona, se usará un fondo de color sólido.'
-      : 'Opcional. Si no se selecciona, no se mostrará escudo en la landing page.'
+      : kind === 'escudo'
+        ? 'Opcional. Si no se selecciona, no se mostrará escudo en la landing page.'
+        : 'Opcional. Si no se selecciona, no se mostrará logo en la topbar.'
 
   // ── Render ─────────────────────────────────────────────
 
@@ -326,7 +330,7 @@ export const ImageUploadField = forwardRef<
                 onClick={handleRemove}
                 className="text-xs text-red-500 hover:text-red-700 transition-colors"
               >
-                {kind === 'hero' ? 'Quitar imagen' : 'Quitar escudo'}
+                {kind === 'hero' ? 'Quitar imagen' : kind === 'escudo' ? 'Quitar escudo' : 'Quitar logo'}
               </button>
             )}
           </div>
@@ -339,7 +343,9 @@ export const ImageUploadField = forwardRef<
           <p className="text-xs text-amber-600 bg-amber-50 rounded-lg px-3 py-2 mb-3">
             {kind === 'hero'
               ? 'Se eliminará la imagen principal al guardar. La landing usará fondo de color sólido.'
-              : 'Se eliminará el escudo al guardar.'}
+              : kind === 'escudo'
+                ? 'Se eliminará el escudo al guardar.'
+                : 'Se eliminará el logo al guardar.'}
           </p>
         )}
 

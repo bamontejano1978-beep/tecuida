@@ -11,6 +11,7 @@
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
+import AppThumbnailUploader from '@/components/ui/app-thumbnail-uploader'
 
 // ---------------------------------------------------------------------------
 // Tipos
@@ -40,7 +41,7 @@ interface FormError {
 }
 
 // ---------------------------------------------------------------------------
-// Componente
+// Componente principal
 // ---------------------------------------------------------------------------
 
 export default function CreateApplicationForm({
@@ -424,28 +425,59 @@ export default function CreateApplicationForm({
         )}
       </div>
 
-      {/* Thumbnail URL (opcional) */}
-      <div>
-        <label
-          htmlFor="thumbnail_url"
-          className="block text-sm font-medium text-gray-700"
-        >
-          URL de miniatura{' '}
-          <span className="text-xs font-normal text-gray-400">
-            (opcional)
-          </span>
-        </label>
-        <input
-          id="thumbnail_url"
-          type="url"
-          value={formData.thumbnail_url}
-          onChange={(e) => updateField('thumbnail_url', e.target.value)}
-          className="mt-1 block w-full rounded-lg border border-gray-300 px-3 py-2 text-sm shadow-sm focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 outline-none font-mono"
-          placeholder="https://..."
-        />
-        <p className="mt-1 text-xs text-gray-400">
-          Si la dejas vacía, la aplicación se mostrará sin miniatura.
+      {/* Thumbnail: subir archivo o URL */}
+      <div className="rounded-lg bg-gray-50 border border-gray-200 p-4 space-y-3">
+        <p className="text-sm font-medium text-gray-700">
+          🖼️ Imagen / icono de la aplicación
         </p>
+        <p className="text-xs text-gray-400 -mt-1">
+          Sube una imagen o pega una URL. Se mostrará en las tarjetas del catálogo y el dashboard.
+        </p>
+
+        {/* Subir archivo */}
+        <div>
+          <label className="block text-sm font-medium text-gray-700">
+            Subir imagen{' '}
+            <span className="text-xs font-normal text-gray-400">(JPEG, PNG, SVG o WebP, máx. 5 MB)</span>
+          </label>
+          <AppThumbnailUploader
+            currentUrl={formData.thumbnail_url}
+            appSlug={formData.app_slug}
+            onUploaded={(url) => updateField('thumbnail_url', url)}
+            mode="clear"
+          />
+        </div>
+
+        {/* O pegar URL */}
+        <div className="border-t border-gray-200 pt-3">
+          <label
+            htmlFor="thumbnail_url"
+            className="block text-sm font-medium text-gray-500"
+          >
+            O pegar URL de miniatura{' '}
+            <span className="text-xs font-normal text-gray-400">
+              (alternativa a subir archivo)
+            </span>
+          </label>
+          <input
+            id="thumbnail_url"
+            type="url"
+            value={formData.thumbnail_url}
+            onChange={(e) => updateField('thumbnail_url', e.target.value)}
+            className="mt-1 block w-full rounded-lg border border-gray-300 px-3 py-2 text-sm shadow-sm focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 outline-none font-mono"
+            placeholder="https://..."
+          />
+          {formData.thumbnail_url && (
+            <div className="mt-2">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                src={formData.thumbnail_url}
+                alt="Vista previa"
+                className="h-16 w-16 rounded-lg object-cover border border-gray-200"
+              />
+            </div>
+          )}
+        </div>
       </div>
 
       {/* Landing: instrucciones + enlace / subida ZIP */}

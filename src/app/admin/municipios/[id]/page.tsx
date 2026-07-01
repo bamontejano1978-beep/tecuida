@@ -51,6 +51,20 @@ export default async function EditMunicipioPage({ params }: EditMunicipioPagePro
     estado_suscripcion: data.estado_suscripcion as string,
     hero_image_url: (data.hero_image_url as string) || null,
     escudo_url: (data.escudo_url as string) || null,
+    logo_url: (data.logo_url as string) || null,
+    email_contacto: (data.email_contacto as string) || null,
+    telefono_contacto: (data.telefono_contacto as string) || null,
+    textos_institucionales: {
+      bienvenida: (data.textos_institucionales as Record<string, unknown>)?.bienvenida as string || '',
+      descripcion: (data.textos_institucionales as Record<string, unknown>)?.descripcion as string || '',
+      pie_pagina: (data.textos_institucionales as Record<string, unknown>)?.pie_pagina as string || '',
+      stats_titulo: (data.textos_institucionales as Record<string, unknown>)?.stats_titulo as string || '',
+      stats_subtitulo: (data.textos_institucionales as Record<string, unknown>)?.stats_subtitulo as string || '',
+      programas_titulo: (data.textos_institucionales as Record<string, unknown>)?.programas_titulo as string || '',
+      programas_subtitulo: (data.textos_institucionales as Record<string, unknown>)?.programas_subtitulo as string || '',
+      cta_titulo: (data.textos_institucionales as Record<string, unknown>)?.cta_titulo as string || '',
+      cta_texto: (data.textos_institucionales as Record<string, unknown>)?.cta_texto as string || '',
+    },
     created_at: data.created_at as string,
   }
 

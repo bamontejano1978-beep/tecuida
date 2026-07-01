@@ -230,6 +230,8 @@ async function TenantPage({
     hero_image_url: string | null
     colores_corporativos: Record<string, string>
     textos_institucionales: Record<string, string>
+    email_contacto?: string | null
+    telefono_contacto?: string | null
   }
   validApps: {
     id: string
@@ -298,7 +300,7 @@ async function TenantPage({
       />
 
       {/* ── Stats ── */}
-      <section aria-label="Resumen del programa" className="w-[min(1120px,calc(100%-40px))] -mt-[62px] mx-auto relative z-10 grid grid-cols-4 overflow-hidden bg-white/95 border border-white/70 rounded-[20px] shadow-[0_24px_70px_rgba(35,30,18,.13)] backdrop-blur-md max-md:grid-cols-2 max-sm:grid-cols-1">
+      <section aria-label={tenant.textos_institucionales.stats_titulo || 'Resumen del programa'} className="w-[min(1120px,calc(100%-40px))] -mt-[62px] mx-auto relative z-10 grid grid-cols-4 overflow-hidden bg-white/95 border border-white/70 rounded-[20px] shadow-[0_24px_70px_rgba(35,30,18,.13)] backdrop-blur-md max-md:grid-cols-2 max-sm:grid-cols-1">
         {[
           {
             value: `${validApps.length}+`,
@@ -361,13 +363,13 @@ async function TenantPage({
           <div className="flex justify-between items-end gap-5 mx-auto mb-7 max-w-[1120px] max-sm:block">
             <div>
               <div className="text-[#38633e] text-[13px] font-black tracking-[.18em] uppercase mb-1.5">
-                ¿En qué podemos ayudarte?
+                {tenant.textos_institucionales.programas_subtitulo || '¿En qué podemos ayudarte?'}
               </div>
               <h2 className="font-bold text-[clamp(34px,5vw,48px)] leading-tight mb-0">
-                Nuestros programas
+                {tenant.textos_institucionales.programas_titulo || 'Nuestros programas'}
               </h2>
               <p className="text-[#64705e] max-w-[610px] mt-3.5">
-                Iniciativas pensadas para acompañarte en cada etapa de tu vida y promover el bienestar emocional de toda la ciudadanía de {tenant.nombre_municipio}.
+                {tenant.textos_institucionales.descripcion || `Iniciativas pensadas para acompañarte en cada etapa de tu vida y promover el bienestar emocional de toda la ciudadanía de ${tenant.nombre_municipio}.`}
               </p>
             </div>
             <a
@@ -405,8 +407,11 @@ async function TenantPage({
         <section id="catalogo" className="mt-[70px] p-11 rounded-[26px] bg-gradient-to-br from-[#19371f] to-[#38633e] text-white max-w-[1120px] mx-auto max-sm:p-7 max-sm:px-5">
           <div className="text-[#f0b64e] text-[13px] font-black tracking-[.18em] uppercase mb-1.5">Acceso directo</div>
           <h2 className="font-bold text-[clamp(34px,5vw,48px)] leading-tight mb-0">
-            Todo lo que necesitas, a un clic.
+            {tenant.textos_institucionales.cta_titulo || 'Todo lo que necesitas, a un clic.'}
           </h2>
+          {tenant.textos_institucionales.cta_texto && (
+            <p className="mt-2 text-white/80 text-sm">{tenant.textos_institucionales.cta_texto}</p>
+          )}
           <div className="grid grid-cols-4 gap-3.5 mt-6 max-md:grid-cols-2 max-sm:grid-cols-1">
             <Link href="/register" className="p-[22px_16px] rounded-2xl text-center no-underline bg-white/10 border border-white/15 font-extrabold hover:bg-white/20 transition-colors">
               <b className="block text-[27px] mb-2">📋</b>Registro en programa
@@ -474,12 +479,22 @@ async function TenantPage({
             <Link href="/privacidad" className="block mt-1.5 text-white/75 no-underline hover:text-white">Privacidad</Link>
           </div>
           <div>
-            <b className="text-white">{tenant.nombre_ayuntamiento}</b>
-            <a href={`mailto:info@${tenant.nombre_municipio.toLowerCase().replace(/\s+/g, '')}.es`} className="block mt-1.5 text-white/75 no-underline hover:text-white">
-              Contactar
-            </a>
-            <a href="#inicio" className="block mt-1.5 text-white/75 no-underline hover:text-white">Inicio</a>
-            <a href="#programas" className="block mt-1.5 text-white/75 no-underline hover:text-white">Programas</a>
+            <b className="text-white">          {tenant.nombre_ayuntamiento}
+        </b>
+        {tenant.email_contacto ? (
+          <a href={`mailto:${tenant.email_contacto}`} className="block mt-1.5 text-white/75 no-underline hover:text-white">
+            {tenant.email_contacto}
+          </a>
+        ) : (
+          <a href={`mailto:info@${tenant.nombre_municipio.toLowerCase().replace(/\s+/g, '')}.es`} className="block mt-1.5 text-white/75 no-underline hover:text-white">
+            Contactar
+          </a>
+        )}
+        {tenant.telefono_contacto && (
+          <span className="block mt-1.5 text-white/75">{tenant.telefono_contacto}</span>
+        )}
+        <a href="#inicio" className="block mt-1.5 text-white/75 no-underline hover:text-white">Inicio</a>
+        <a href="#programas" className="block mt-1.5 text-white/75 no-underline hover:text-white">Programas</a>
           </div>
         </div>
         <div className="max-w-[1120px] mx-auto mt-6 pt-6 border-t border-white/10 text-center text-sm text-white/45">
@@ -583,6 +598,8 @@ export default async function HomePage() {
         hero_image_url: tenant.hero_image_url,
         colores_corporativos: tenant.colores_corporativos as unknown as Record<string, string>,
         textos_institucionales: tenant.textos_institucionales as unknown as Record<string, string>,
+        email_contacto: tenant.email_contacto,
+        telefono_contacto: tenant.telefono_contacto,
       }}      validApps={goodApps
         .filter((a) => a.application !== null)
         .map((a) => ({

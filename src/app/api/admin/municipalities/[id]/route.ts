@@ -134,6 +134,14 @@ export async function PUT(
       updateData.hero_image_url = updates.hero_image_url
     if (updates.escudo_url !== undefined)
       updateData.escudo_url = updates.escudo_url
+    if (updates.logo_url !== undefined)
+      updateData.logo_url = updates.logo_url
+    if (updates.email_contacto !== undefined)
+      updateData.email_contacto = updates.email_contacto
+    if (updates.telefono_contacto !== undefined)
+      updateData.telefono_contacto = updates.telefono_contacto
+    if (updates.textos_institucionales !== undefined)
+      updateData.textos_institucionales = updates.textos_institucionales
 
     if (Object.keys(updateData).length === 0) {
       return NextResponse.json(

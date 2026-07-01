@@ -41,6 +41,19 @@ export interface InstitutionalTexts {
   descripcion: string
   /** Texto del pie de página */
   pie_pagina: string
+  /** ── Landing sections configurables (P4) ── */
+  /** Título de la sección de estadísticas */
+  stats_titulo?: string
+  /** Subtítulo de la sección de estadísticas */
+  stats_subtitulo?: string
+  /** Título de la sección de programas */
+  programas_titulo?: string
+  /** Subtítulo de la sección de programas */
+  programas_subtitulo?: string
+  /** Título de la sección CTA */
+  cta_titulo?: string
+  /** Texto descriptivo bajo el título del CTA */
+  cta_texto?: string
 }
 
 // ---------------------------------------------------------------------------
@@ -63,6 +76,10 @@ export interface MunicipalityConfig {
   textos_institucionales: InstitutionalTexts
   modulos_activos: string[]
   estado_suscripcion: SubscriptionStatus
+  /** Email de contacto público (footer landing page). Migración 035. */
+  email_contacto?: string | null
+  /** Teléfono de contacto público (footer landing page). Migración 035. */
+  telefono_contacto?: string | null
 }
 
 // ---------------------------------------------------------------------------

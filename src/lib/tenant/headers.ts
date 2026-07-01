@@ -101,6 +101,8 @@ export async function getTenantConfigFromDB(
     textos_institucionales: (data.textos_institucionales as InstitutionalTexts),
     modulos_activos: (data.modulos_activos as string[]) || [],
     estado_suscripcion: data.estado_suscripcion as MunicipalityConfig['estado_suscripcion'],
+    email_contacto: (data.email_contacto as string) || null,
+    telefono_contacto: (data.telefono_contacto as string) || null,
   }
 
   // 3. Guardar en caché
@@ -126,4 +128,8 @@ const DEFAULT_TEXTS: InstitutionalTexts = {
   descripcion:
     'Explora los programas y herramientas disponibles para tu salud y bienestar.',
   pie_pagina: 'TE CUIDA — Plataforma de bienestar ciudadano · Tu privacidad, protegida',
+  stats_titulo: 'Resumen del programa',
+  programas_titulo: 'Nuestros programas',
+  programas_subtitulo: '¿En qué podemos ayudarte?',
+  cta_titulo: 'Todo lo que necesitas, a un clic.',
 }

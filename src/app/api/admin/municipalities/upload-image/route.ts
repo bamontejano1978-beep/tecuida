@@ -31,7 +31,7 @@ const ALLOWED_MIME_TYPES = [
 
 const MAX_FILE_SIZE = 5 * 1024 * 1024 // 5 MB
 
-const VALID_KINDS = ['hero', 'escudo'] as const
+const VALID_KINDS = ['hero', 'escudo', 'logo'] as const
 type ImageKind = (typeof VALID_KINDS)[number]
 
 /** Extensiones por MIME type para normalizar nombres de archivo en el bucket. */
@@ -136,7 +136,7 @@ export async function POST(request: NextRequest): Promise<Response> {
 
   if (typeof kindRaw !== 'string' || !VALID_KINDS.includes(kindRaw as ImageKind)) {
     return NextResponse.json(
-      { error: `El campo "kind" debe ser "hero" o "escudo".` },
+      { error: `El campo "kind" debe ser "hero", "escudo" o "logo".` },
       { status: 400 },
     )
   }
