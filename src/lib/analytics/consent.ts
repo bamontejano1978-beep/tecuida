@@ -55,8 +55,11 @@ export function useCookieConsent() {
   const [consent, setConsent] = useState<ConsentState | null>(() =>
     getConsentSync(),
   )
+  const [mounted, setMounted] = useState(false)
 
   useEffect(() => {
+    setMounted(true)
+
     // Sincronizar con storage (por si se cambió en otra pestaña)
     const handleStorage = (e: StorageEvent) => {
       if (e.key === STORAGE_KEY) {
@@ -82,7 +85,10 @@ export function useCookieConsent() {
     setConsent('rejected')
   }, [])
 
-  const hasDecided = consent !== null
+  // Solo considerar la decisión tras el montaje en cliente para evitar
+  // hydration mismatch entre server (sin localStorage) y cliente (con localStorage).
+  // Si no hay montaje aún, siempre se muestra el banner para igualar el HTML del servidor.
+  const hasDecided = mounted && consent !== null
 
   return { consent, hasDecided, accept, reject }
 }
