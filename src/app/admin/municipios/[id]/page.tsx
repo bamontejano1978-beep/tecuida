@@ -14,6 +14,7 @@ import { headers } from 'next/headers'
 import EditMunicipioForm from './edit-form'
 import { getMunicipioLandingUrl, cleanHostname } from '@/lib/tenant/landing'
 import LandingPreviewButton from '@/components/ui/landing-preview-button'
+import GestoresMunicipio from '@/components/admin/gestores-municipio'
 
 // ---------------------------------------------------------------------------
 // Página
@@ -124,6 +125,11 @@ export default async function EditMunicipioPage({ params }: EditMunicipioPagePro
       </div>
 
       <EditMunicipioForm municipio={municipio} />
+
+      {/* ── Gestores municipales ── */}
+      <div className="mt-8">
+        <GestoresMunicipio municipioId={params.id} />
+      </div>
     </div>
   )
 }
