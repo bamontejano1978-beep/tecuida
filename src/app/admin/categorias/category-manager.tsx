@@ -10,7 +10,7 @@
 
 'use client'
 
-import { useState } from 'react'
+import { useState, useRef } from 'react'
 import { useRouter } from 'next/navigation'
 import type { AdminCategory } from './page'
 
@@ -33,6 +33,10 @@ export default function CategoryManager({
   const [newName, setNewName] = useState('')
   const [newDesc, setNewDesc] = useState('')
   const [newIcon, setNewIcon] = useState('')
+  const [newIconPreview, setNewIconPreview] = useState<string | null>(null)
+  const newIconBlobRef = useRef<string | null>(null)
+  const [newIconUploading, setNewIconUploading] = useState(false)
+  const newIconFileRef = useRef<HTMLInputElement>(null)
   const [creating, setCreating] = useState(false)
 
   // ── Edición inline ──
@@ -40,8 +44,62 @@ export default function CategoryManager({
   const [editName, setEditName] = useState('')
   const [editDesc, setEditDesc] = useState('')
   const [editIcon, setEditIcon] = useState('')
+  const [editIconPreview, setEditIconPreview] = useState<string | null>(null)
+  const editIconBlobRef = useRef<string | null>(null)
+  const [editIconUploading, setEditIconUploading] = useState(false)
+  const editIconFileRef = useRef<HTMLInputElement>(null)
   const [editOrden, setEditOrden] = useState(0)
   const [saving, setSaving] = useState(false)
+
+  // ── Subir icono para categoría nueva ──
+  async function handleNewIconUpload(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0]
+    if (!file) return
+
+    if (file.size > 5 * 1024 * 1024) {
+      setError('La imagen no puede superar 5 MB.')
+      return
+    }
+    const allowed = ['image/jpeg', 'image/png', 'image/svg+xml', 'image/webp']
+    if (!allowed.includes(file.type)) {
+      setError('Formato no permitido. Usa JPEG, PNG, SVG o WebP.')
+      return
+    }
+
+    setError(null)
+    setNewIconUploading(true)
+
+    // Revocar blob anterior para evitar memory leak
+    if (newIconBlobRef.current) URL.revokeObjectURL(newIconBlobRef.current)
+    const previewUrl = URL.createObjectURL(file)
+    newIconBlobRef.current = previewUrl
+    setNewIconPreview(previewUrl)
+
+    try {
+      const body = new FormData()
+      body.append('file', file)
+      body.append('categoryId', crypto.randomUUID().slice(0, 8))
+
+      const res = await fetch('/api/admin/categories/upload-icon', {
+        method: 'POST',
+        body,
+      })
+
+      if (!res.ok) {
+        const errBody = await res.json().catch(() => ({ error: 'Error al subir' }))
+        throw new Error(errBody.error || 'Error al subir la imagen')
+      }
+
+      const data = await res.json()
+      setNewIcon(data.publicUrl)
+      setNewIconPreview(data.publicUrl)
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Error al subir')
+      setNewIconPreview(null)
+    } finally {
+      setNewIconUploading(false)
+    }
+  }
 
   // ── Crear categoría ──
   async function handleCreate(e: React.FormEvent) {
@@ -83,12 +141,64 @@ export default function CategoryManager({
     }
   }
 
+  // ── Subir icono en modo edición ──
+  async function handleEditIconUpload(e: React.ChangeEvent<HTMLInputElement>) {
+    if (!editingId) return
+    const file = e.target.files?.[0]
+    if (!file) return
+
+    if (file.size > 5 * 1024 * 1024) {
+      setError('La imagen no puede superar 5 MB.')
+      return
+    }
+    const allowed = ['image/jpeg', 'image/png', 'image/svg+xml', 'image/webp']
+    if (!allowed.includes(file.type)) {
+      setError('Formato no permitido. Usa JPEG, PNG, SVG o WebP.')
+      return
+    }
+
+    setError(null)
+    setEditIconUploading(true)
+
+    // Revocar blob anterior para evitar memory leak
+    if (editIconBlobRef.current) URL.revokeObjectURL(editIconBlobRef.current)
+    const previewUrl = URL.createObjectURL(file)
+    editIconBlobRef.current = previewUrl
+    setEditIconPreview(previewUrl)
+
+    try {
+      const body = new FormData()
+      body.append('file', file)
+      body.append('categoryId', editingId!)
+
+      const res = await fetch('/api/admin/categories/upload-icon', {
+        method: 'POST',
+        body,
+      })
+
+      if (!res.ok) {
+        const errBody = await res.json().catch(() => ({ error: 'Error al subir' }))
+        throw new Error(errBody.error || 'Error al subir la imagen')
+      }
+
+      const data = await res.json()
+      setEditIcon(data.publicUrl)
+      setEditIconPreview(data.publicUrl)
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Error al subir')
+      setEditIconPreview(null)
+    } finally {
+      setEditIconUploading(false)
+    }
+  }
+
   // ── Iniciar edición ──
   function startEdit(cat: AdminCategory) {
     setEditingId(cat.id)
     setEditName(cat.nombre)
     setEditDesc(cat.descripcion || '')
     setEditIcon(cat.icono_url || '')
+    setEditIconPreview(null)
     setEditOrden(cat.orden)
   }
 
@@ -240,14 +350,42 @@ export default function CategoryManager({
               />
             </div>
             <div>
-              <label className="block text-xs text-gray-500 mb-1">Icono (emoji o URL)</label>
-              <input
-                type="text"
-                value={newIcon}
-                onChange={(e) => setNewIcon(e.target.value)}
-                className="block w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 outline-none"
-                placeholder="🌿"
-              />
+              <label className="block text-xs text-gray-500 mb-1">Icono (emoji, URL o imagen)</label>
+              <div className="flex items-center gap-2">
+                <input
+                  type="text"
+                  value={newIcon}
+                  onChange={(e) => { setNewIcon(e.target.value); setNewIconPreview(null) }}
+                  className="flex-1 rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 outline-none"
+                  placeholder="🌿 o https://..."
+                />
+                <label className="shrink-0 cursor-pointer rounded-lg border border-gray-300 px-3 py-2 text-xs font-medium text-gray-600 hover:bg-gray-50 transition-colors">
+                  {newIconUploading ? 'Subiendo...' : '📎 Subir'}
+                  <input
+                    ref={newIconFileRef}
+                    type="file"
+                    accept="image/jpeg,image/png,image/svg+xml,image/webp"
+                    onChange={handleNewIconUpload}
+                    className="hidden"
+                  />
+                </label>
+              </div>
+              {newIconPreview && (
+                <div className="mt-2 flex items-center gap-2">
+                  <img
+                    src={newIconPreview}
+                    alt="Vista previa"
+                    className="h-10 w-10 rounded-lg object-cover border border-gray-200"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => { setNewIcon(''); setNewIconPreview(null); if (newIconFileRef.current) newIconFileRef.current.value = '' }}
+                    className="text-xs text-red-500 hover:text-red-700"
+                  >
+                    Quitar
+                  </button>
+                </div>
+              )}
             </div>
           </div>
           <div>
@@ -320,13 +458,41 @@ export default function CategoryManager({
                     </div>
                     <div>
                       <label className="block text-xs text-gray-500 mb-1">Icono</label>
-                      <input
-                        type="text"
-                        value={editIcon}
-                        onChange={(e) => setEditIcon(e.target.value)}
-                        className="block w-full rounded border border-gray-300 px-3 py-2 text-sm focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 outline-none"
-                        placeholder="🌿"
-                      />
+                      <div className="flex items-center gap-1.5">
+                        <input
+                          type="text"
+                          value={editIcon}
+                          onChange={(e) => { setEditIcon(e.target.value); setEditIconPreview(null) }}
+                          className="flex-1 rounded border border-gray-300 px-2 py-1.5 text-sm focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 outline-none"
+                          placeholder="🌿 o URL"
+                        />
+                        <label className="shrink-0 cursor-pointer rounded border border-gray-300 px-2 py-1.5 text-[10px] font-medium text-gray-600 hover:bg-gray-50 transition-colors">
+                          {editIconUploading ? '...' : '📎'}
+                          <input
+                            ref={editIconFileRef}
+                            type="file"
+                            accept="image/jpeg,image/png,image/svg+xml,image/webp"
+                            onChange={handleEditIconUpload}
+                            className="hidden"
+                          />
+                        </label>
+                      </div>
+                      {(editIconPreview || (editIcon && editIcon.startsWith('http') && !editIconPreview)) && (
+                        <div className="mt-1 flex items-center gap-1.5">
+                          <img
+                            src={editIconPreview || editIcon}
+                            alt="Icono"
+                            className="h-8 w-8 rounded object-cover border border-gray-200"
+                          />
+                          <button
+                            type="button"
+                            onClick={() => { setEditIcon(''); setEditIconPreview(null); if (editIconFileRef.current) editIconFileRef.current.value = '' }}
+                            className="text-[10px] text-red-500 hover:text-red-700"
+                          >
+                            Quitar
+                          </button>
+                        </div>
+                      )}
                     </div>
                   </div>
                   <div>

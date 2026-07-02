@@ -21,7 +21,7 @@ import { z } from 'zod'
 const CategorySchema = z.object({
   nombre: z.string().min(1, 'El nombre no puede estar vacío').max(80),
   descripcion: z.string().max(300).optional().or(z.literal('').transform(() => undefined)),
-  icono_url: z.string().url('Debe ser una URL válida').max(500).optional().or(z.literal('').transform(() => undefined)),
+  icono_url: z.string().max(500).optional().or(z.literal('').transform(() => undefined)),
   orden: z.number().int().min(0).optional(),
 })
 

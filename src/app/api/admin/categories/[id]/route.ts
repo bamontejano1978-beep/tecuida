@@ -20,7 +20,7 @@ import { z } from 'zod'
 const UpdateCategorySchema = z.object({
   nombre: z.string().min(1).max(80).optional(),
   descripcion: z.string().max(300).nullable().optional(),
-  icono_url: z.string().url().max(500).nullable().optional(),
+  icono_url: z.string().max(500).nullable().optional(),
   orden: z.number().int().min(0).optional(),
 })
 
