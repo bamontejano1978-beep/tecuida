@@ -24,7 +24,8 @@ export interface AdminUser {
   email: string
   nombre: string
   apellidos: string
-  rol: 'superadmin'
+  rol: 'superadmin' | 'admin_municipio'
+  municipality_id?: string
 }
 
 /**

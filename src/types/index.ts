@@ -105,7 +105,7 @@ export interface UserRow {
   telefono?: string
   /** @deprecated Solo usuarios legacy. Los nuevos usan anio_nacimiento (más RGPD-safe). */
   fecha_nacimiento?: Date
-  rol: 'ciudadano' | 'superadmin'
+  rol: 'ciudadano' | 'superadmin' | 'admin_municipio'
   avatar_url?: string
   /** Token de confirmación para eliminación de cuenta (RGPD). Migración 034. */
   deletion_token?: string | null

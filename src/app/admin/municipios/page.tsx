@@ -223,6 +223,12 @@ export default async function MunicipiosPage({ searchParams }: MunicipiosPagePro
                         >
                           Apps
                         </Link>
+                        <Link
+                          href={`/admin/municipios/${mun.id}/estadisticas`}
+                          className="text-sm font-medium text-violet-600 hover:text-violet-500 transition-colors"
+                        >
+                          Stats
+                        </Link>
                         <a
                           href={getMunicipioLandingUrl(
                             { slug: mun.slug, dominio: mun.dominio },
