@@ -16,6 +16,7 @@ import { createAdminClient } from '@/lib/supabase/server'
 import { DEMO_APPS, DEMO_CATEGORIES } from '@/lib/demo-data'
 import CatalogClient from './catalog-client'
 import { MunicipalityHero } from '@/components/landing/municipality-hero'
+import CategoryBanners from '@/components/landing/category-banners'
 
 // ---------------------------------------------------------------------------
 // Tipos locales
@@ -31,6 +32,7 @@ interface AppRow {
     thumbnail_url: string | null
     tipo: string
     activa: boolean
+    created_at: string | null
     /**
      * Slug del subdominio propio de la app (p.ej. "mindful30") y URL externa.
      * La card del catálogo usa estos campos para decidir el href:
@@ -244,6 +246,7 @@ async function TenantPage({
     thumbnail_url: string
     tipo: 'programa' | 'herramienta' | 'encuesta' | 'recurso'
     activa: boolean
+    created_at: string | null
     /**
      * Slug del subdominio propio de la app (p.ej. "mindful30") y/o URL
      * externa. La card del catálogo usa estos campos para decidir el href:
@@ -258,6 +261,22 @@ async function TenantPage({
 }) {
   const inicial = tenant.nombre_municipio.charAt(0).toUpperCase()
   const primary = tenant.colores_corporativos.primary || '#142c19'
+
+  // IDs de categorías que tienen apps en este municipio
+  const visibleCategoryIds = categoriesWithCounts
+    .filter((cat) => validApps.some((app) => app.categoria_id === cat.id))
+    .map((cat) => cat.id)
+
+  // Categorías con apps añadidas en los últimos 7 días
+  const ahora = new Date()
+  const hace7dias = new Date(ahora.getTime() - 7 * 24 * 60 * 60 * 1000)
+  const recentCategoryIds = Array.from(
+    new Set(
+      validApps
+        .filter((app) => app.created_at && new Date(app.created_at) >= hace7dias)
+        .map((app) => app.categoria_id),
+    ),
+  )
 
   return (
     <div className="min-h-screen font-sans text-[#20231f] bg-[#f7f1e7]">
@@ -360,7 +379,7 @@ async function TenantPage({
         ))}
       </section>
 
-      {/* ── Programas destacados por categoría ── */}
+      {/* ── Programas por categoría (banners expandibles) ── */}
       <main className="py-[70px] px-[clamp(20px,5vw,70px)]">
         <section id="programas">
           <div className="flex justify-between items-end gap-5 mx-auto mb-10 max-w-[1120px] max-sm:block">
@@ -383,216 +402,14 @@ async function TenantPage({
             </a>
           </div>
 
-          {/* Apps agrupadas por categoría */}
-          <div className="max-w-[1120px] mx-auto space-y-12">
-            {categoriesWithCounts
-              .filter((cat) => {
-                // Solo mostrar categorías que tienen apps en este municipio
-                return validApps.some((app) => app.categoria_id === cat.id)
-              })
-              .map((cat) => {
-                const catApps = validApps.filter(
-                  (app) => app.categoria_id === cat.id,
-                )
-                return (
-                  <div key={cat.id} id={`cat-${cat.id}`}>
-                    {/* Cabecera de categoría */}
-                    <div className="flex items-center gap-3 mb-5">
-                      <div className="flex items-center justify-center w-10 h-10 rounded-xl bg-[#eef5ea] text-xl shrink-0">
-                        {cat.icono_url && cat.icono_url.startsWith('http') ? (
-                          <img
-                            src={cat.icono_url}
-                            alt={cat.nombre}
-                            className="w-6 h-6 object-contain"
-                            loading="lazy"
-                          />
-                        ) : (
-                          <span>{cat.icono_url || '📁'}</span>
-                        )}
-                      </div>
-                      <div>
-                        <h3 className="text-lg font-bold text-[#20231f]">
-                          {cat.nombre}
-                        </h3>
-                        {cat.descripcion && (
-                          <p className="text-sm text-[#64705e]">
-                            {cat.descripcion}
-                          </p>
-                        )}
-                        <p className="text-xs text-[#8a9784]">
-                          {catApps.length} aplicación{catApps.length !== 1 ? 'es' : ''}
-                        </p>
-                      </div>
-                    </div>
-
-                    {/* Grid de apps de esta categoría */}
-                    <div className="grid grid-cols-3 gap-5 max-md:grid-cols-1">
-                      {catApps.map((app, i) => (
-                        <Link
-                          key={app.id}
-                          href={`/app/${app.id}`}
-                          className={`relative block min-h-[180px] p-6 rounded-[16px] no-underline bg-white/80 border border-[rgba(35,45,30,.13)] shadow-[0_12px_35px_rgba(53,45,31,.07)] overflow-hidden hover:-translate-y-1 hover:shadow-[0_18px_50px_rgba(53,45,31,.11)] transition-all border-t-4 ${
-                            i % 2 === 0
-                              ? 'border-t-[#38633e]'
-                              : 'border-t-[#d79a35]'
-                          }`}
-                        >
-                          <div
-                            className={`w-14 h-14 rounded-[14px] grid place-items-center text-[26px] mb-3 overflow-hidden ${
-                              i % 2 === 0 ? 'bg-[#eef5ea]' : 'bg-[#fbf0dc]'
-                            }`}
-                          >
-                            {app.thumbnail_url ? (
-                              <img
-                                src={app.thumbnail_url}
-                                alt={app.nombre}
-                                className="h-full w-full object-cover"
-                                loading="lazy"
-                              />
-                            ) : app.tipo === 'programa' ? (
-                              '🌿'
-                            ) : app.tipo === 'herramienta' ? (
-                              '🔧'
-                            ) : app.tipo === 'encuesta' ? (
-                              '📋'
-                            ) : (
-                              '📖'
-                            )}
-                          </div>
-                          <h4 className="font-bold text-lg leading-tight mb-1.5 text-[#20231f]">
-                            {app.nombre}
-                          </h4>
-                          <p className="text-[#52604e] text-sm m-0 line-clamp-2">
-                            {app.descripcion || 'Sin descripción'}
-                          </p>
-                          <span className="absolute right-[22px] bottom-[18px] text-[#38633e] text-xl">
-                            →
-                          </span>
-                        </Link>
-                      ))}
-                    </div>
-                  </div>
-                )
-              })}
-
-            {/* Apps sin categoría */}
-            {validApps.filter((app) => !app.categoria_id || !categoriesWithCounts.some((c) => c.id === app.categoria_id)).length > 0 && (
-              <div>
-                <div className="flex items-center gap-3 mb-5">
-                  <div className="flex items-center justify-center w-10 h-10 rounded-xl bg-[#f5efe2] text-xl shrink-0">
-                    📦
-                  </div>
-                  <div>
-                    <h3 className="text-lg font-bold text-[#20231f]">
-                      Otras aplicaciones
-                    </h3>
-                  </div>
-                </div>
-                <div className="grid grid-cols-3 gap-5 max-md:grid-cols-1">
-                  {validApps
-                    .filter((app) => !app.categoria_id || !categoriesWithCounts.some((c) => c.id === app.categoria_id))
-                    .map((app, i) => (
-                      <Link
-                        key={app.id}
-                        href={`/app/${app.id}`}
-                        className="relative block min-h-[180px] p-6 rounded-[16px] no-underline bg-white/80 border border-[rgba(35,45,30,.13)] shadow-[0_12px_35px_rgba(53,45,31,.07)] overflow-hidden hover:-translate-y-1 hover:shadow-[0_18px_50px_rgba(53,45,31,.11)] transition-all border-t-4 border-t-gray-400"
-                      >
-                        <div className="w-14 h-14 rounded-[14px] grid place-items-center text-[26px] mb-3 overflow-hidden bg-[#f5efe2]">
-                          {app.thumbnail_url ? (
-                            <img
-                              src={app.thumbnail_url}
-                              alt={app.nombre}
-                              className="h-full w-full object-cover"
-                              loading="lazy"
-                            />
-                          ) : app.tipo === 'programa' ? '🌿' : app.tipo === 'herramienta' ? '🔧' : app.tipo === 'encuesta' ? '📋' : '📖'}
-                        </div>
-                        <h4 className="font-bold text-lg leading-tight mb-1.5 text-[#20231f]">
-                          {app.nombre}
-                        </h4>
-                        <p className="text-[#52604e] text-sm m-0 line-clamp-2">
-                          {app.descripcion || 'Sin descripción'}
-                        </p>
-                        <span className="absolute right-[22px] bottom-[18px] text-[#38633e] text-xl">→</span>
-                      </Link>
-                    ))}
-                </div>
-              </div>
-            )}
-          </div>
-        </section>
-
-        {/* ── Navegación visual por categorías ── */}
-        <section className="max-w-[1120px] mx-auto mb-16">
-          <div className="text-center mb-8">
-            <div className="text-[#38633e] text-[13px] font-black tracking-[.18em] uppercase mb-1.5">
-              Explora por categorías
-            </div>
-            <h2 className="font-bold text-[clamp(28px,4vw,40px)] leading-tight mb-0">
-              ¿Qué necesitas hoy?
-            </h2>
-            <p className="text-[#64705e] mt-2 max-w-[560px] mx-auto">
-              Descubre los programas organizados por temática. Cada categoría reúne aplicaciones pensadas para un aspecto de tu bienestar.
-            </p>
-          </div>
-
-          <div className="grid grid-cols-2 lg:grid-cols-3 gap-5">
-            {categoriesWithCounts
-              .filter((cat) =>
-                validApps.some((app) => app.categoria_id === cat.id),
-              )
-              .map((cat) => {
-                const catApps = validApps.filter(
-                  (app) => app.categoria_id === cat.id,
-                )
-                return (
-                  <a
-                    key={cat.id}
-                    href={`#cat-${cat.id}`}
-                    className="group relative flex flex-col rounded-[20px] border border-[rgba(35,45,30,.1)] bg-white/90 p-6 no-underline shadow-[0_12px_35px_rgba(53,45,31,.07)] hover:-translate-y-1 hover:shadow-[0_20px_50px_rgba(53,45,31,.12)] transition-all duration-300 overflow-hidden"
-                  >
-                    {/* Acento de color en borde superior */}
-                    <div className="absolute top-0 inset-x-0 h-1 bg-gradient-to-r from-[#38633e] to-[#d79a35] opacity-0 group-hover:opacity-100 transition-opacity" />
-
-                    {/* Icono */}
-                    <div className="flex items-center justify-center w-16 h-16 rounded-2xl bg-[#eef5ea] text-[32px] mb-4 shrink-0 group-hover:scale-105 transition-transform overflow-hidden">
-                      {cat.icono_url && cat.icono_url.startsWith('http') ? (
-                        <img
-                          src={cat.icono_url}
-                          alt={cat.nombre}
-                          className="w-9 h-9 object-contain"
-                          loading="lazy"
-                        />
-                      ) : (
-                        <span>{cat.icono_url || '📁'}</span>
-                      )}
-                    </div>
-
-                    {/* Contenido */}
-                    <h3 className="text-base font-bold text-[#1a2e1d] mb-1 group-hover:text-[#38633e] transition-colors">
-                      {cat.nombre}
-                    </h3>
-                    {cat.descripcion && (
-                      <p className="text-sm text-[#64705e] mb-3 line-clamp-2">
-                        {cat.descripcion}
-                      </p>
-                    )}
-
-                    {/* Footer: apps count + flecha */}
-                    <div className="mt-auto pt-3 flex items-center justify-between border-t border-gray-100">
-                      <span className="inline-flex items-center gap-1.5 text-xs font-semibold text-[#38633e]">
-                        <span className="flex items-center justify-center w-5 h-5 rounded-full bg-[#eef5ea] text-[10px]">
-                          {catApps.length}
-                        </span>
-                        {catApps.length === 1 ? 'aplicación' : 'aplicaciones'}
-                      </span>
-                      <span className="text-[#38633e] text-lg group-hover:translate-x-0.5 transition-transform">
-                        →
-                      </span>
-                    </div>
-                  </a>
-                )
-              })}
+          <div className="max-w-[1120px] mx-auto">
+            <CategoryBanners
+              categories={categoriesWithCounts}
+              apps={validApps}
+              primaryColor={primary}
+              visibleCategoryIds={visibleCategoryIds}
+              recentCategoryIds={recentCategoryIds}
+            />
           </div>
         </section>
 
@@ -739,7 +556,8 @@ export default async function HomePage() {
           tipo,
           activa,
           app_slug,
-          url_acceso
+          url_acceso,
+          created_at
         )`,
       )
       .eq('municipality_id', tenant.id)
@@ -805,6 +623,7 @@ export default async function HomePage() {
           thumbnail_url: a.application!.thumbnail_url || '',
           tipo: a.application!.tipo as 'programa' | 'herramienta' | 'encuesta' | 'recurso',
           activa: a.application!.activa,
+          created_at: a.application!.created_at || null,
           app_slug: a.application!.app_slug || null,
           url_acceso: a.application!.url_acceso || null,
         }))
