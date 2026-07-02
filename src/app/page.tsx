@@ -388,8 +388,17 @@ async function TenantPage({
                 href={`/app/${app.id}`}
                 className={`relative block min-h-[205px] p-7 rounded-[18px] no-underline bg-white/80 border border-[rgba(35,45,30,.13)] shadow-[0_16px_45px_rgba(53,45,31,.08)] overflow-hidden hover:-translate-y-1.5 hover:shadow-[0_22px_60px_rgba(53,45,31,.13)] transition-all border-t-4 ${i % 2 === 0 ? 'border-t-[#38633e]' : 'border-t-[#d79a35]'}`}
               >
-                <div className={`w-16 h-16 rounded-[18px] grid place-items-center text-[32px] mb-[18px] ${i % 2 === 0 ? 'bg-[#eef5ea]' : 'bg-[#fbf0dc]'}`}>
-                  {app.tipo === 'programa' ? '🌿' : app.tipo === 'herramienta' ? '🔧' : app.tipo === 'encuesta' ? '📋' : '📖'}
+                <div className={`w-16 h-16 rounded-[18px] grid place-items-center text-[32px] mb-[18px] overflow-hidden ${i % 2 === 0 ? 'bg-[#eef5ea]' : 'bg-[#fbf0dc]'}`}>
+                  {app.thumbnail_url ? (
+                    <img
+                      src={app.thumbnail_url}
+                      alt={app.nombre}
+                      className="h-full w-full object-cover"
+                      loading="lazy"
+                    />
+                  ) : (
+                    app.tipo === 'programa' ? '🌿' : app.tipo === 'herramienta' ? '🔧' : app.tipo === 'encuesta' ? '📋' : '📖'
+                  )}
                 </div>
                 <h3 className="font-bold text-2xl leading-tight mb-2.5 text-[#20231f]">
                   {app.nombre}

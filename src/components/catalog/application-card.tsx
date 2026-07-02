@@ -13,6 +13,7 @@
 
 'use client'
 
+import { useState } from 'react'
 import Link from 'next/link'
 import { normalizeExternalUrl } from '@/lib/urls'
 import type { Application, ApplicationType } from '@/types'
@@ -83,10 +84,12 @@ export default function ApplicationCard({
   application,
   categoryName,
 }: ApplicationCardProps) {
+  const [imgError, setImgError] = useState(false)
   const icon = typeIcons[application.tipo] || typeIcons.programa
   const typeLabel = typeLabels[application.tipo] || application.tipo
   const typeColor = typeColors[application.tipo] || typeColors.programa
   const tier = tierBadges[application.tipo] || tierBadges.programa
+  const hasThumbnail = !!application.thumbnail_url && !imgError
 
   // Prioridad de href para evitar 404 al click:
   //    1) app_slug      → subdominio propio (<slug>.tecuida.group) gestionado por el middleware
@@ -129,9 +132,19 @@ export default function ApplicationCard({
       {/* Icono y tipo */}
       <div className="flex items-center gap-3 mb-3">
         <div
-          className={`flex h-10 w-10 items-center justify-center rounded-lg border ${typeColor}`}
+          className={`flex h-10 w-10 items-center justify-center rounded-lg border overflow-hidden ${typeColor}`}
         >
-          {icon}
+          {hasThumbnail ? (
+            <img
+              src={application.thumbnail_url}
+              alt={`Icono de ${application.nombre}`}
+              className="h-full w-full object-cover"
+              loading="lazy"
+              onError={() => setImgError(true)}
+            />
+          ) : (
+            icon
+          )}
         </div>
         <div>
           <span
