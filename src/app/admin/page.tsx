@@ -12,6 +12,7 @@
 import { createAdminClient } from '@/lib/supabase/server'
 import Link from 'next/link'
 import DemographicStats from '@/components/admin/demographic-stats'
+import PurgeCacheButton from '@/components/admin/purge-cache-button'
 
 // ---------------------------------------------------------------------------
 // Helpers
@@ -254,6 +255,14 @@ export default async function AdminDashboardPage({
               >
                 Gestionar municipios
               </Link>
+              {/*
+                Purgar cache de landing: bypass del panel de terminal/Vercel CLI.
+                POST /api/admin/cache/purge ejecuta revalidateTag del helper
+                unstable_cache('municipality-apps') para TODOS los tenants.
+                Úsalo cuando modificas datos fuera del panel (seed SQL, hot-fix)
+                y el landing sigue mostrando entradas stale.
+              */}
+              <PurgeCacheButton />
             </div>
           </div>
 

@@ -17,7 +17,12 @@ import type { MunicipalityConfig } from '@/types'
 // ---------------------------------------------------------------------------
 
 const DEFAULT_TTL_SECONDS = 300
-const KEY_PREFIX = 'tenant:config:'
+// v2: bump cuando se sospeche tenant.id stale en cache local/Redis tras
+// re-seeding o migration de UUIDs. La rotación del prefijo invalida todas
+// las entradas existentes sin necesidad de FLUSHDB y obliga al siguiente
+// request a leer el `id` actual desde PostgreSQL. Una vez diagnosticado,
+// se puede volver al prefijo base.
+const KEY_PREFIX = 'tenant:config:v2:'
 
 // ---------------------------------------------------------------------------
 // Interfaz interna del driver de caché

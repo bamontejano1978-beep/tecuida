@@ -18,6 +18,12 @@ import { createClient, createAdminClient } from '@/lib/supabase/server'
 import { normalizeExternalUrl } from '@/lib/urls'
 import SignOutButton from '@/components/ui/sign-out-button'
 
+// Forzar render dinámico en cada request. Sin esto, Next.js podría cachear
+// la respuesta del `fetch` interno de supabase-js en el Data Cache y servir
+// un dashboard desactualizado de apps/progreso/logros tras un PUT admin.
+// `cookies()`/`headers()` ya optan a dynamic, pero el flag es defensa explícita.
+export const dynamic = 'force-dynamic'
+
 // ---------------------------------------------------------------------------
 // Tipos
 // ---------------------------------------------------------------------------

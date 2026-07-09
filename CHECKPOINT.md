@@ -269,6 +269,59 @@ npm run dev
 # Requiere Chrome. Spawn en CLI: revisar capturas en /tmp/
 ```
 
+### 🧹 Flush del cache de la landing tras cambios de datos
+
+Si modificas datos que afectan a la landing pública (apps asignadas a municipios,
+seeds SQL directos, hot-fix de BD, mutaciones masivas via psql/SQL Editor) FUERA
+de los endpoints admin, el `unstable_cache` con tag `municipality-apps` puede
+seguir sirviendo datos stale hasta que expire su TTL de 1 hora. Para purgar al
+instante sin esperar al TTL, usa una de las tres vías siguientes.
+
+**Cuándo aplicarlo:**
+- Acabas de insertar/actualizar filas en `municipality_applications` con un seed
+  o SQL directo y la landing sigue mostrando la lista de apps anterior.
+- Estás debuggeando un bug de "apps no aparecen" tras un cambio de BD que NO
+  pasó por el panel admin.
+- Quieres forzar MISS en todas las landings municipales con una sola acción
+  desde tu terminal o desde el panel.
+
+**Tres vías — elige según contexto:**
+
+| Vía | Comando | Cuándo usarla |
+|-----|---------|---------------|
+| Script local (recomendada) | `bash scripts/flush-landing-cache.sh` | Iterando desde tu máquina. Doble confirmación interactiva antes de tocar Vercel. |
+| Script en preview | `bash scripts/flush-landing-cache.sh --dry-run` | Quieres ver el comando exacto que se ejecutaría, sin efectos. |
+| Endpoint admin (sin CLI) | `curl -X POST "https://tecuida.group/api/admin/cache/purge" --cookie "sb-...-auth-token=..."` | Ya autenticado en el panel, sin acceso CLI o quieres automatizar via cookies de sesión. |
+| Vercel CLI directo | `vercel cache invalidate --tag=municipality-apps --yes` | Desde CI/CD o scripts programáticos que requieren solo el vercel CLI. |
+
+**Tag que se invalida:** `municipality-apps` (constante exportada `MUNICIPALITY_APPS_TAG`
+en `src/lib/tenant/municipality-apps-cache.ts`). Cubre la entrada del helper
+`getMunicipalityAppsForLanding(tenant.id)` para TODOS los tenants en una sola
+operación. El `revalidatePath('/')` adicional (en endpoint y via `useState`-equivalente
+del script) cubre la landing raíz del dominio, no subdominios multi-tenant —
+el grueso cross-tenant viene del tag.
+
+**Verificación post-flush** (la siguiente request al landing debe devolver
+`X-Vercel-Cache: MISS` y `Age: 0`, no `HIT`):
+
+```bash
+curl -sI "https://zafra.tecuida.group/?_nocache=verify-$(date +%s)" \
+  | grep -iE '^(HTTP|x-vercel-cache|cache-control|age):'
+```
+
+**Implementaciones referenciadas:**
+- `scripts/flush-landing-cache.sh` — wrapper del comando Vercel CLI con pre-flight
+  checks, whitelist de tag, dry-run, ANSI colors y doble confirmación.
+- `src/app/api/admin/cache/purge/route.ts` — endpoint POST con `verifyAdminAccess`
+  + `checkRateLimitAsync` (mismo patrón que el resto de admin endpoints). 8 tests
+  contract en `src/app/api/admin/cache/purge/__tests__/route.test.ts`.
+
+> Si añades un nuevo cache tageado que requiera flush post-deploy (p. ej. un
+> futuro `app-program-cache`), registra el tag aquí y en el comment del helper
+> correspondiente. El contract de invalidación completa vive en
+> `src/lib/tenant/municipality-apps-cache.ts` y sus consumidores en
+> `src/app/api/admin/**/route.ts`.
+
 ### Git workflow recomendado al retomar
 1. `git status` para revisar los cambios uncommitted de esta sesión (todos en archivos modificados, ningún archivo nuevo sin commitear — CHECKPOINT.md SÍ es nuevo).
 2. Decide commit message: `git commit -am "feat(admin): preview buttons + refactor cookies adapter"`.

@@ -15,6 +15,8 @@ import { verifyAdminAccess } from '@/lib/admin/auth'
 import { checkRateLimitAsync } from '@/lib/admin/rate-limit'
 import { BulkAssignAppSchema } from '@/lib/validations/municipality'
 import { NextResponse } from 'next/server'
+import { revalidateTag, revalidatePath } from 'next/cache'
+import { MUNICIPALITY_APPS_TAG } from '@/lib/tenant/municipality-apps-cache'
 
 // ---------------------------------------------------------------------------
 // GET — Listar municipios que tienen esta aplicación
@@ -238,6 +240,15 @@ export async function PUT(
       `,
       )
       .eq('application_id', params.id)
+
+    // Belt-and-suspenders: ver contrato completo en
+    // src/lib/tenant/municipality-apps-cache.ts.
+    // bulk SOLO muta `municipality_applications` (join app↔municipio);
+    // no invalida `getAppProgramTag(id)` porque el contenido del programa
+    // (programs/modules/lessons) no cambia aquí — solo qué municipios
+    // tienen la app asignada.
+    revalidateTag(MUNICIPALITY_APPS_TAG)
+    revalidatePath('/')
 
     return NextResponse.json({
       message: `Aplicación asignada a ${municipality_ids.length} municipio${municipality_ids.length !== 1 ? 's' : ''}`,

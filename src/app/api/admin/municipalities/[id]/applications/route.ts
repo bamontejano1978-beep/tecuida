@@ -17,6 +17,8 @@ import { verifyAdminAccess } from '@/lib/admin/auth'
 import { checkRateLimitAsync } from '@/lib/admin/rate-limit'
 import { UpdateMunicipalityAppsSchema } from '@/lib/validations/municipality'
 import { NextResponse } from 'next/server'
+import { revalidateTag, revalidatePath } from 'next/cache'
+import { MUNICIPALITY_APPS_TAG } from '@/lib/tenant/municipality-apps-cache'
 
 // ---------------------------------------------------------------------------
 // GET — Listar aplicaciones del municipio
@@ -243,6 +245,13 @@ export async function PUT(
       `,
       )
       .eq('municipality_id', params.id)
+
+    // Belt-and-suspenders: ver contrato completo en
+    // src/lib/tenant/municipality-apps-cache.ts (tag purga Data Cache
+    // del helper por tenant; path es red de seguridad si Vercel keya
+    // HTML estático por subdominio).
+    revalidateTag(MUNICIPALITY_APPS_TAG)
+    revalidatePath('/')
 
     return NextResponse.json({
       message: 'Aplicaciones sincronizadas correctamente',

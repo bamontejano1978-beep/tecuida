@@ -20,6 +20,9 @@ import { verifyAdminAccess } from '@/lib/admin/auth'
 import { checkRateLimitAsync } from '@/lib/admin/rate-limit'
 import { UpdateApplicationSchema } from '@/lib/validations/application'
 import { NextResponse } from 'next/server'
+import { revalidateTag, revalidatePath } from 'next/cache'
+import { MUNICIPALITY_APPS_TAG } from '@/lib/tenant/municipality-apps-cache'
+import { getAppProgramTag } from '@/lib/tenant/app-program-cache'
 
 // ---------------------------------------------------------------------------
 // GET — Obtener aplicación por ID
@@ -176,6 +179,16 @@ export async function PUT(
       )
     }
 
+    // Cambios en `applications` (nombre, thumbnail, activa, etc.) afectan
+    // a TODAS las landings que la tengan activada → invalidar por tag.
+    // Si la app es de tipo `programa`, también invalidamos el bundle
+    // cacheado de su programa/módulos/lecciones (tag por-app) para que
+    // la PWA muestre los cambios al instante. `revalidatePath` purga la
+    // ruta raíz como red de seguridad adicional.
+    revalidateTag(MUNICIPALITY_APPS_TAG)
+    revalidateTag(getAppProgramTag(params.id))
+    revalidatePath('/')
+
     return NextResponse.json({ data })
   } catch (err) {
     console.error(
@@ -241,6 +254,15 @@ export async function DELETE(
         { status: 500 },
       )
     }
+
+    // Soft-delete → la app desaparece de TODAS las landings que la
+    // tengan activada y la PWA deja de servir su bundle (programa).
+    // Tag compartido + tag por-app + path como triple red de seguridad
+    // (especialmente importante para el caso de undo: si reactivan la
+    // app, no servimos programas fantasma).
+    revalidateTag(MUNICIPALITY_APPS_TAG)
+    revalidateTag(getAppProgramTag(params.id))
+    revalidatePath('/')
 
     return NextResponse.json({
       message: 'Aplicación desactivada correctamente',

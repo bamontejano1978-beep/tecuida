@@ -17,6 +17,18 @@ import { DEMO_APPS, DEMO_CATEGORIES } from '@/lib/demo-data'
 import CatalogClient from './catalog-client'
 import { MunicipalityHero } from '@/components/landing/municipality-hero'
 import CategoryBanners from '@/components/landing/category-banners'
+import { getMunicipalityAppsForLanding } from '@/lib/tenant/municipality-apps-cache'
+
+// Forzar render dinámico en cada request. Sin esto, Next.js podría cachear
+// el HTML renderizado en el CDN de Vercel por subdominio (Full Route Cache +
+// CDN edge cache), así que aunque los endpoints admin invaliden correctamente
+// el tag `unstable_cache(MUNICIPALITY_APPS_TAG)` y llamen `revalidatePath('/')`,
+// el HTML pre-renderizado seguiría sirviendo una lista de apps desactualizada
+// (cacheada con 0 apps cuando todavía no había asignaciones). `headers()` ya
+// opta a dynamic vía el helper `getTenantFromHeaders`, pero el flag es defensa
+// explícita ante cambios futuros en el grafo de dependencias.
+// Mismo patrón que `src/app/apps/[appSlug]/page.tsx` y `src/app/dashboard/page.tsx`.
+export const dynamic = 'force-dynamic'
 
 // ---------------------------------------------------------------------------
 // Tipos locales
@@ -541,30 +553,14 @@ export default async function HomePage() {
     appsData = DEMO_APPS
     categoriesData = DEMO_CATEGORIES
   } else {
+    // Query de apps con cache tageado (`revalidateTag 'municipality-apps'`).
+    // Cualquier mutación admin (PUT en /api/admin/municipalities/.../applications,
+    // /api/admin/applications/[id]/bulk, /api/admin/applications/[id] PUT/DELETE)
+    // invalida el tag → próximas requests frescas para TODOS los tenants.
+    const cachedApps = await getMunicipalityAppsForLanding(tenant.id)
+    appsData = cachedApps as unknown as AppRow[]
+
     const supabase = createAdminClient()
-
-    const { data: apps } = await supabase
-      .from('municipality_applications')
-      .select(
-        `application_id,
-        application:applications!inner (
-          id,
-          category_id,
-          nombre,
-          descripcion,
-          thumbnail_url,
-          tipo,
-          activa,
-          app_slug,
-          url_acceso,
-          created_at
-        )`,
-      )
-      .eq('municipality_id', tenant.id)
-      .eq('activa', true)
-
-    appsData = apps
-
     const { data: cats } = await supabase
       .from('categories')
       .select('id, nombre, descripcion, icono_url, orden')
@@ -577,8 +573,55 @@ export default async function HomePage() {
   const apps: AppRow[] = (appsData || []) as unknown as AppRow[]
   const categories: CategoryRow[] = (categoriesData || []) as CategoryRow[]
 
-  const goodApps = apps.filter(
-    (a) => a.application !== null && a.application.activa,
+  // ── Diagnóstico operacional + decisión de modelo per-tenant ──
+  // CAMBIO: el filtro de goodApps se relaj\u00f3 de
+  //   `(a) => a.application !== null && a.application.activa`
+  // a
+  //   `(a) => a.application !== null`
+  //
+  // Modelo semántico: una fila en `municipality_applications` con
+  // `activa=true` es la fuente de verdad per-tenant — representa
+  // una decisión EXPLÍCITA del admin de hacer visible esta app PARA
+  // ESE municipio. El flag global `applications.activa` actúa como
+  // "kill switch" de toda la plataforma (sunset, mantenimiento
+  // global, retirada por compliance). Este flag global ya NO bloquea
+  // la asignación per-tenant en la landing pública — sólo indica un
+  // estado auxiliar que se reporta en métricas (ver abajo).
+  //
+  // Por qué este cambio: el filtro previo excluía las apps que tenían
+  // `applications.activa=false` global aunque estuvieran correctamente
+  // asignadas al municipio vía `municipality_applications.activa=true`.
+  // Cuando un admin desactivaba una app globalmente desde
+  // `/admin/aplicaciones`, todas las landings pasaban a mostrar
+  // "0 aplicaciones" sin warning operacional — sólo quedaba el síntoma
+  // "el catálogo está vacío" sin pista de la causa. El discriminante
+  // `inactivas=N` en Vercel logs diagnosticaba este caso sin SQL.
+  //
+  // Si en el futuro queremos badge visual "Soft-disabled" para apps
+  // globalmente inactivas, basta añadir render-código en
+  // `<TenantPage>` / `<ApplicationCard>` consultando `a.application.activa`.
+  // Por ahora: mostramos integras las apps activas per-tenant y dejamos
+  // el signal operacional en server logs.
+  const notNullCount = apps.filter((a) => a.application !== null).length
+  const inactivasCount = apps.filter(
+    (a) => a.application !== null && a.application.activa === false,
+  ).length
+
+  // IMPORTANTE: goodApps NO filtra por `application.activa` global.
+  // La asignación per-tenant (`municipality_applications.activa=true`,
+  // aplicada upstream en `unstable_cache` con `.eq('activa', true)`) es
+  // la única autoridad. Esto evita el bug "apps no aparecen tras
+  // desactivación global accidental por admin". Si `appsRaw === 0`,
+  // ver migration `037_seed_default_municipality_applications.sql` como
+  // último recurso (branch apps_raw=0 del diagnóstico).
+  const goodApps = apps.filter((a) => a.application !== null)
+
+  console.warn(
+    `[landing-diagnostics] tenant=${tenant.slug} tenant_id=${tenant.id} ` +
+      `estado=${tenant.estado_suscripcion} ` +
+      `apps_raw=${apps.length} not_null=${notNullCount} ` +
+      `inactivas_globales_mostradas=${inactivasCount} ` +
+      `filtradas_a_buenas=${goodApps.length}`,
   )
 
   const categoryCounts = new Map<string, number>()

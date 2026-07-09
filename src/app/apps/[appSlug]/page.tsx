@@ -17,10 +17,17 @@
 import { notFound } from 'next/navigation'
 import { headers } from 'next/headers'
 import { createAdminClient } from '@/lib/supabase/server'
+import { getAppProgramBundle } from '@/lib/tenant/app-program-cache'
 import GenericAppLanding from '@/components/landing/generic-app-landing'
 import type { Program, ProgramModule, Lesson } from '@/types'
 import AppProgramClient from './program-client'
 import Reto30ProgramClient from '../reto30-program-client'
+
+// Forzar render dinámico en cada request. Sin esto, Next.js podría cachear
+// la respuesta del `fetch` interno de supabase-js en el Data Cache y servir
+// la página PWA de la app desactualizada tras un PUT admin. `headers()` ya
+// opta a dynamic, pero el flag es defensa explícita ante cambios futuros.
+export const dynamic = 'force-dynamic'
 
 // ---------------------------------------------------------------------------
 // Tipos
@@ -303,16 +310,19 @@ export default async function AppSubdomainPage({ params }: Props) {
 
   const adminClient = createAdminClient()
 
-  // Usamos `maybeSingle()` para no romper apps tipo='programa' que se crearon
-  // con solo `url_acceso` (sin subir ZIP ni crear registro en `programs`).
-  // En ese caso la app existe y es accesible → fallback a landing genérica
-  // en lugar de devolver un 404 confuso para el ciudadano.
-  const { data: programData } = await adminClient
-    .from('programs')
-    .select('*')
-    .eq('application_id', appId)
-    .maybeSingle()
+  // Bundle cacheado con tag `app-program-<appId>` (invalidación POR APP).
+  // El helper `getAppProgramBundle` envuelve las 3 queries
+  // (programs / program_modules / lessons) en `unstable_cache` con un
+  // tag único por app; cualquier mutación admin sobre el contenido del
+  // programa ejecuta `revalidateTag(getAppProgramTag(appId))` y purga
+  // SOLO la entrada de esta app (las demás no se invalidan).
+  // Contrato completo en `src/lib/tenant/app-program-cache.ts`.
+  const bundle = await getAppProgramBundle(appId)
+  const programData = bundle.program
 
+  // Si la app es tipo='programa' pero aún no tiene programa asociado
+  // (caso típico: no se le subió ZIP), caemos a landing genérica en
+  // lugar de devolver un 404 confuso para el ciudadano.
   if (!programData) {
     console.warn(
       `[AppSubdomainPage] App "${nombre}" (${tipo}) no tiene programa asociado. Renderizando landing genérica.`,
@@ -361,20 +371,10 @@ export default async function AppSubdomainPage({ params }: Props) {
     )
   }
 
-  const { data: modulesData } = await adminClient
-    .from('program_modules')
-    .select('*')
-    .eq('program_id', programData.id)
-    .order('numero', { ascending: true })
-
-  const moduleIds = (modulesData || []).map((m) => m.id)
-  const { data: lessonsData } = moduleIds.length > 0
-    ? await adminClient
-        .from('lessons')
-        .select('*')
-        .in('module_id', moduleIds)
-        .order('orden', { ascending: true })
-    : { data: [] }
+  // Datos ya cacheados: módulos ordenados y lecciones por módulo ya
+  // vienen del helper — solo queda mapearlos a los tipos de UI.
+  const modulesData = bundle.modules
+  const lessonsData = bundle.lessons
 
   // Construir estructura anidada
   const lessonsByModule = new Map<string, Lesson[]>()
@@ -390,7 +390,7 @@ export default async function AppSubdomainPage({ params }: Props) {
       ejercicio: l.ejercicio
         ? (l.ejercicio as unknown as Lesson['ejercicio'])
         : undefined,
-      duracion_minutos: l.duracion_minutos,
+      duracion_minutos: l.duracion_minutos ?? 0,
       orden: l.orden,
     }
     const arr = lessonsByModule.get(l.module_id) || []
@@ -412,7 +412,7 @@ export default async function AppSubdomainPage({ params }: Props) {
     application_id: programData.application_id,
     nombre: programData.nombre,
     descripcion: (programData.descripcion as string) || '',
-    total_sesiones: programData.total_sesiones,
+    total_sesiones: programData.total_sesiones ?? 0,
     modules,
   }
 
