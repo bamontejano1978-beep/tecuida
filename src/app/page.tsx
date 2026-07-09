@@ -44,7 +44,6 @@ interface AppRow {
     thumbnail_url: string | null
     tipo: string
     activa: boolean
-    created_at: string | null
     /**
      * Slug del subdominio propio de la app (p.ej. "mindful30") y URL externa.
      * La card del catálogo usa estos campos para decidir el href:
@@ -55,6 +54,14 @@ interface AppRow {
      */
     app_slug?: string | null
     url_acceso?: string | null
+    /**
+     * `created_at` está opcional porque la columna NO existe en
+     * `public.applications` actualmente — la migration 001 la omitió y
+     * ninguna migration posterior la añadió. El filtro "apps añadidas en
+     * últimos 7 días" cortocircuita con truthy-check si es undefined, sin
+     * afectar render.
+     */
+    created_at?: string | null
   } | null
 }
 

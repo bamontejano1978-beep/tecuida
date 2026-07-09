@@ -34,9 +34,17 @@ import { createAdminClient } from '@/lib/supabase/server'
 /**
  * Fila cruda de `municipality_applications` con el join de `applications`.
  *
- * El join incluye TODAS las columnas que la landing pueda necesitar (unión
- * de los selects de `src/app/page.tsx` y `src/app/dashboard/page.tsx`).
- * Cada página post-proyecta a su forma final con TypeScript narrowing.
+ * El join incluye SOLO columnas que existen en el schema actual de la DB
+ * remota (no incluimos `created_at` ni `instrucciones` aquí — ver
+ * `notas_schema_drift` al final del comentario del `_fetchMunicipalityApps`
+ * para el contexto histórico del bug). Cada página post-proyecta a su forma
+ * final con TypeScript narrowing.
+ *
+ * Si en el futuro se añade `created_at` a `applications` (via nueva
+ * migration), reintroducir el campo aquí Y en `_fetchMunicipalityApps`.
+ * Mientras tanto, el badge "NUEVO" de categorías añadidas en últimos 7 días
+ * queda degradeado a no-op (ver `src/app/page.tsx` `recentCategoryIds`,
+ * que cortocircuita con `app.created_at &&`).
  */
 export interface MunicipalityAppRow {
   application_id: string
@@ -50,7 +58,6 @@ export interface MunicipalityAppRow {
     activa: boolean
     app_slug: string | null
     url_acceso: string | null
-    created_at: string | null
   } | null
 }
 
@@ -59,12 +66,35 @@ export const MUNICIPALITY_APPS_TAG = 'municipality-apps'
 /**
  * Query raw contra Supabase (no cache). Marcada `internal` para que solo
  * el wrapper `unstable_cache` la consuma — evita uso accidental sin tag.
+ *
+ * ╭─ notas_schema_drift ─────────────────────────────────────────────────╮
+ * │ Esta función es el centro del bug histórico "apps no aparecen en    │
+ * │ landings" que consumió múltiples turnos de debugging. La causa       │
+ * │ raíz: el SELECT referenciaba `applications.created_at` que NO       │
+ * │ existe en el schema real de la DB (añadido jamás a migration 001    │
+ * │ ni a 023/025). PostgREST respondía con `error.code=42703`           │
+ * │ ("column does not exist") que Supabase devolvía como `data: null`    │
+ * │ y `error: {...}`. El helper silenciaba con `data || []` → la        │
+ * │ landing mostraba "0 aplicaciones" para TODOS los municipios.        │
+ * │                                                                      │
+ * │ Reglas para evitar que vuelva a ocurrir:                            │
+ * │   1. Capturar `error` SIEMPRE y loguearlo con nombre del tenant y    │
+ * │      texto del error → Vercel logs diagnostic al instante.          │
+ * │   2. El interface `MunicipalityAppRow` documenta SOLO columnas       │
+ * │      existentes; cada nueva migration que añada fields debe         │
+ * │      actualizar ambos (interface + SELECT) en el mismo commit.      │
+ * │   3. Smoke test recomendado: si una nueva columna aparece en el      │
+ * │      SELECT pero no en el schema de `applications`, este helper      │
+ * │      seguirá ocultando el error — extender el test de               │
+ * │      `src/app/__tests__/page.test.tsx` con un caso que verifique    │
+ * │      tabla vacía + error capturado.                                 │
+ * ╰──────────────────────────────────────────────────────────────────────╯
  */
 async function _fetchMunicipalityApps(
   municipalityId: string,
 ): Promise<MunicipalityAppRow[]> {
   const supabase = createAdminClient()
-  const { data } = await supabase
+  const { data, error } = await supabase
     .from('municipality_applications')
     .select(
       `application_id,
@@ -77,12 +107,26 @@ async function _fetchMunicipalityApps(
         tipo,
         activa,
         app_slug,
-        url_acceso,
-        created_at
+        url_acceso
       )`,
     )
     .eq('municipality_id', municipalityId)
     .eq('activa', true)
+
+  if (error) {
+    // Defensivo: bugs anteriores engulleron el error como [] y el síntoma
+    // era "0 apps" sin pista alguna en logs. Ahora cualquier schema drift
+    // será visible en Vercel logs y así el superadmin podrá abrir un issue
+    // con el `code` exacto (e.g. 42703 column does not exist).
+    console.error(
+      `[getMunicipalityAppsForLanding] tenant=${municipalityId} ` +
+        `error.code=${error.code ?? 'unknown'} ` +
+        `error.message="${error.message ?? 'unknown'}". ` +
+        `Devolviendo [] como degradación controlada. ` +
+        `Si persiste, ver schema de public.applications.`,
+    )
+    return []
+  }
 
   return (data || []) as unknown as MunicipalityAppRow[]
 }

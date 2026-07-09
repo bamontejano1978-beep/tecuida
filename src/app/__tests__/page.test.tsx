@@ -50,7 +50,10 @@ interface MockApp {
   activa: boolean
   app_slug: string | null
   url_acceso: string | null
-  created_at: string | null
+  // `created_at` se omite del mock porque la columna NO existe en el
+  // schema actual de `public.applications` (ver notas_schema_drift en
+  // `src/lib/tenant/municipality-apps-cache.ts`). El test espeja el
+  // shape real del helper para no enmascarar regresiones futuras.
 }
 
 interface MockCategory {
@@ -94,10 +97,9 @@ const dbApps: MockApp[] = [
     thumbnail_url: null,
     tipo: 'programa',
     activa: true,
-    app_slug: null,
-    url_acceso: null,
-    created_at: '2025-01-01T00:00:00Z',
-  },
+  app_slug: null,
+  url_acceso: null,
+},
   {
     id: APP_BIENESTAR_2,
     category_id: 'cat-bienestar',
@@ -106,10 +108,9 @@ const dbApps: MockApp[] = [
     thumbnail_url: null,
     tipo: 'programa',
     activa: true,
-    app_slug: null,
-    url_acceso: null,
-    created_at: '2025-01-01T00:00:00Z',
-  },
+  app_slug: null,
+  url_acceso: null,
+},
   {
     id: APP_FAMILIA_1,
     category_id: 'cat-familia',
@@ -118,10 +119,9 @@ const dbApps: MockApp[] = [
     thumbnail_url: null,
     tipo: 'herramienta',
     activa: true,
-    app_slug: null,
-    url_acceso: null,
-    created_at: '2025-01-01T00:00:00Z',
-  },
+  app_slug: null,
+  url_acceso: null,
+},
 ]
 
 const dbAssignments: MockAssignment[] = []
