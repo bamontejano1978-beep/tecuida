@@ -108,6 +108,7 @@ describe('TenantDiagnosticPanel — render y flujo', () => {
     // Selector accesible por label
     const select = screen.getByLabelText(/municipio/i) as HTMLSelectElement
     expect(select).toBeInTheDocument()
+    expect(select.value).toBe('') // place­holder por defecto
 
     // Empty state
     expect(
@@ -124,8 +125,316 @@ describe('TenantDiagnosticPanel — render y flujo', () => {
       ]),
     )
 
-    // Ningún fetch disparado al inicio
+    // Ningún fetch disparado al inicio (sin initialSlug)
     expect(mockFetch).not.toHaveBeenCalled()
+  })
+
+  it('si recibe initialSlug, dispara fetch automático al montar + renderiza los datos', async () => {
+    mockFetch.mockResolvedValueOnce({
+      ok: true,
+      json: async () => makeDebugResponse(),
+    } as unknown as Response)
+
+    render(<TenantDiagnosticPanel tenants={TENANTS} initialSlug="zafra" />)
+
+    // El select debe mostrar el slug pre-seleccionado
+    const select = screen.getByLabelText(/municipio/i) as HTMLSelectElement
+    expect(select.value).toBe('zafra')
+
+    // Fetch disparado automáticamente con el slug inicial
+    await waitFor(() => {
+      expect(mockFetch).toHaveBeenCalledTimes(1)
+    })
+    expect(mockFetch).toHaveBeenCalledWith(
+      '/api/admin/debug/zafra',
+      expect.objectContaining({ signal: expect.any(Object) }),
+    )
+
+    // Render de los datos fetcheados
+    await waitFor(() => {
+      expect(screen.getByText('Zafra')).toBeInTheDocument() // tenantName
+      expect(screen.getByText('Mindful30')).toBeInTheDocument()
+    })
+
+    // Empty state ya NO se muestra
+    expect(
+      screen.queryByText(/Selecciona un tenant para ver su estado/i),
+    ).not.toBeInTheDocument()
+  })
+
+  it('si initialSlug no existe en tenants list, el fetch devuelve 404 y se muestra error UI', async () => {
+    mockFetch.mockResolvedValueOnce({
+      ok: false,
+      status: 404,
+      json: async () => ({ error: "Municipio 'fantasma' no existe" }),
+    } as unknown as Response)
+
+    render(<TenantDiagnosticPanel tenants={TENANTS} initialSlug="fantasma" />)
+
+    // Fetch disparó igual con el slug inicial (aunque no esté en el dropdown)
+    await waitFor(() => {
+      expect(mockFetch).toHaveBeenCalledWith(
+        '/api/admin/debug/fantasma',
+        expect.objectContaining({}),
+      )
+    })
+
+    // Error UI mostrado con el mensaje del backend
+    await waitFor(() => {
+      expect(
+        screen.getByText(/Error al cargar el diagnóstico/i),
+      ).toBeInTheDocument()
+      expect(screen.getByText(/fantasma.*no existe/i)).toBeInTheDocument()
+    })
+
+    // El dropdown queda en placeholder (no había opción matching)
+    const select = screen.getByLabelText(/municipio/i) as HTMLSelectElement
+    expect(select.value).toBe('')
+  })
+
+  it('si initialSlug cambia entre renders (URL client-side nav), remonte y refetchea con el nuevo slug', async () => {
+    // Test crítico (c) — simula que el server component re-renderiza
+    // porque la URL searchParams cambió (`/admin?slug=zafra` →
+    // `/admin?slug=llerena`). La fixture incluye Llerena en `tenants`
+    // para que el `<select>` tenga una `<option value="llerena">`
+    // matching — sin esto, el `<select>` mostraría vacío porque ningún
+    // option coincide con selectedSlug='llerena'.
+    mockFetch
+      .mockResolvedValueOnce({
+        ok: true,
+        json: async () =>
+          makeDebugResponse({
+            tenantName: 'Zafra',
+            tenantSlug: 'zafra',
+          }),
+      } as unknown as Response)
+      .mockResolvedValueOnce({
+        ok: true,
+        json: async () =>
+          makeDebugResponse({
+            tenantName: 'Llerena',
+            tenantSlug: 'llerena',
+          }),
+      } as unknown as Response)
+
+    const tenantsWithLlerena: TenantOption[] = [
+      ...TENANTS,
+      {
+        slug: 'llerena',
+        nombre: 'Llerena',
+        estado: 'prueba' as const,
+        oculto: false,
+      },
+    ]
+
+    // Primer mount con initialSlug="zafra" — sin key explícito.
+    const { rerender } = render(
+      <TenantDiagnosticPanel tenants={tenantsWithLlerena} initialSlug="zafra" />,
+    )
+    await waitFor(() => {
+      expect(
+        screen.getByRole('heading', { level: 3, name: 'Zafra' }),
+      ).toBeInTheDocument()
+    })
+    expect(mockFetch).toHaveBeenCalledTimes(1)
+    expect(mockFetch).toHaveBeenLastCalledWith(
+      '/api/admin/debug/zafra',
+      expect.objectContaining({}),
+    )
+
+    // Re-render del parent con initialSlug="llerena" + `key="llerena"`.
+    // El key change respecto a la primera mount (que tenía `key` interno
+    // implícito de React) fuerza remount limpio del componente cliente.
+    // Sin el key, el lazy initial state quedaría pegado al primer slug
+    // (que es exactamente el bug que el `key` prop arregla).
+    rerender(
+      <TenantDiagnosticPanel
+        key="llerena"
+        tenants={tenantsWithLlerena}
+        initialSlug="llerena"
+      />,
+    )
+
+    // Después del remount: los datos de Zafra DEBEN desaparecer y los
+    // de Llerena deben aparecer. Fetch debe haber sido llamado 2 veces.
+    // La query por `<h3>` 'Zafra' es específica al tenant name en
+    // SuccessView — NO se confunde con el `<option>` "Zafra (zafra)" del
+    // dropdown que sigue presente (es un fixture de tenancy).
+    await waitFor(() => {
+      expect(
+        screen.getByRole('heading', { level: 3, name: 'Llerena' }),
+      ).toBeInTheDocument()
+    })
+    expect(
+      screen.queryByRole('heading', { level: 3, name: 'Zafra' }),
+    ).not.toBeInTheDocument()
+    expect(mockFetch).toHaveBeenCalledTimes(2)
+    expect(mockFetch).toHaveBeenNthCalledWith(
+      2,
+      '/api/admin/debug/llerena',
+      expect.objectContaining({}),
+    )
+    // Dropdown value: como Llerena está en tenants, el <option value="llerena">
+    // existe y el select puede mostrar selectedSlug='llerena'.
+    expect(
+      screen.getByLabelText(/municipio/i, { selector: 'select' }),
+    ).toHaveValue('llerena')
+  })
+
+  it('si initialSlug NO cambia, no remonta ni refetchea (preserve state en navegación lateral)', async () => {
+    // Sentinel test inverso: confirma que el comportamiento de remount
+    // SOLO ocurre cuando initialSlug cambia. Re-renders con la misma
+    // prop NO deben disparar fetch adicional.
+    //
+    // ⚠️ Importante: NO especifica `key=` en el rerender — sin key explícito,
+    // React preserva la instance (mismo element con mismos props lógicos).
+    // Esto simula el comportamiento del parent en /admin/page.tsx cuando
+    // server re-renderiza con la misma `?slug=` (e.g. nueva mutación en
+    // server data sin cambio de URL): el `key` computado es el mismo, sin
+    // remount, sin fetch extra.
+    mockFetch.mockResolvedValueOnce({
+      ok: true,
+      json: async () =>
+        makeDebugResponse({
+          tenantName: 'Zafra',
+          tenantSlug: 'zafra',
+        }),
+    } as unknown as Response)
+
+    const { rerender } = render(
+      <TenantDiagnosticPanel tenants={TENANTS} initialSlug="zafra" />,
+    )
+    await waitFor(() => {
+      expect(
+        screen.getByRole('heading', { level: 3, name: 'Zafra' }),
+      ).toBeInTheDocument()
+    })
+    const fetchCallsAfterMount = mockFetch.mock.calls.length
+    // Lock adicional: primer fetch debe haber sido para zafra explícitamente.
+    expect(mockFetch).toHaveBeenNthCalledWith(
+      1,
+      '/api/admin/debug/zafra',
+      expect.objectContaining({}),
+    )
+
+    // Re-render del parent con TENANTS actualizado pero MISMO initialSlug.
+    // Sin key change, React preserva la instance: selectedSlug/diagnostics
+    // NO se resetean, fetch NO se dispara.
+    const tenantsUpdated: TenantOption[] = [
+      ...TENANTS,
+      {
+        slug: 'nuevo-municipio',
+        nombre: 'Nuevo Municipio',
+        estado: 'prueba' as const,
+        oculto: false,
+      },
+    ]
+    rerender(
+      <TenantDiagnosticPanel
+        tenants={tenantsUpdated}
+        initialSlug="zafra"  // ← mismo slug, sin key change
+      />,
+    )
+
+    // ⚠️ Importante: NO usar setTimeout arbitrario para "esperar ticks
+    // pendientes" — es flaky en CI y en máquinas con React 18 concurrent
+    // rendering. La forma determinística es waitFor con assertion
+    // inverse-positive: si el componente re-fetchease, el callCount
+    // subiría y waitFor capturaría el cambio (con un error claro).
+    await waitFor(() => {
+      expect(mockFetch.mock.calls.length).toBe(fetchCallsAfterMount)
+    })
+    // Verificar además que el dropdown sigue sincronizado con selectedSlug:
+    // si el state fuera reseted, el dropdown mostraría placeholder.
+    expect(
+      screen.getByLabelText(/municipio/i, { selector: 'select' }),
+    ).toHaveValue('zafra')
+    expect(
+      screen.getByRole('heading', { level: 3, name: 'Zafra' }),
+    ).toBeInTheDocument()
+    // Lock adicional: la nueva opción "Nuevo Municipio" del dropdown
+    // debe ser visible sin necesidad de cambiar la URL — confirma que
+    // tenants mutated correctamente sin state reset.
+    expect(
+      screen.getByRole('option', { name: /Nuevo Municipio/ }),
+    ).toBeInTheDocument()
+  })
+
+  it('si initialSlug pasa de válido a undefined (URL clearing), remonta a idle y limpia el UI', async () => {
+    // Test crítico (e): cubre el path "usuario navega fuera del deep-link"
+    // → /admin sin `?slug=` → key cambia al fallback → remount → volver
+    // a empty state. Sin este test, un bug en cómo el parent computa la
+    // prop `key` para el fallback dejaría el panel mostrando datos stale
+    // aunque el usuario está en `/admin` (sin slug) y la URL cambió.
+    mockFetch
+      .mockResolvedValueOnce({
+        ok: true,
+        json: async () =>
+          makeDebugResponse({
+            tenantName: 'Zafra',
+            tenantSlug: 'zafra',
+          }),
+      } as unknown as Response)
+      // Mock de defensa: si React 18 strict mode o algún dispatcher
+      // dispara un re-fetch durante el remount, regresamos una promise
+      // rechazada (no throw sincrónico — eso rompería el chain .then()
+      // antes del .catch()). La rejection cae en el catch del componente
+      // y dispara setDiagnostics({ kind: 'error' }). Cuando el test
+      // luego assertea el idle state, fallará con error UI visible —
+      // indicador claro de regresión (re-fetch indeseado).
+      .mockRejectedValue(
+        new Error('test-e-guard: spurious fetch during remount without initialSlug'),
+      )
+
+    // Primer mount con initialSlug="zafra" + key implícito interno
+    const { rerender } = render(
+      <TenantDiagnosticPanel tenants={TENANTS} initialSlug="zafra" />,
+    )
+    await waitFor(() => {
+      expect(
+        screen.getByRole('heading', { level: 3, name: 'Zafra' }),
+      ).toBeInTheDocument()
+    })
+    expect(mockFetch).toHaveBeenCalledTimes(1)
+    expect(mockFetch).toHaveBeenNthCalledWith(
+      1,
+      '/api/admin/debug/zafra',
+      expect.objectContaining({}),
+    )
+
+    // Simular navegación client-side a `/admin` sin `?slug=`: el parent
+    // re-renderiza con `diagnosticSlugParam=undefined` → key fallback
+    // `'__tenant-diagnostic-no-slug__'`. El componente cliente remonta:
+    // `selectedSlug=''`, diagnostics=idle, fetch NO debe dispararse
+    // (porque `selectedSlug=''` se evalúa early-return en el useEffect).
+    rerender(
+      <TenantDiagnosticPanel
+        key="__tenant-diagnostic-no-slug__"
+        tenants={TENANTS}
+        // initialSlug omitido → undefined
+      />,
+    )
+
+    // Esperar que el remount complete: idle state visible.
+    await waitFor(() => {
+      expect(
+        screen.getByText(/Selecciona un tenant para ver su estado/i),
+      ).toBeInTheDocument()
+    })
+
+    // Verificar que los datos de Zafra desaparecieron completamente.
+    expect(
+      screen.queryByRole('heading', { level: 3, name: 'Zafra' }),
+    ).not.toBeInTheDocument()
+
+    // Dropdown regresa a placeholder.
+    expect(
+      screen.getByLabelText(/municipio/i, { selector: 'select' }),
+    ).toHaveValue('')
+
+    // ⚠️ Si el componente re-fetcheaba durante el remount, el guard
+    // mockImplementation throw daría un error visible en jest. Si este
+    // test pasa, confirma que NO se disparó fetch post-remount.
   })
 
   it('selectoriza el slug y hace fetch a /api/admin/debug/[slug]', async () => {

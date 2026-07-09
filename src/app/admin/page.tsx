@@ -200,6 +200,12 @@ export default async function AdminDashboardPage({
   const tenants = await getTenantListForDiagnostics()
   const municipioId =
     typeof searchParams['municipio'] === 'string' ? searchParams['municipio'] : undefined
+  // `?slug=<tenant-slug>` deep-link al panel diagnóstico per-tenant.
+  // Hace el panel linkable via Slack: el superadmin comparte
+  // `/admin?slug=zafra` y el destinatario aterriza con los datos
+  // pre-cargados. Sin valor -> panel arranca en idle esperando selección.
+  const diagnosticSlugParam =
+    typeof searchParams['slug'] === 'string' ? searchParams['slug'] : undefined
 
   return (
     <div className="px-4 py-8 sm:px-6 lg:px-8">
@@ -302,9 +308,26 @@ export default async function AdminDashboardPage({
           {/* Cablea el endpoint GET /api/admin/debug/[slug] y el botón de
               purga per-tenant (POST /api/admin/cache/purge?slug=X). Elimina
               la necesidad de curl manual con cookies para inspeccionar o
-              purgar el cache de un municipio específico. */}
+              purgar el cache de un municipio específico.
+
+              `key={<?slug param>}` fuerza remount limpio al cambiar la URL
+              `?slug=X` (e.g. navegación client-side `/admin?slug=zafra` →
+              `/admin?slug=llerena` via Next.js Link). Sin este key, el
+              useState(() => initialSlug ?? '') del componente cliente
+              sólo se evalúa una vez al primer mount — navegar entre slugs
+              mantiene el panel "pegado" a los datos del primer slug aunque
+              la prop `initialSlug` cambie en el server component. Trade-off
+              aceptable: TODO el state interno (selectedSlug, diagnostics,
+              purgeStatus) se resetea con cada cambio de slug. El panel es
+              per-tenant por diseño, así que reset-to-blank es el comportamiento
+              correcto. El fallback `__tenant-diagnostic-no-slug__` colisiona
+              con ningún slug válido (SLUG_PATTERN no acepta underscores). */}
           <div className="mt-10">
-            <TenantDiagnosticPanel tenants={tenants} />
+            <TenantDiagnosticPanel
+              key={diagnosticSlugParam ?? '__tenant-diagnostic-no-slug__'}
+              tenants={tenants}
+              initialSlug={diagnosticSlugParam}
+            />
           </div>
 
           {/* ── Estadísticas demográficas ── */}

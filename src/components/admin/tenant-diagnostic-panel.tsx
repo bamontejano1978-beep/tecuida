@@ -33,9 +33,13 @@
  *     en nueva pestaña, forzando MISS del navegador al cachear-subdominio
  *     (Vercel Route Cache es per-host; el tag ya está purgado por el POST).
  *
- * Notar: este panel es read-only en términos de datos — no muta nada. La
- * única mutación cachicida es la purga de cache, que ya pasa por su
- * propio endpoint admin y rate limit. No necesita CSRF / form token.
+ * Importante: este panel NO muta datos del tenant (apps, categorías,
+ * assignments) — sólo LEE. La única mutación posible es purga de cache,
+ * vía POST a `/api/admin/cache/purge?slug=<slug>` (que sólo ejecuta
+ * `revalidateTag` para invalidar el helper cacheado del landing — no
+ * toca la DB; ver `src/app/api/admin/cache/purge/route.ts`).
+ * Por eso no necesita CSRF / form token: el endpoint admin ya valida
+ * sesión + rate limit internamente.
  */
 
 import { useState, useEffect, useCallback } from 'react'
@@ -110,10 +114,26 @@ const ESTADO_BADGE: Record<TenantEstado, { label: string; classes: string }> = {
 
 export default function TenantDiagnosticPanel({
   tenants,
+  initialSlug,
 }: {
   tenants: TenantOption[]
+  /**
+   * Si está presente, el panel hace fetch automático al montar para ese slug.
+   * Diseñado para deep-link vía query param `?slug=zafra` (Slack-shareable
+   * cuando se detecta un bug per-tenant). Si el slug no está en la `tenants`
+   * list (e.g. typo) o el endpoint devuelve 404 porque ya no existe, la UI
+   * muestra el error panel estándar + el dropdown queda en placeholder — el
+   * superadmin puede corregir manualmente sin necesidad de cambiar la URL.
+   */
+  initialSlug?: string
 }) {
-  const [selectedSlug, setSelectedSlug] = useState<string>('')
+  // Lazy initial state: inicializa una sola vez al mount. Si initialSlug
+  // cambia tras mount (e.g. navegación client-side), NO se actualiza
+  // automáticamente — el usuario debe resetear vía dropdown. Esto es
+  // comportamiento React estándar para props-inicialización-de-estado.
+  const [selectedSlug, setSelectedSlug] = useState<string>(
+    () => initialSlug ?? '',
+  )
   const [diagnostics, setDiagnostics] = useState<DiagnosticsStatus>({ kind: 'idle' })
   const [purgeStatus, setPurgeStatus] = useState<PurgeStatus>({ kind: 'idle' })
 
@@ -121,7 +141,15 @@ export default function TenantDiagnosticPanel({
   // blinda contra race conditions cuando el usuario cambia rápido de tenant
   // (si N requests están en vuelo, sólo la última importa).
   useEffect(() => {
-    // Reset purge status al cambiar slug — los resultados anteriores no aplican.
+    // `!selectedSlug` cubre '' (URL clear en /admin?slug= o sin ?slug=)
+    // Y undefined (remount sin prop en tests / parent re-render). Cuando
+    // el user navega fuera del deep-link (`/admin?slug=zafra` → `/admin`)
+    // el parent pasa initialSlug=undefined → useState lazy initializer
+    // setea selectedSlug='' → el guard de abajo retorna temprano sin
+    // disparar fetch. Sin este guard, un re-mount vería selectedSlug=''
+    // y haría un fetch contra `/api/admin/debug/[slug]/route.ts` que
+    // valida `SLUG_PATTERN` y responde 400 `{error: 'Slug inválido'}`
+    // → UI mostraría un error falso en vez del idle state esperado.
     if (!selectedSlug) {
       setDiagnostics({ kind: 'idle' })
       setPurgeStatus({ kind: 'idle' })
