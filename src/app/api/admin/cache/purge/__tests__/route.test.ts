@@ -68,8 +68,8 @@ function setupAuth() {
   ;(checkRateLimitAsync as jest.Mock).mockResolvedValue(null)
 }
 
-function makePostRequest() {
-  return new Request('http://localhost/api/admin/cache/purge', {
+function makePostRequest(url: string = 'http://localhost/api/admin/cache/purge') {
+  return new Request(url, {
     method: 'POST',
   })
 }
@@ -194,5 +194,119 @@ describe('POST /api/admin/cache/purge — invalidación manual desde el panel ad
     expect(cacheMock.revalidateTag).toHaveBeenNthCalledWith(1, MUNICIPALITY_APPS_TAG)
     expect(cacheMock.revalidateTag).toHaveBeenNthCalledWith(2, MUNICIPALITY_APPS_TAG)
     expect(cacheMock.revalidatePath).toHaveBeenCalledTimes(2)
+  })
+
+  // ─────────────────────────────────────────────────────────────────────────
+  // ?slug=X — Variante per-tenant (USADA POR TenantDiagnosticPanel)
+  // ─────────────────────────────────────────────────────────────────────────
+  //
+  // Por qué: el panel admin necesita invalidar cache desde una sola pantalla
+  // sin tener que abrir terminal ni Vercel CLI. El param ?slug=X es puramente
+  // informativo en el audit log (el tag purga TODOS los tenants de un
+  // golpe); el response shape sí lo refleja para que el panel pueda mostrar
+  // feedback correcto.
+  //
+  // Verifica:
+  //   • 200 + invalidated.slug = X
+  //   • message cambia según presencia del slug
+  //   • 400 sin tocar cache si el slug no pasa el regex kebab-case
+  //   • audit log server-side discrimina byTenant=true slug=X
+
+  describe('?slug=X (per-tenant scope)', () => {
+    it('acepta slug válido y devuelve response con invalidated.slug=X', async () => {
+      const consoleInfoSpy = jest.spyOn(console, 'info').mockImplementation()
+
+      const response = await POST(
+        makePostRequest('http://localhost/api/admin/cache/purge?slug=zafra'),
+      )
+
+      expect(response.status).toBe(200)
+      // Tag purga TODOS los tenants independientemente del slug (es global).
+      expect(cacheMock.revalidateTag).toHaveBeenCalledWith(MUNICIPALITY_APPS_TAG)
+      // revalidatePath safety net mantiene comportamiento global.
+      expect(cacheMock.revalidatePath).toHaveBeenCalledWith('/')
+
+      const body = await response.json()
+      expect(body.message).toMatch(/invalidado para el tenant "zafra"/i)
+      expect(body.invalidated).toEqual({
+        tag: MUNICIPALITY_APPS_TAG,
+        path: '/',
+        slug: 'zafra',
+      })
+
+      // Audit log emite discriminante byTenant=true slug=zafra en una sola línea.
+      expect(consoleInfoSpy).toHaveBeenCalledTimes(1)
+      const logged = String(consoleInfoSpy.mock.calls[0][0])
+      expect(logged).toMatch(/byTenant=true/)
+      expect(logged).toMatch(/slug=zafra/)
+
+      consoleInfoSpy.mockRestore()
+    })
+
+    it('mantiene compat hacia atrás: invocar sin query param omite `slug` del response', async () => {
+      const response = await POST(makePostRequest())
+
+      expect(response.status).toBe(200)
+      const body = await response.json()
+      expect(body.message).toMatch(/purgado correctamente/i)
+      expect(body.invalidated).toEqual({
+        tag: MUNICIPALITY_APPS_TAG,
+        path: '/',
+      })
+      expect(body.invalidated.slug).toBeUndefined()
+    })
+
+    it.each([
+      ['uppercase', 'ZAFRA'],
+      ['caracteres especiales', 'a@b'],
+      ['path traversal', '..'],
+      ['vacío', ''],
+      ['url-encoded inválido (slash)', 'a%2Fb'],
+      ['demasiado largo (101 chars)', 'a' + 'b'.repeat(99) + 'c'],
+    ])('rechaza slug inválido "%s" → 400 sin tocar cache', async (_label, badSlug) => {
+      const response = await POST(
+        makePostRequest(
+          `http://localhost/api/admin/cache/purge?slug=${badSlug}`,
+        ),
+      )
+
+      expect(response.status).toBe(400)
+      const body = await response.json()
+      expect(body.error).toMatch(/slug inválido/i)
+
+      // Ninguna invalidación ejecutada — la BD no cambió, no hay nada que purgar.
+      expect(cacheMock.revalidateTag).not.toHaveBeenCalled()
+      expect(cacheMock.revalidatePath).not.toHaveBeenCalled()
+    })
+
+    it('401 sin tocar cache gana precedencia sobre validación de slug', async () => {
+      // Si no hay sesión admin, NO deberíamos llegar a la validación de slug;
+      // el rate limit / verif guard cortan antes. Esto lockea el orden.
+      ;(verifyAdminAccess as jest.Mock).mockResolvedValueOnce(
+        NextResponse.json({ error: 'No autorizado' }, { status: 401 }),
+      )
+
+      const response = await POST(
+        makePostRequest('http://localhost/api/admin/cache/purge?slug=zafra'),
+      )
+
+      expect(response.status).toBe(401)
+      expect(cacheMock.revalidateTag).not.toHaveBeenCalled()
+      expect(cacheMock.revalidatePath).not.toHaveBeenCalled()
+    })
+
+    it('429 rate limit gana precedencia sobre validación de slug', async () => {
+      ;(checkRateLimitAsync as jest.Mock).mockReturnValueOnce(
+        NextResponse.json({ error: 'rate limited' }, { status: 429 }),
+      )
+
+      const response = await POST(
+        makePostRequest('http://localhost/api/admin/cache/purge?slug=zafra'),
+      )
+
+      expect(response.status).toBe(429)
+      expect(cacheMock.revalidateTag).not.toHaveBeenCalled()
+      expect(cacheMock.revalidatePath).not.toHaveBeenCalled()
+    })
   })
 })

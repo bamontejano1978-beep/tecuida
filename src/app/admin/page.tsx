@@ -13,6 +13,10 @@ import { createAdminClient } from '@/lib/supabase/server'
 import Link from 'next/link'
 import DemographicStats from '@/components/admin/demographic-stats'
 import PurgeCacheButton from '@/components/admin/purge-cache-button'
+import TenantDiagnosticPanel, {
+  type TenantOption,
+  type TenantEstado,
+} from '@/components/admin/tenant-diagnostic-panel'
 
 // ---------------------------------------------------------------------------
 // Helpers
@@ -117,6 +121,33 @@ async function getDashboardStats() {
 }
 
 // ---------------------------------------------------------------------------
+// Lista de tenants para el panel de diagnóstico per-tenant.
+// -----------------------------------​-----------------------------------------
+//
+// Carga `slug`, `nombre_municipio`, `estado_suscripcion`, `oculto_admin`
+// para TODOS los municipalities — incluyendo el oculto (platform tenant).
+// Devuelve un array vacío si la query falla (no rompe la página).
+async function getTenantListForDiagnostics(): Promise<TenantOption[]> {
+  const supabase = createAdminClient()
+  const { data, error } = await supabase
+    .from('municipalities')
+    .select('slug, nombre_municipio, estado_suscripcion, oculto_admin')
+    .order('nombre_municipio', { ascending: true })
+
+  if (error) {
+    console.error('[Admin Dashboard] tenant list for diagnostics:', error.message)
+    return []
+  }
+
+  return (data || []).map((r) => ({
+    slug: String(r.slug),
+    nombre: String(r.nombre_municipio),
+    estado: r.estado_suscripcion as TenantEstado,
+    oculto: Boolean(r.oculto_admin),
+  }))
+}
+
+// ---------------------------------------------------------------------------
 // Componentes de tarjeta de estadística
 // ---------------------------------------------------------------------------
 
@@ -166,6 +197,7 @@ export default async function AdminDashboardPage({
   searchParams: Record<string, string | string[] | undefined>
 }) {
   const stats = await getDashboardStats()
+  const tenants = await getTenantListForDiagnostics()
   const municipioId =
     typeof searchParams['municipio'] === 'string' ? searchParams['municipio'] : undefined
 
@@ -264,6 +296,15 @@ export default async function AdminDashboardPage({
               */}
               <PurgeCacheButton />
             </div>
+          </div>
+
+          {/* ── Diagnóstico per-tenant ── */}
+          {/* Cablea el endpoint GET /api/admin/debug/[slug] y el botón de
+              purga per-tenant (POST /api/admin/cache/purge?slug=X). Elimina
+              la necesidad de curl manual con cookies para inspeccionar o
+              purgar el cache de un municipio específico. */}
+          <div className="mt-10">
+            <TenantDiagnosticPanel tenants={tenants} />
           </div>
 
           {/* ── Estadísticas demográficas ── */}
