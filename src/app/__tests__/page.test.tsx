@@ -50,10 +50,16 @@ interface MockApp {
   activa: boolean
   app_slug: string | null
   url_acceso: string | null
-  // `created_at` se omite del mock porque la columna NO existe en el
-  // schema actual de `public.applications` (ver notas_schema_drift en
-  // `src/lib/tenant/municipality-apps-cache.ts`). El test espeja el
-  // shape real del helper para no enmascarar regresiones futuras.
+  /**
+   * Post-migration 039, `created_at` está garantizado en
+   * `public.applications` (NOT NULL DEFAULT NOW() con backfill desde
+   * `municipality_applications.fecha_activacion`). El test espeja el
+   * shape real del helper para no enmascarar regresiones futuras
+   * (e.g. si alguien vuelve a quitar `created_at` del SELECT, el mock
+   * seguirá retornándolo y el filter `recentCategoryIds` funcionará
+   * de forma engañosa).
+   */
+  created_at: string
 }
 
 interface MockCategory {
@@ -99,6 +105,7 @@ const dbApps: MockApp[] = [
     activa: true,
   app_slug: null,
   url_acceso: null,
+  created_at: '2025-01-01T00:00:00Z',
 },
   {
     id: APP_BIENESTAR_2,
@@ -110,6 +117,7 @@ const dbApps: MockApp[] = [
     activa: true,
   app_slug: null,
   url_acceso: null,
+  created_at: '2025-01-01T00:00:00Z',
 },
   {
     id: APP_FAMILIA_1,
@@ -121,6 +129,7 @@ const dbApps: MockApp[] = [
     activa: true,
   app_slug: null,
   url_acceso: null,
+  created_at: '2025-01-01T00:00:00Z',
 },
 ]
 

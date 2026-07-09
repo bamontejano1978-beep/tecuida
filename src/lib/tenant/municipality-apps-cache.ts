@@ -35,16 +35,15 @@ import { createAdminClient } from '@/lib/supabase/server'
  * Fila cruda de `municipality_applications` con el join de `applications`.
  *
  * El join incluye SOLO columnas que existen en el schema actual de la DB
- * remota (no incluimos `created_at` ni `instrucciones` aquí — ver
- * `notas_schema_drift` al final del comentario del `_fetchMunicipalityApps`
- * para el contexto histórico del bug). Cada página post-proyecta a su forma
- * final con TypeScript narrowing.
+ * remota. `created_at` ahora SÍ está disponible gracias a migration 039 —
+ * ver `notas_schema_drift` en `_fetchMunicipalityApps` para el contexto
+ * histórico del bug original que la motivó. Cada página post-proyecta
+ * a su forma final con TypeScript narrowing.
  *
- * Si en el futuro se añade `created_at` a `applications` (via nueva
- * migration), reintroducir el campo aquí Y en `_fetchMunicipalityApps`.
- * Mientras tanto, el badge "NUEVO" de categorías añadidas en últimos 7 días
- * queda degradeado a no-op (ver `src/app/page.tsx` `recentCategoryIds`,
- * que cortocircuita con `app.created_at &&`).
+ * Si en el futuro se añade otra columna a `applications`, añadirla aquí Y
+ * en el SELECT del `_fetchMunicipalityApps` en el mismo commit. Y
+ * actualizar el smoke-test de error-logging con el nuevo shape (ver
+ * followup en `41d2e29` → `supabase/migrations/039_add_applications_created_at.sql`).
  */
 export interface MunicipalityAppRow {
   application_id: string
@@ -58,6 +57,13 @@ export interface MunicipalityAppRow {
     activa: boolean
     app_slug: string | null
     url_acceso: string | null
+    /**
+     * Disponible desde migration 039. Backfilleada con MIN(fecha_activacion)
+     * para apps con assignments históricos; DEFAULT NOW() para apps sin
+     * assignments. Consumido por `recentCategoryIds` en
+     * `src/app/page.tsx` (badge "app NUEVO > últimos 7 días").
+     */
+    created_at: string
   } | null
 }
 
@@ -107,7 +113,8 @@ async function _fetchMunicipalityApps(
         tipo,
         activa,
         app_slug,
-        url_acceso
+        url_acceso,
+        created_at
       )`,
     )
     .eq('municipality_id', municipalityId)

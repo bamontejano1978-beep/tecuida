@@ -55,13 +55,14 @@ interface AppRow {
     app_slug?: string | null
     url_acceso?: string | null
     /**
-     * `created_at` está opcional porque la columna NO existe en
-     * `public.applications` actualmente — la migration 001 la omitió y
-     * ninguna migration posterior la añadió. El filtro "apps añadidas en
-     * últimos 7 días" cortocircuita con truthy-check si es undefined, sin
-     * afectar render.
+     * `created_at` está garantizado por la columna NOT NULL añadida en
+     * migration 039 (con backfill desde `municipality_applications.fecha_activacion`).
+     * Consumido por el cálculo de `recentCategoryIds` (filter
+     * `validApps.filter((app) => app.created_at && new Date(app.created_at) >= hace7dias)`)
+     * que pinta el badge "NUEVO" sobre categorías con apps añadidas en los
+     * últimos 7 días.
      */
-    created_at?: string | null
+    created_at: string
   } | null
 }
 
