@@ -1,10 +1,8 @@
 /**
- * EditorialOds — Bloque de los 17 Objetivos de Desarrollo Sostenible
+ * EditorialOds — Agenda 2030 y compromiso institucional de Villafranca
  *
- * Decisión de scope: los 17 ODS viven hardcoded dentro del componente editorial
- * (no se modelan en BD para Villafranca-only). Si en el futuro otro municipio
- * quiere el bloque, basta con reusar este componente y/o pasar una lista de
- * ODS activos por props.
+ * Reproduce la selección aprobada en el diseño municipal: ODS 3, 4, 5,
+ * 10, 11, 16 y 17, además del texto institucional solicitado.
  *
  * Colores extraídos de los 17 SDG oficiales de Naciones Unidas:
  * https://www.un.org/sustainabledevelopment/es/news-and-resources/
@@ -16,29 +14,18 @@ import styles from './editorial.module.css'
 
 interface OdsItem {
   number: number
-  label: string
   /** Hex oficial del SDG (Naciones Unidas). */
   color: string
 }
 
 const ODS: readonly OdsItem[] = [
-  { number: 1, label: 'Fin de la pobreza', color: '#e5243b' },
-  { number: 2, label: 'Hambre cero', color: '#dda63a' },
-  { number: 3, label: 'Salud y bienestar', color: '#4c9f38' },
-  { number: 4, label: 'Educación de calidad', color: '#c5192d' },
-  { number: 5, label: 'Igualdad de género', color: '#ff3a21' },
-  { number: 6, label: 'Agua limpia', color: '#26bde2' },
-  { number: 7, label: 'Energía asequible', color: '#fcc30b' },
-  { number: 8, label: 'Trabajo decente', color: '#a21942' },
-  { number: 9, label: 'Industria e innovación', color: '#fd6925' },
-  { number: 10, label: 'Reducir desigualdades', color: '#dd1367' },
-  { number: 11, label: 'Ciudades sostenibles', color: '#fd9d24' },
-  { number: 12, label: 'Producción responsable', color: '#bf8b2e' },
-  { number: 13, label: 'Acción por el clima', color: '#3f7e44' },
-  { number: 14, label: 'Vida submarina', color: '#0a97d9' },
-  { number: 15, label: 'Vida de ecosistemas', color: '#56c02b' },
-  { number: 16, label: 'Paz y justicia', color: '#00689d' },
-  { number: 17, label: 'Alianzas para los ODS', color: '#19486a' },
+  { number: 3, color: '#4c9f38' },
+  { number: 4, color: '#c5192d' },
+  { number: 5, color: '#ff3a21' },
+  { number: 10, color: '#dd1367' },
+  { number: 11, color: '#fd9d24' },
+  { number: 16, color: '#00689d' },
+  { number: 17, color: '#19486a' },
 ]
 
 export interface EditorialOdsProps {
@@ -48,27 +35,36 @@ export interface EditorialOdsProps {
 
 export default function EditorialOds({ nombreMunicipio }: EditorialOdsProps) {
   return (
-    <section id="ods" className={styles.panels} aria-labelledby="ods-title">
-      <h2 id="ods-title" className={styles.sectionTitle}>
-        Alineados con los Objetivos de Desarrollo Sostenible
-      </h2>
-      <p className={styles.sectionLead}>
-        Cada programa, actividad y recurso de {nombreMunicipio} te cuida trabaja sobre uno o varios
-        de los 17 ODS de la Agenda 2030 de Naciones Unidas.
-      </p>
-      <div className={styles.odsRow}>
-        {ODS.map((o) => (
-          <div
-            key={o.number}
-            className={styles.ods}
-            style={{ backgroundColor: o.color }}
-            role="group"
-            aria-label={`ODS ${o.number}: ${o.label}`}
-          >
-            <span className={styles.odsNumber}>{o.number}</span>
-            <span className={styles.odsLabel}>{o.label}</span>
+    <section id="ods" className={styles.panels} aria-label="Agenda 2030 y compromiso institucional">
+      <div className={styles.panelsGrid}>
+        <article id="agenda" className={styles.panel}>
+          <h2>Agenda 2030</h2>
+          <div className={styles.odsRow} aria-label="Objetivos de Desarrollo Sostenible prioritarios">
+            {ODS.map((ods) => (
+              <span
+                key={ods.number}
+                className={styles.ods}
+                style={{ backgroundColor: ods.color }}
+              >
+                ODS {ods.number}
+              </span>
+            ))}
           </div>
-        ))}
+          <p>
+            Alineada con la salud, la igualdad, la educación, la inclusión{' '}
+            <br />
+            y un municipio más sostenible.
+          </p>
+        </article>
+
+        <article className={styles.panel}>
+          <h2>Nuestro compromiso</h2>
+          <p>
+            Cuidar a las personas es construir{' '}
+            <br />
+            el futuro de {nombreMunicipio}.
+          </p>
+        </article>
       </div>
     </section>
   )

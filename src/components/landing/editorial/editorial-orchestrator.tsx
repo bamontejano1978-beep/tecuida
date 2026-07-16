@@ -99,7 +99,7 @@ export default function EditorialOrchestrator({
         a aceptar featuredActivities en props.
        */}
 
-      {/* ── Bloque ODS (17 objetivos) ── */}
+      {/* ── Agenda 2030 + compromiso institucional ── */}
       <EditorialOds nombreMunicipio={tenant.nombre_municipio} />
 
       <EditorialFooter tenant={tenant} />
