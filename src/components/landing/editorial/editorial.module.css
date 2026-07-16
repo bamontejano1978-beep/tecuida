@@ -48,12 +48,22 @@
   z-index: 50;
 }
 
-.brand {
-  /* El brand apaisado (375 px) se inyecta vía tenant.hero_image_url
-     reescalado. Si no hay imagen, fallback a wordmark textual. */
+.logo {
+  /* El logo apaisado se inyecta vía tenant.logo_url. La foto principal
+     queda reservada exclusivamente para el hero. */
+  width: 375px;
   max-width: 40vw;
-  height: auto;
+  max-height: 88px;
+  object-fit: contain;
+  object-position: left center;
   display: block;
+}
+
+.crest {
+  width: 64px;
+  height: 64px;
+  object-fit: contain;
+  flex: 0 0 auto;
 }
 
 .wordmark {
@@ -375,8 +385,13 @@
     height: 96px;
     padding: 0 32px;
   }
-  .brand {
+  .logo {
     max-width: 240px;
+    max-height: 68px;
+  }
+  .crest {
+    width: 52px;
+    height: 52px;
   }
   .nav {
     gap: 28px;
@@ -404,6 +419,20 @@
   }
   .rightMenu .hamb {
     width: 36px;
+  }
+  .logo {
+    max-width: min(52vw, 220px);
+    max-height: 52px;
+  }
+  .crest {
+    width: 44px;
+    height: 44px;
+  }
+  .rightMenu {
+    gap: 14px;
+  }
+  .rightMenu .sansBtn {
+    display: none;
   }
   .hero h1 {
     font-size: 26px;

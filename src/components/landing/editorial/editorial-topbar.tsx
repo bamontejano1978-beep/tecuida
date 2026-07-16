@@ -2,10 +2,10 @@
  * EditorialTopbar — Topbar de la landing editorial (Villafranca)
  *
  * Renderiza la barra superior a 132 px con:
- *   - Logo apaisado (375 px) inyectado desde tenant.hero_image_url.
+ *   - Logo apaisado (375 px) inyectado desde tenant.logo_url.
  *     Si no existe imagen → fallback a wordmark Georgia con la inicial.
  *   - Nav central con serif Georgia (links de scroll interno).
- *   - Hamburger derecho (símbolo institucional, sin menú desplegado:
+ *   - Escudo del ayuntamiento y hamburger derecho (sin menú desplegado:
  *     el scope del rediseño editorial sólo cubre la landing pública).
  *
  * Server Component. Estilos: editorial.module.css (skin aislado).
@@ -25,12 +25,12 @@ export default function EditorialTopbar({ tenant }: EditorialTopbarProps) {
   return (
     <header className={styles.topbar}>
       <Link href="/" className="no-underline" aria-label={`Inicio · ${tenant.nombre_municipio}`}>
-        {tenant.hero_image_url ? (
+        {tenant.logo_url ? (
           /* eslint-disable-next-line @next/next/no-img-element */
           <img
-            src={tenant.hero_image_url}
+            src={tenant.logo_url}
             alt={`Marca institucional · ${tenant.nombre_municipio}`}
-            className={styles.brand}
+            className={styles.logo}
             loading="eager"
           />
         ) : (
@@ -59,6 +59,15 @@ export default function EditorialTopbar({ tenant }: EditorialTopbarProps) {
       </nav>
 
       <div className={styles.rightMenu}>
+        {tenant.escudo_url && (
+          /* eslint-disable-next-line @next/next/no-img-element */
+          <img
+            src={tenant.escudo_url}
+            alt={`Escudo de ${tenant.nombre_ayuntamiento}`}
+            className={styles.crest}
+            loading="eager"
+          />
+        )}
         <Link href="/login" className={`${styles.navLink} ${styles.sansBtn}`}>
           Área ciudadana
         </Link>
