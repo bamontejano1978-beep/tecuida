@@ -17,13 +17,22 @@ import { type NextRequest, NextResponse } from 'next/server'
 import { createAuthCookiesAdapter, createReadOnlyCookiesAdapter } from '@/lib/supabase/cookies'
 import { randomUUID } from 'crypto'
 import { requestSchema, isTokenExpired } from '@/lib/delete-account-utils'
+import { getTrustedOrigin } from '@/lib/request-origin'
+import { checkRateLimitAsync } from '@/lib/admin/rate-limit'
 
 // ---------------------------------------------------------------------------
 // POST — Solicitar eliminación
 // ---------------------------------------------------------------------------
 
 async function handleRequestDeletion(request: NextRequest) {
-  const { origin } = new URL(request.url)
+  const rateLimit = await checkRateLimitAsync(request, {
+    limit: 3,
+    windowMs: 15 * 60_000,
+    namespace: 'auth:delete-account',
+  })
+  if (rateLimit) return rateLimit
+
+  const origin = getTrustedOrigin(request)
 
   try {
     // 1. Autenticar usuario
@@ -203,7 +212,7 @@ function deletionEmailHtml(email: string, link: string): string {
 // ---------------------------------------------------------------------------
 
 async function handleConfirmDeletion(request: NextRequest) {
-  const { origin } = new URL(request.url)
+  const origin = getTrustedOrigin(request)
   const token = request.nextUrl.searchParams.get('token')
 
   if (!token) {
@@ -253,33 +262,57 @@ async function handleConfirmDeletion(request: NextRequest) {
 
     const userId = targetUser.id
 
-    // 3. Anonimizar eventos de analytics (RGPD: conservar datos agregados, eliminar PII)
+    // 3. Anonimizar eventos de analytics (RGPD: conservar agregados, eliminar PII)
     try {
-      await adminClient
+      const { error } = await adminClient
         .from('analytics_events')
         .update({ user_id: null })
         .eq('user_id', userId)
+      if (error) throw error
     } catch (err) {
       console.error('[delete-account] Error anonimizando analytics:', err)
       // No bloqueante: continuamos con el borrado
     }
 
-    // 4. Borrar progreso del usuario
+    // 4. Anonimizar inscripciones conservadas para estadísticas de actividad.
+    //    El dominio invalid.local impide cualquier entrega accidental.
     try {
-      await adminClient
+      const { error } = await adminClient
+        .from('activity_inscriptions')
+        .update({
+          user_id: null,
+          email: `deleted-${randomUUID()}@invalid.local`,
+          nombre: null,
+          notas: null,
+        })
+        .eq('user_id', userId)
+      if (error) throw error
+    } catch (err) {
+      console.error('[delete-account] Error anonimizando inscripciones:', err)
+      return NextResponse.redirect(
+        `${origin}/perfil?error=${encodeURIComponent('No se pudieron anonimizar todos tus datos. Inténtalo de nuevo.')}`,
+        303,
+      )
+    }
+
+    // 5. Borrar progreso del usuario
+    try {
+      const { error } = await adminClient
         .from('user_progress')
         .delete()
         .eq('user_id', userId)
+      if (error) throw error
     } catch (err) {
       console.error('[delete-account] Error borrando progreso:', err)
     }
 
-    // 5. Borrar fila de public.users
+    // 6. Borrar fila de public.users
     try {
-      await adminClient
+      const { error } = await adminClient
         .from('users')
         .delete()
         .eq('id', userId)
+      if (error) throw error
     } catch (err) {
       console.error('[delete-account] Error borrando usuario:', err)
       return NextResponse.redirect(
@@ -288,16 +321,17 @@ async function handleConfirmDeletion(request: NextRequest) {
       )
     }
 
-    // 6. Borrar usuario de auth.users (Supabase Auth)
+    // 7. Borrar usuario de auth.users (Supabase Auth)
     try {
-      await adminClient.auth.admin.deleteUser(userId)
+      const { error } = await adminClient.auth.admin.deleteUser(userId)
+      if (error) throw error
     } catch (err) {
       console.error('[delete-account] Error borrando auth user:', err)
       // Si llegamos aquí, public.users ya está borrado. El auth user
       // quedará huérfano pero sin datos personales asociados.
     }
 
-    // 7. Redirigir a página de despedida
+    // 8. Redirigir a página de despedida
     return NextResponse.redirect(
       `${origin}/login?message=${encodeURIComponent('Tu cuenta ha sido eliminada. Gracias por haber formado parte de TE CUIDA.')}`,
       303,

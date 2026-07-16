@@ -21,6 +21,7 @@
 
 import Link from 'next/link'
 import { useId } from 'react'
+import type { CorporateColors } from '@/types'
 import { AssetAttribution } from './asset-attribution'
 
 export interface MunicipalityHeroProps {
@@ -29,7 +30,15 @@ export interface MunicipalityHeroProps {
   hero_image_url: string | null
   escudo_url: string | null
   descripcion: string | null
-  colores_corporativos: Record<string, string>
+  /**
+   * Colores corporativos. Se declara como `CorporateColors` (no
+   * `Record<string, string>`) porque es la forma que llega desde la DB
+   * y desde `getTenantConfigFromDB`; tipar como índice abierto hacía
+   * que TS no permitiese asignar el tipo cerrado en runtime sin casts.
+   * Solo accedemos a `.primary` dentro del componente, por lo que los
+   * nombres de campo cerrados en `CorporateColors` son suficientes.
+   */
+  colores_corporativos: CorporateColors
   /**
    * FK a public.municipalities.id. Necesaria para que AssetAttribution
    * pueda leer la fila de public.municipality_assets y mostrar el crédito

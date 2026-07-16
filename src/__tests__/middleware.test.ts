@@ -36,6 +36,12 @@ jest.mock('@/lib/tenant/cache', () => ({
 /**
  * Mock de @supabase/ssr — createServerClient devuelve un cliente
  * encadenable que simula from().select().eq().single() → { data: null }.
+ *
+ * Incluye `maybeSingle` porque el middleware lo usa en `resolveAppBySlug()`
+ * (consulta de aplicaciones por app_slug en el fallback de subdominios
+ *   que no son municipio). Sin él, la llamada lanza TypeError y el
+ *   test "redirige a /404 cuando el tenant no existe y el usuario tiene sesión"
+ *   devuelve 200 (middleware cae al 200) en lugar de 307 (redirect).
  */
 jest.mock('@supabase/ssr', () => ({
   createServerClient: jest.fn().mockReturnValue({
@@ -43,6 +49,10 @@ jest.mock('@supabase/ssr', () => ({
     select: jest.fn().mockReturnThis(),
     eq: jest.fn().mockReturnThis(),
     single: jest.fn().mockResolvedValue({
+      data: null,
+      error: { message: 'Not found' },
+    }),
+    maybeSingle: jest.fn().mockResolvedValue({
       data: null,
       error: { message: 'Not found' },
     }),
@@ -104,10 +114,24 @@ jest.mock('next/server', () => {
     })
   })
 
+  // mockRewrite: el middleware llama NextResponse.rewrite() en el path
+  // del fallback de subdominio de aplicación. Sin mock, sería undefined
+  // y reventaría con TypeError al evaluar `app` truthy en un test.
+  const mockRewrite = jest
+    .fn()
+    .mockImplementation((url: URL | string) => {
+      const urlStr = typeof url === 'string' ? url : url.toString()
+      return makeNextResponse({
+        status: 200,
+        headers: [['x-middleware-rewrite', urlStr]],
+      })
+    })
+
   return {
     NextResponse: {
       next: mockNext,
       redirect: mockRedirect,
+      rewrite: mockRewrite,
     },
     NextRequest: jest.fn().mockImplementation((url: URL | string) => {
       const parsedUrl = typeof url === 'string' ? new URL(url) : url
@@ -140,8 +164,31 @@ import { updateSession } from '@/lib/supabase/middleware'
 import { tenantCache } from '@/lib/tenant/cache'
 import { NextResponse, NextRequest } from 'next/server'
 
-// Ahora importamos el middleware (los mocks ya están activos)
+// Importamos el middleware (los mocks ya están activos)
 import { middleware } from '../middleware'
+
+beforeEach(() => {
+  jest.clearAllMocks()
+  // Silenciar console.warn en el output de la suite: el middleware emite
+  // un diagnóstico dev-only en `src/middleware.ts:278` cuando una ruta
+  // protegida llega sin sesión (`Cookies auth presentes: no. ...`). Es
+  // comportamiento ESPERADO en los 7 tests de "sesión-no-activo" y sólo
+  // añade ruido que reduce la diagnosabilidad de OTROS warns reales que
+  // surjan en regresiones futuras. Silenciarlo en beforeEach mantiene la
+  // helper assertion intacta sin tocar el código de producción.
+  jest.spyOn(console, 'warn').mockImplementation(() => {})
+  // Por defecto: updateSession devuelve sin usuario (no autenticado)
+  ;(updateSession as jest.Mock).mockResolvedValue(defaultSessionResponse(null))
+  // Por defecto: caché vacía
+  ;(tenantCache.get as jest.Mock).mockResolvedValue(null)
+})
+
+afterAll(() => {
+  // Liberar el spy acumulado de console.warn. `jest.restoreAllMocks()`
+  // sólo afecta mocks creados con `jest.spyOn()`; los `jest.fn()` del
+  // mock de `next/server` quedan intactos.
+  jest.restoreAllMocks()
+})
 
 // ---------------------------------------------------------------------------
 // Helpers
@@ -174,6 +221,7 @@ function mockConfig(overrides?: Partial<MunicipalityConfig>): MunicipalityConfig
     escudo_url: '',
     logo_url: '',
     hero_image_url: '',
+    layout_variant: 'classic',
     colores_corporativos: {
       primary: '#003087',
       secondary: '#0070f3',
@@ -214,14 +262,11 @@ beforeAll(() => {
   process.env.NEXT_PUBLIC_SUPABASE_URL = 'https://test.supabase.co'
   process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY = 'test-anon-key'
   process.env.SUPABASE_SERVICE_ROLE_KEY = 'test-service-role-key'
-})
-
-beforeEach(() => {
-  jest.clearAllMocks()
-  // Por defecto: updateSession devuelve sin usuario (no autenticado)
-  ;(updateSession as jest.Mock).mockResolvedValue(defaultSessionResponse(null))
-  // Por defecto: caché vacía
-  ;(tenantCache.get as jest.Mock).mockResolvedValue(null)
+  // Defensa contra fuga de env en CI: forzar DEMO_MODE off. El middleware
+  // cortocircuita resolveTenant con getDemoTenant(slug) si DEMO_MODE='true',
+  // y si por cualquier motivo eso está activo en runtime de test, tests
+  // que esperan un redirect devolverían 200 con el demoConfig "sintético".
+  process.env.DEMO_MODE = 'false'
 })
 
 // ---------------------------------------------------------------------------
@@ -297,12 +342,19 @@ describe('Protección de rutas autenticadas', () => {
   })
 
   it('permite /register sin verificar autenticación', async () => {
+    // /register SÍ requiere tenant (para inyectar x-tenant-slug al signUp),
+    // pero NO requiere auth. Mockeamos caché para simular un tenant válido.
+    ;(tenantCache.get as jest.Mock).mockResolvedValue(mockConfig())
     const req = makeRequest('https://calamonte.tecuida.group/register')
 
     const res = await middleware(req)
 
     expect(res.status).toBe(200)
     expect(NextResponse.redirect).not.toHaveBeenCalled()
+    // Específico: el middleware debe inyectar x-tenant-slug en este path.
+    // Si una regresión rompe esa inyección, signUp no sabrá a qué municipio
+    // asociar al ciudadano.
+    expect(res.headers.get('x-tenant-slug')).toBe('calamonte')
   })
 
   it('permite /auth/callback sin verificar autenticación', async () => {

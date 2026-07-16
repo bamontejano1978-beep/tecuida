@@ -2,7 +2,7 @@
 # TE CUIDA — CI Workflow
 # ============================================================
 # Ejecuta lint, tests y build en cada push/PR a main o master.
-# Paraleliza los 3 jobs para feedback rápido. Cancela runs
+# Paraleliza los controles para dar feedback rápido. Cancela runs
 # obsoletos al hacer push a la misma rama (ahorra minutos).
 #
 # Triggers:
@@ -36,6 +36,39 @@ concurrency:
 # ============================================================
 
 jobs:
+  secrets:
+    name: Detección de secretos
+    runs-on: ubuntu-latest
+    timeout-minutes: 3
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Comprobar archivos versionados
+        run: node scripts/check-secrets.mjs
+
+  typecheck:
+    name: TypeScript estricto
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Instalar dependencias
+        run: npm ci
+
+      - name: Comprobar tipos
+        run: npm run typecheck
+
   # ──────────────────────────────────────────────────────────
   # 1. Lint
   # ──────────────────────────────────────────────────────────
@@ -95,14 +128,34 @@ jobs:
           path: coverage/
           retention-days: 7
 
+  database:
+    name: Migraciones y tests PostgreSQL
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Instalar Supabase CLI
+        uses: supabase/setup-cli@v1
+        with:
+          version: latest
+
+      - name: Inicializar configuración local
+        run: test -f supabase/config.toml || supabase init
+
+      - name: Arrancar PostgreSQL local y aplicar migraciones
+        run: supabase start -x studio,imgproxy,edge-runtime,logflare,vector,supavisor
+
+      - name: Ejecutar tests de base de datos
+        run: supabase test db
+
   # ──────────────────────────────────────────────────────────
   # 3. Build (next build) — valida tipos vía SWC
   # ──────────────────────────────────────────────────────────
-  # Usamos `next build` en vez de `tsc --noEmit` porque el
-  # proyecto tiene errores pre-existentes conocidos en
-  # __tests__ y demo-data.ts (ver CHECKPOINT.md). `next build`
-  # es la fuente de verdad para Vercel y solo falla si hay
-  # errores reales que bloqueen el deploy.
+  # El build complementa el job explícito de TypeScript y valida la salida
+  # real que desplegará Vercel.
   # ──────────────────────────────────────────────────────────
   build:
     name: Build (next build)
@@ -129,4 +182,7 @@ jobs:
           NEXT_PUBLIC_SUPABASE_URL: https://ci-placeholder.supabase.co
           NEXT_PUBLIC_SUPABASE_ANON_KEY: ci-placeholder-anon-key
           SUPABASE_SERVICE_ROLE_KEY: ci-placeholder-service-key
+          NEXT_PUBLIC_BASE_DOMAIN: tecuida.group
+          NEXT_PUBLIC_SITE_URL: https://tecuida.group
+          DEMO_MODE: 'true'
         run: npm run build

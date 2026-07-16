@@ -16,11 +16,19 @@
 
 import { createAdminClient } from '@/lib/supabase/server'
 import { CreateApplicationSchema } from '@/lib/validations/application'
+import { checkRateLimitAsync } from '@/lib/admin/rate-limit'
 import { NextResponse } from 'next/server'
 
 export const dynamic = 'force-dynamic'
 
 export async function POST(request: Request) {
+  const rateLimit = await checkRateLimitAsync(request, {
+    limit: 10,
+    windowMs: 60_000,
+    namespace: 'register-app',
+  })
+  if (rateLimit) return rateLimit
+
   // 1. Verificar API key
   const apiKey = request.headers.get('x-api-key')
   const expectedKey = process.env.REGISTER_APP_API_KEY

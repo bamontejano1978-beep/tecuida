@@ -315,7 +315,7 @@ export default function TenantDiagnosticPanel({
       {!selectedSlug && (
         <p className="text-sm text-gray-500 italic">
           Selecciona un tenant para ver su estado y las 6 métricas
-          discriminantes del bug "apps no aparecen".
+          discriminantes del bug &quot;apps no aparecen&quot;.
         </p>
       )}
 

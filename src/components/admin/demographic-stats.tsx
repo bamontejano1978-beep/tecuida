@@ -183,7 +183,6 @@ export default async function DemographicStats({ municipioId }: DemographicStats
 
   // ── 4. Conteo por franjas etarias ──
   const ageCounts = new Map<string, number>()
-  const currentYear = new Date().getFullYear()
   for (const u of usersWithData) {
     const edad = calcularEdad(u.anio_nacimiento!)
     const range = AGE_RANGES.find((r) => edad >= r.min && edad <= r.max)

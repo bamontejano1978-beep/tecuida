@@ -8,6 +8,8 @@ import { createServerClient } from '@supabase/ssr'
 import { type NextRequest, NextResponse } from 'next/server'
 import { createAuthCookiesAdapter } from '@/lib/supabase/cookies'
 import { buildAuthCookies } from '@/lib/supabase/auth-cookies'
+import { checkRateLimitAsync } from '@/lib/admin/rate-limit'
+import { getTrustedOrigin } from '@/lib/request-origin'
 import { z } from 'zod'
 
 // ---------------------------------------------------------------------------
@@ -60,18 +62,19 @@ function getValidRedirect(raw: string | null): string {
   return raw
 }
 
-async function getCallbackUrl(request: NextRequest): Promise<string> {
-  const host = request.headers.get('host') || 'localhost:3000'
-  const protocol = host.startsWith('localhost') ? 'http' : 'https'
-  return `${protocol}://${host}/auth/callback`
-}
-
 // ---------------------------------------------------------------------------
 // POST /api/auth/register
 // ---------------------------------------------------------------------------
 
 export async function POST(request: NextRequest) {
-  const { origin } = new URL(request.url)
+  const rateLimit = await checkRateLimitAsync(request, {
+    limit: 5,
+    windowMs: 15 * 60_000,
+    namespace: 'auth:register',
+  })
+  if (rateLimit) return rateLimit
+
+  const origin = getTrustedOrigin(request)
 
   try {
     // 1. Slug del tenant
@@ -111,7 +114,7 @@ export async function POST(request: NextRequest) {
     )
 
     // 4. Registrar
-    const callbackUrl = await getCallbackUrl(request)
+    const callbackUrl = `${origin}/auth/callback`
     const {
       data: signUpData,
       error: signUpError,

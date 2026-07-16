@@ -38,6 +38,17 @@ const config = {
     '!src/**/*.d.ts',
     '!src/app/**', // Excluir páginas de Next.js de la cobertura
   ],
+
+  // Umbral inicial conservador; evita que la cobertura vuelva a caer mientras
+  // se amplían gradualmente los tests de dominio y componentes.
+  coverageThreshold: {
+    global: {
+      statements: 15,
+      branches: 10,
+      functions: 15,
+      lines: 15,
+    },
+  },
 }
 
 export default createJestConfig(config)

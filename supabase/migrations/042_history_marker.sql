@@ -1,0 +1,3 @@
+-- Marcador de historial.
+-- La versión 042 ya fue aplicada al entorno remoto antes de consolidar
+-- la numeración. El endurecimiento se reaplica de forma idempotente en 048.

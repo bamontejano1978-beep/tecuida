@@ -1,0 +1,3 @@
+-- Marcador de historial.
+-- La versión 041 ya fue aplicada al entorno remoto antes de consolidar
+-- la numeración. La operación efectiva se reaplica de forma idempotente en 047.

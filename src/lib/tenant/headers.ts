@@ -12,7 +12,12 @@
  */
 
 import { headers } from 'next/headers'
-import type { MunicipalityConfig, CorporateColors, InstitutionalTexts } from '@/types'
+import type {
+  MunicipalityConfig,
+  MunicipalityLayoutVariant,
+  CorporateColors,
+  InstitutionalTexts,
+} from '@/types'
 import { tenantCache } from './cache'
 import { getDemoTenant } from '@/lib/demo-data'
 
@@ -30,6 +35,11 @@ export function getTenantFromHeaders(): MunicipalityConfig | null {
   const nombre = headersList.get('x-tenant-name')
   const dominio = headersList.get('x-tenant-domain')
   const estado = headersList.get('x-tenant-subscription-status')
+  // Header opcional introducido en migration 045 — ausente en flujos
+  // pre-migración o en tests que no lo setean. Toleramos con 'classic'.
+  const layoutVariant =
+    (headersList.get('x-tenant-layout-variant') as MunicipalityLayoutVariant | null) ||
+    'classic'
 
   // Todos los campos son requeridos
   if (!id || !slug || !nombre || !dominio || !estado) {
@@ -45,6 +55,7 @@ export function getTenantFromHeaders(): MunicipalityConfig | null {
     escudo_url: '',
     logo_url: '',
     hero_image_url: '',
+    layout_variant: layoutVariant,
     colores_corporativos: DEFAULT_COLORS,
     imagenes_municipio: [],
     textos_institucionales: DEFAULT_TEXTS,
@@ -96,6 +107,8 @@ export async function getTenantConfigFromDB(
     escudo_url: (data.escudo_url as string) || '',
     logo_url: (data.logo_url as string) || '',
     hero_image_url: (data.hero_image_url as string) || '',
+    layout_variant:
+      ((data.layout_variant as MunicipalityLayoutVariant | undefined) || 'classic'),
     colores_corporativos: (data.colores_corporativos as CorporateColors),
     imagenes_municipio: (data.imagenes_municipio as string[]) || [],
     textos_institucionales: (data.textos_institucionales as InstitutionalTexts),

@@ -237,7 +237,6 @@ export default function Reto30ProgramClient({
   const IS_DEMO = true
   const FREE_DAYS = 2
   const unlockedDay = getUnlockedDay(startDate)
-  const isLocked = currentDay > unlockedDay
   const isPaywalled = IS_DEMO && currentDay > FREE_DAYS
   const totalDays = days.length
 
@@ -348,9 +347,6 @@ export default function Reto30ProgramClient({
   // ── Tareas completadas totales ──
   const completedTasks = Object.values(completed).filter(Boolean).length
   const totalTasks = totalDays * 3
-  const progressPercent =
-    totalTasks > 0 ? Math.round((completedTasks / totalTasks) * 100) : 0
-
   // ── Quotes ──
   const quote = DAILY_QUOTES[currentDay] || 'Un día más. Un paso más.'
 

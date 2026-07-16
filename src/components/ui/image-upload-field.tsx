@@ -136,7 +136,7 @@ export const ImageUploadField = forwardRef<
     return { file, previewUrl, uploadedUrl, uploading, error, removed }
   }, [file, previewUrl, uploadedUrl, uploading, error, removed])
 
-  function emit(overrides: Partial<ImageUploadState>) {
+  const emit = useCallback((overrides: Partial<ImageUploadState>) => {
     const merged: ImageUploadState = {
       file: overrides.file !== undefined ? overrides.file : file,
       previewUrl: overrides.previewUrl !== undefined ? overrides.previewUrl : previewUrl,
@@ -146,7 +146,7 @@ export const ImageUploadField = forwardRef<
       removed: overrides.removed !== undefined ? overrides.removed : removed,
     }
     onChange?.(merged)
-  }
+  }, [file, previewUrl, uploadedUrl, uploading, error, removed, onChange])
 
   // ── File selection ─────────────────────────────────────
 
@@ -221,8 +221,7 @@ export const ImageUploadField = forwardRef<
       setRemoved(false)
       emit({ file: croppedFile, previewUrl: url, uploadedUrl: null, error: null, removed: false })
     },
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    [cropSrc, previewUrl],
+    [cropSrc, previewUrl, emit],
   )
 
   const handleCropClose = useCallback(() => {
@@ -246,7 +245,7 @@ export const ImageUploadField = forwardRef<
     setRemoved(true)
     if (inputRef.current) inputRef.current.value = ''
     emit({ file: null, previewUrl: null, uploadedUrl: null, error: null, removed: true })
-  }, [previewUrl])
+  }, [previewUrl, emit])
 
   // ── Upload (called by parent via ref) ──────────────────
 

@@ -11,6 +11,7 @@
  */
 
 import Link from 'next/link'
+import Image from 'next/image'
 import { getTenantConfigFromDB, getTenantFromHeaders } from '@/lib/tenant/headers'
 import { createAdminClient } from '@/lib/supabase/server'
 import { DEMO_APPS, DEMO_CATEGORIES } from '@/lib/demo-data'
@@ -29,6 +30,12 @@ import { getMunicipalityAppsForLanding } from '@/lib/tenant/municipality-apps-ca
 // explícita ante cambios futuros en el grafo de dependencias.
 // Mismo patrón que `src/app/apps/[appSlug]/page.tsx` y `src/app/dashboard/page.tsx`.
 export const dynamic = 'force-dynamic'
+import ActivityCard from '@/components/landing/activity-card'
+import type { CorporateColors, InstitutionalTexts } from '@/types'
+// Layout editorial (Villafranca de los Barros — migration 045).
+// Importado localmente para mantener el bundle de municipios clásicos
+// sin pagar el coste de los componentes del rediseño.
+import { default as EditorialOrchestrator } from '@/components/landing/editorial/editorial-orchestrator'
 
 // ---------------------------------------------------------------------------
 // Tipos locales
@@ -245,16 +252,27 @@ async function TenantPage({
   tenant,
   validApps,
   categoriesWithCounts,
+  featuredActivities,
 }: {
   tenant: {
     id: string
+    slug: string
     nombre_municipio: string
     nombre_ayuntamiento: string
     escudo_url: string | null
     logo_url: string | null
     hero_image_url: string | null
-    colores_corporativos: Record<string, string>
-    textos_institucionales: Record<string, string>
+    imagenes_municipio: string[]
+    /**
+     * Tipo estricto de la fila. Anteriormente se usaba `Record<string, string>`
+     * (demasiado laxo: TS no permite asignar `CorporateColors` a un record
+     * con index signature), pero la fila DB siempre llega como
+     * CorporateColors/InstitutionalTexts y la consola de TenantPage accede
+     * a claves específicas (primary, bienvenida…), por lo que reflejar el
+     * tipo real evita casts y silencios de typecheck difíciles de auditar.
+     */
+    colores_corporativos: CorporateColors
+    textos_institucionales: InstitutionalTexts
     email_contacto?: string | null
     telefono_contacto?: string | null
   }
@@ -278,6 +296,24 @@ async function TenantPage({
     url_acceso: string | null
   }[]
   categoriesWithCounts: { id: string; nombre: string; descripcion: string | null; icono_url: string | null; count: number }[]
+  /**
+   * Top N actividades destacadas del municipio (estado='publicada' + destacada=true).
+   * Si vacío, la sección no se renderiza.
+   */
+  featuredActivities: {
+    id: string
+    nombre: string
+    descripcion: string | null
+    thumbnail_url: string | null
+    modalidad: 'presencial' | 'online' | 'mixta'
+    fecha_inicio: string
+    fecha_fin: string | null
+    plazas_inscritas: number
+    aforo: number | null
+    precio_texto: string | null
+    destacada: boolean
+    categoria_nombre: string | null
+  }[]
 }) {
   const inicial = tenant.nombre_municipio.charAt(0).toUpperCase()
   const primary = tenant.colores_corporativos.primary || '#142c19'
@@ -315,6 +351,7 @@ async function TenantPage({
           <a href="#inicio" className="no-underline text-sm font-semibold text-white/80 hover:text-white">Inicio</a>
           <a href="#programas" className="no-underline text-sm font-semibold text-white/80 hover:text-white">Programas</a>
           <a href="#catalogo" className="no-underline text-sm font-semibold text-white/80 hover:text-white">Catálogo</a>
+          <a href="#actividades" className="no-underline text-sm font-semibold text-white/80 hover:text-white">Actividades</a>
           <a href="#contacto" className="no-underline text-sm font-semibold text-white/80 hover:text-white">Contacto</a>
         </nav>
         <div className="flex items-center gap-3">
@@ -433,6 +470,51 @@ async function TenantPage({
           </div>
         </section>
 
+        {/* ── Actividades del municipio ── */}
+        {featuredActivities.length > 0 && (
+          <section id="actividades" className="mt-[70px] max-w-[1120px] mx-auto">
+            <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-5 mb-8 max-w-[1120px] mx-auto">
+              <div>
+                <div className="text-[#38633e] text-[13px] font-black tracking-[.18em] uppercase mb-1.5">
+                  Marketplace local
+                </div>
+                <h2 className="font-bold text-[clamp(34px,5vw,48px)] leading-tight mb-0">
+                  Actividades del municipio
+                </h2>
+                <p className="text-[#64705e] max-w-[610px] mt-3.5">
+                  Talleres, eventos y cursos impartidos por profesionales y entidades locales de {tenant.nombre_municipio}. Apúntate directamente y conoce a quien los organiza.
+                </p>
+              </div>
+              <Link
+                href="/actividades"
+                className="inline-flex items-center gap-2.5 min-h-[52px] px-6 rounded-xl no-underline font-extrabold bg-gradient-to-br from-[#e0a13a] to-[#bd7c25] text-white shadow-[0_14px_32px_rgba(189,124,37,.3)] hover:-translate-y-0.5 transition-transform max-sm:self-start"
+              >
+                Ver todas →
+              </Link>
+            </div>
+
+            <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+              {featuredActivities.map((a) => (
+                <ActivityCard
+                  key={a.id}
+                  id={a.id}
+                  nombre={a.nombre}
+                  descripcion={a.descripcion}
+                  thumbnail_url={a.thumbnail_url}
+                  modalidad={a.modalidad}
+                  fecha_inicio={a.fecha_inicio}
+                  fecha_fin={a.fecha_fin}
+                  plazas_inscritas={a.plazas_inscritas}
+                  aforo={a.aforo}
+                  precio_texto={a.precio_texto}
+                  categoria_nombre={a.categoria_nombre}
+                  destacada={a.destacada}
+                />
+              ))}
+            </div>
+          </section>
+        )}
+
         {/* ── Acceso rápido ── */}
         <section id="catalogo" className="mt-[70px] p-11 rounded-[26px] bg-gradient-to-br from-[#19371f] to-[#38633e] text-white max-w-[1120px] mx-auto max-sm:p-7 max-sm:px-5">
           <div className="text-[#f0b64e] text-[13px] font-black tracking-[.18em] uppercase mb-1.5">Acceso directo</div>
@@ -484,12 +566,12 @@ async function TenantPage({
         <div className="max-w-[1120px] mx-auto flex justify-between gap-7 flex-wrap">
           <div className="flex items-start gap-4">
             {tenant.escudo_url && (
-              <img
+              <Image
                 src={tenant.escudo_url}
                 alt={`Escudo oficial de ${tenant.nombre_municipio}`}
+                width={64}
+                height={64}
                 className="h-16 w-16 shrink-0 object-contain [filter:drop-shadow(0_2px_6px_rgba(0,0,0,.45))]"
-                loading="lazy"
-                decoding="async"
               />
             )}
             <div>
@@ -556,6 +638,20 @@ export default async function HomePage() {
   // 4. Consultar aplicaciones activas del municipio
   let appsData: unknown = null
   let categoriesData: unknown = null
+  let featuredActivities: {
+    id: string
+    nombre: string
+    descripcion: string | null
+    thumbnail_url: string | null
+    modalidad: 'presencial' | 'online' | 'mixta'
+    fecha_inicio: string
+    fecha_fin: string | null
+    plazas_inscritas: number
+    aforo: number | null
+    precio_texto: string | null
+    destacada: boolean
+    categoria_nombre: string | null
+  }[] = []
 
   if (process.env.DEMO_MODE === 'true') {
     appsData = DEMO_APPS
@@ -575,6 +671,53 @@ export default async function HomePage() {
       .order('orden', { ascending: true })
 
     categoriesData = cats
+
+    // Top 3 actividades destacadas (publicadas + destacada=true).
+    // Las más próximas en fecha primero; si no hay destacadas,
+    // el bloque desaparece naturalmente en TenantPage.
+    // El hint `!activities_category_id_fkey` fuerza a Supabase a devolver
+    // el join como objeto singular en vez de array (evita `as unknown` defensivo).
+    const { data: acts } = await supabase
+      .from('activities')
+      .select(
+        `id, nombre, descripcion, thumbnail_url, modalidad, fecha_inicio, fecha_fin,
+         plazas_inscritas, aforo, precio_texto, destacada,
+         categoria:categories!activities_category_id_fkey(nombre)`,
+      )
+      .eq('municipality_id', tenant.id)
+      .eq('estado', 'publicada')
+      .eq('destacada', true)
+      .order('fecha_inicio', { ascending: true })
+      .limit(3)
+
+    type FeaturedRow = {
+      id: string
+      nombre: string
+      descripcion: string | null
+      thumbnail_url: string | null
+      modalidad: 'presencial' | 'online' | 'mixta'
+      fecha_inicio: string
+      fecha_fin: string | null
+      plazas_inscritas: number
+      aforo: number | null
+      precio_texto: string | null
+      destacada: boolean
+      categoria: { nombre: string } | null
+    }
+    featuredActivities = ((acts || []) as unknown as FeaturedRow[]).map((row) => ({
+      id: row.id,
+      nombre: row.nombre,
+      descripcion: row.descripcion,
+      thumbnail_url: row.thumbnail_url,
+      modalidad: row.modalidad,
+      fecha_inicio: row.fecha_inicio,
+      fecha_fin: row.fecha_fin,
+      plazas_inscritas: row.plazas_inscritas,
+      aforo: row.aforo,
+      precio_texto: row.precio_texto,
+      destacada: row.destacada,
+      categoria_nombre: row.categoria?.nombre ?? null,
+    }))
   }
 
   // 5. Procesar datos
@@ -650,36 +793,61 @@ export default async function HomePage() {
     count: categoryCounts.get(cat.id) || 0,
   }))
 
-  // 6. Renderizar
+  // 6. Renderizar — branch en layout_variant (migración 045).
+  //    Los municipios clásicos (>= 99%) siguen usando TenantPage sin
+  //    cambios. Villafranca de los Barros activa el rediseño editorial.
+  const tenantProps = {
+    id: tenant.id,
+    slug: tenant.slug,
+    dominio: tenant.dominio,
+    nombre_municipio: tenant.nombre_municipio,
+    nombre_ayuntamiento: tenant.nombre_ayuntamiento,
+    escudo_url: tenant.escudo_url,
+    logo_url: tenant.logo_url,
+    hero_image_url: tenant.hero_image_url,
+    imagenes_municipio: tenant.imagenes_municipio ?? [],
+    layout_variant: tenant.layout_variant,
+    colores_corporativos: tenant.colores_corporativos,
+    textos_institucionales: tenant.textos_institucionales,
+    modulos_activos: tenant.modulos_activos ?? [],
+    estado_suscripcion: tenant.estado_suscripcion,
+    email_contacto: tenant.email_contacto,
+    telefono_contacto: tenant.telefono_contacto,
+  }
+
+  const editorialApps = goodApps
+    .filter((a) => a.application !== null)
+    .map((a) => ({
+      id: a.application!.id,
+      categoria_id: a.application!.category_id,
+      nombre: a.application!.nombre,
+      descripcion: a.application!.descripcion,
+      thumbnail_url: a.application!.thumbnail_url || '',
+      tipo: a.application!.tipo as 'programa' | 'herramienta' | 'encuesta' | 'recurso',
+      activa: a.application!.activa,
+      created_at: a.application!.created_at || null,
+      app_slug: a.application!.app_slug || null,
+      url_acceso: a.application!.url_acceso || null,
+    }))
+
+  if (tenant.layout_variant === 'editorial') {
+    // Render editorial — el orchestrator compone Topbar/Hero/Grid/ODS/Footer.
+    // No necesitamos pasar featuredActivities ni categories (no se usan
+    // en este layout: la cuadrícula plana cubre la sección de programas).
+    return (
+      <EditorialOrchestrator
+        tenant={tenantProps}
+        validApps={editorialApps}
+      />
+    )
+  }
+
   return (
     <TenantPage
-      tenant={{
-        id: tenant.id,
-        nombre_municipio: tenant.nombre_municipio,
-        nombre_ayuntamiento: tenant.nombre_ayuntamiento,
-        escudo_url: tenant.escudo_url,
-        logo_url: tenant.logo_url,
-        hero_image_url: tenant.hero_image_url,
-        colores_corporativos: tenant.colores_corporativos as unknown as Record<string, string>,
-        textos_institucionales: tenant.textos_institucionales as unknown as Record<string, string>,
-        email_contacto: tenant.email_contacto,
-        telefono_contacto: tenant.telefono_contacto,
-      }}      validApps={goodApps
-        .filter((a) => a.application !== null)
-        .map((a) => ({
-          id: a.application!.id,
-          categoria_id: a.application!.category_id,
-          nombre: a.application!.nombre,
-          descripcion: a.application!.descripcion,
-          thumbnail_url: a.application!.thumbnail_url || '',
-          tipo: a.application!.tipo as 'programa' | 'herramienta' | 'encuesta' | 'recurso',
-          activa: a.application!.activa,
-          created_at: a.application!.created_at || null,
-          app_slug: a.application!.app_slug || null,
-          url_acceso: a.application!.url_acceso || null,
-        }))
-      }
+      tenant={tenantProps}
+      validApps={editorialApps}
       categoriesWithCounts={categoriesWithCounts}
+      featuredActivities={featuredActivities}
     />
   )
 }

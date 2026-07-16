@@ -19,7 +19,12 @@ import { getDemoTenant } from '@/lib/demo-data'
 import { createServerClient } from '@supabase/ssr'
 import { NextResponse, type NextRequest } from 'next/server'
 import { createReadOnlyCookiesAdapter } from '@/lib/supabase/cookies'
-import type { MunicipalityConfig, CorporateColors, InstitutionalTexts } from '@/types'
+import type {
+  MunicipalityConfig,
+  MunicipalityLayoutVariant,
+  CorporateColors,
+  InstitutionalTexts,
+} from '@/types'
 
 // ---------------------------------------------------------------------------
 // Constantes
@@ -110,6 +115,10 @@ function mapRowToConfig(row: Record<string, unknown>): MunicipalityConfig {
     escudo_url: (row.escudo_url as string) || '',
     logo_url: (row.logo_url as string) || '',
     hero_image_url: (row.hero_image_url as string) || '',
+    // Fallback 'classic' para tolerar entradas cacheadas en Redis previas
+    // a la migración 045 (la columna es NOT NULL con DEFAULT en DB).
+    layout_variant:
+      (row.layout_variant as MunicipalityLayoutVariant | undefined) || 'classic',
     colores_corporativos: (row.colores_corporativos as CorporateColors),
     imagenes_municipio: (row.imagenes_municipio as string[]) || [],
     textos_institucionales: (row.textos_institucionales as InstitutionalTexts),
@@ -350,6 +359,9 @@ export async function middleware(request: NextRequest) {
   tenantHeaders.set('x-tenant-subscription-status', config.estado_suscripcion)
   tenantHeaders.set('x-tenant-accent', config.colores_corporativos.accent)
   tenantHeaders.set('x-tenant-text', config.colores_corporativos.text)
+  // Layout variant expuesto a Server Components para que page.tsx pueda
+  // decidir entre renderizar TenantPage clásico o EditorialOrchestrator.
+  tenantHeaders.set('x-tenant-layout-variant', config.layout_variant)
 
   // 10. Propagar la petición con los headers de tenant
   //     y copiar las cookies de sesión del paso 1

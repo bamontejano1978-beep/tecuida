@@ -426,6 +426,26 @@ export default async function DashboardPage() {
               )}
             </div>
 
+            {/* Inscripciones a actividades */}
+            <Link
+              href="/dashboard/inscripciones"
+              className="block bg-white rounded-xl border border-gray-200 p-5 hover:shadow-md transition-all"
+            >
+              <div className="flex items-center gap-3">
+                <div className="flex h-10 w-10 items-center justify-center rounded-full bg-emerald-100">
+                  <span className="text-lg" aria-hidden="true">🎟️</span>
+                </div>
+                <div>
+                  <p className="text-sm font-semibold text-gray-900">
+                    Mis inscripciones a actividades
+                  </p>
+                  <p className="text-xs text-gray-400">
+                    Ver dónde te has apuntado y cancelar
+                  </p>
+                </div>
+              </div>
+            </Link>
+
             {/* Acceso rápido a catálogo */}
             <Link
               href="/"

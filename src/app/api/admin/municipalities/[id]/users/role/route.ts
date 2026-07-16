@@ -14,6 +14,7 @@
 
 import { createAdminClient } from '@/lib/supabase/server'
 import { verifyAdminAccess } from '@/lib/admin/auth'
+import { checkRateLimitAsync } from '@/lib/admin/rate-limit'
 import { NextResponse, type NextRequest } from 'next/server'
 
 // ---------------------------------------------------------------------------
@@ -21,9 +22,12 @@ import { NextResponse, type NextRequest } from 'next/server'
 // ---------------------------------------------------------------------------
 
 export async function GET(
-  _request: NextRequest,
+  request: NextRequest,
   { params }: { params: { id: string } },
 ): Promise<Response> {
+  const rateLimit = await checkRateLimitAsync(request)
+  if (rateLimit) return rateLimit
+
   const adminUser = await verifyAdminAccess()
   if (adminUser instanceof NextResponse) return adminUser
 
@@ -55,6 +59,9 @@ export async function PATCH(
   request: NextRequest,
   { params }: { params: { id: string } },
 ): Promise<Response> {
+  const rateLimit = await checkRateLimitAsync(request)
+  if (rateLimit) return rateLimit
+
   const adminUser = await verifyAdminAccess()
   if (adminUser instanceof NextResponse) return adminUser
 

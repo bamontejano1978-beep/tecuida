@@ -60,6 +60,17 @@ export interface InstitutionalTexts {
 // Configuración completa del municipio (Tenant)
 // ---------------------------------------------------------------------------
 
+/**
+ * Variante de layout de la landing page del municipio.
+ * - 'classic': diseño actual con tarjetas verdes (default, ~95% de municipios).
+ * - 'editorial': rediseño "periódico local" de Villafranca de los Barros
+ *                (topbar crema 132px, hero split 35/65, tipografía Georgia).
+ *
+ * Migración 045. La columna SQL es `text NOT NULL DEFAULT 'classic'`
+ * con CHECK constraint → seguro de leer siempre con un valor válido.
+ */
+export type MunicipalityLayoutVariant = 'classic' | 'editorial'
+
 export interface MunicipalityConfig {
   id: UUID
   slug: string
@@ -71,6 +82,8 @@ export interface MunicipalityConfig {
   logo_url: string
   /** Imagen de fondo para el hero de la landing page (1920×650+). Si es '', se usa color sólido. */
   hero_image_url: string
+  /** Variante de layout activa — ver tipo `MunicipalityLayoutVariant`. */
+  layout_variant: MunicipalityLayoutVariant
   colores_corporativos: CorporateColors
   imagenes_municipio: string[]
   textos_institucionales: InstitutionalTexts
@@ -306,6 +319,151 @@ export interface MarkLessonCompleteDTO {
   lesson_id: UUID
   program_id: UUID
   tiempo_segundos: number
+}
+
+// ---------------------------------------------------------------------------
+// Marketplace de Actividades (Fase 1) — migrations/043
+// ---------------------------------------------------------------------------
+
+/** Modalidad en la que se realiza la actividad */
+export type ActivityModalidad = 'presencial' | 'online' | 'mixta'
+
+/** Estado de moderación de la actividad en el panel admin */
+export type ActivityEstado =
+  | 'borrador'
+  | 'pendiente_validacion'
+  | 'publicada'
+  | 'rechazada'
+  | 'cancelada'
+  | 'finalizada'
+
+/** Estado de una inscripción individual */
+export type InscriptionEstado =
+  | 'confirmada'
+  | 'cancelada'
+  | 'asistio'
+  | 'no_asistio'
+
+/** Tipo de profesional o entidad que oferta la actividad */
+export type ProfessionalTipo =
+  | 'colegiado'
+  | 'asociacion'
+  | 'centro'
+  | 'profesional_autonomo'
+  | 'otro'
+
+/** Fila de la tabla `public.professionals` */
+export interface Professional {
+  id: UUID
+  municipality_id: UUID
+  /** Opcional: si el profesional también está registrado en TE CUIDA como ciudadano. */
+  user_id?: UUID | null
+  nombre: string
+  tipo: ProfessionalTipo
+  /** Para tipo='colegiado': número de colegiado. */
+  numero_colegiado?: string | null
+  descripcion?: string | null
+  foto_url?: string | null
+  web_url?: string | null
+  email: string
+  telefono?: string | null
+  /** Visto bueno del admin_municipio tras revisión. */
+  verificado: boolean
+  estado: 'activo' | 'inactivo'
+  created_at: Date
+}
+
+/** Fila de la tabla `public.activities` */
+export interface Activity {
+  id: UUID
+  municipality_id: UUID
+  professional_id: UUID
+  category_id: UUID
+  nombre: string
+  descripcion: string
+  thumbnail_url?: string | null
+  modalidad: ActivityModalidad
+  /** formato YYYY-MM-DD */
+  fecha_inicio: string
+  /** formato YYYY-MM-DD, opcional */
+  fecha_fin?: string | null
+  horario_texto?: string | null
+  direccion_texto?: string | null
+  url_reunion?: string | null
+  aforo?: number | null
+  /** Mantenido atómicamente por /api/activities/[id]/inscription */
+  plazas_inscritas: number
+  /** Texto libre visible: "Gratis", "15 €", "Aporte voluntario" */
+  precio_texto?: string | null
+  /** Instrucciones para que el ciudadano pague al profesional: Bizum, transferencia, etc. */
+  nota_pago?: string | null
+  /** ── Ficha de impacto (diferenciador TE CUIDA) ── */
+  impacto_objetivo?: string | null
+  impacto_beneficiarios_estimados?: number | null
+  impacto_ambito?: string | null
+  impacto_indicadores?: string | null
+  estado: ActivityEstado
+  destacada: boolean
+  motivo_rechazo?: string | null
+  motivo_cancelacion?: string | null
+  created_at: Date
+  updated_at: Date
+}
+
+/** Fila de la tabla `public.activity_inscriptions` */
+export interface ActivityInscription {
+  id: UUID
+  activity_id: UUID
+  municipality_id: UUID
+  user_id?: UUID | null
+  email: string
+  nombre?: string | null
+  estado: InscriptionEstado
+  notas?: string | null
+  created_at: Date
+  updated_at: Date
+}
+
+/** Vista derivada para UI: actividad con su profesional y categoría */
+export interface ActivityWithRelations extends Activity {
+  professional: Professional
+  categoria: { id: UUID; nombre: string; icono_url?: string | null } | null
+}
+
+/** DTO: alta de profesional desde el panel admin */
+export interface CreateProfessionalDTO {
+  nombre: string
+  tipo: ProfessionalTipo
+  numero_colegiado?: string
+  descripcion?: string
+  foto_url?: string
+  web_url?: string
+  email: string
+  telefono?: string
+  verificado: boolean
+}
+
+/** DTO: alta de actividad desde el panel admin o por admin_municipio */
+export interface CreateActivityDTO {
+  professional_id: UUID
+  category_id: UUID
+  nombre: string
+  descripcion: string
+  thumbnail_url?: string
+  modalidad: ActivityModalidad
+  fecha_inicio: string
+  fecha_fin?: string
+  horario_texto?: string
+  direccion_texto?: string
+  url_reunion?: string
+  aforo?: number
+  precio_texto?: string
+  nota_pago?: string
+  impacto_objetivo?: string
+  impacto_beneficiarios_estimados?: number
+  impacto_ambito?: string
+  impacto_indicadores?: string
+  destacada?: boolean
 }
 
 // ---------------------------------------------------------------------------

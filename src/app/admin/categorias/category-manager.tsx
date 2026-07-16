@@ -12,6 +12,7 @@
 
 import { useState, useRef } from 'react'
 import { useRouter } from 'next/navigation'
+import Image from 'next/image'
 import type { AdminCategory } from './page'
 
 // ---------------------------------------------------------------------------
@@ -372,9 +373,12 @@ export default function CategoryManager({
               </div>
               {newIconPreview && (
                 <div className="mt-2 flex items-center gap-2">
-                  <img
+                  <Image
                     src={newIconPreview}
                     alt="Vista previa"
+                    width={40}
+                    height={40}
+                    unoptimized
                     className="h-10 w-10 rounded-lg object-cover border border-gray-200"
                   />
                   <button
@@ -479,9 +483,12 @@ export default function CategoryManager({
                       </div>
                       {(editIconPreview || (editIcon && editIcon.startsWith('http') && !editIconPreview)) && (
                         <div className="mt-1 flex items-center gap-1.5">
-                          <img
+                          <Image
                             src={editIconPreview || editIcon}
                             alt="Icono"
+                            width={32}
+                            height={32}
+                            unoptimized={Boolean(editIconPreview)}
                             className="h-8 w-8 rounded object-cover border border-gray-200"
                           />
                           <button

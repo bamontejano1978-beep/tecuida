@@ -4,7 +4,7 @@
  *
  * USO:
  *   SUPABASE_SERVICE_ROLE_KEY=xxx node scripts/create-superadmin.mjs \
- *     --email admin@tecuida.es --password 'TestAdmin2026!Secure' --name 'Admin'
+ *     --email admin@example.com --password '<contraseña-segura>' --name 'Admin'
  *
  * O usando .env.local del proyecto Vercel:
  *   vercel env pull .env.local && node scripts/create-superadmin.mjs
@@ -56,16 +56,16 @@ const SUPABASE_URL =
 const SERVICE_KEY =
   process.env.SUPABASE_SERVICE_ROLE_KEY || getArg('service-key')
 
-const EMAIL = getArg('email', 'admin@tecuida.es')
-const PASSWORD = getArg('password', 'TestAdmin2026!Secure')
+const EMAIL = getArg('email')
+const PASSWORD = getArg('password')
 const NOMBRE = getArg('name', 'Admin')
 const APELLIDOS = getArg('surname', 'Plataforma')
 // Por seguridad, el password NO se imprime a stdout salvo flag explícito
 const PRINT_PASSWORD = hasFlag('print-password')
 
-if (!SUPABASE_URL || !SERVICE_KEY) {
+if (!SUPABASE_URL || !SERVICE_KEY || !EMAIL || !PASSWORD) {
   console.error(
-    'Faltan credenciales. Provee SUPABASE_SERVICE_ROLE_KEY y SUPABASE_URL en env, .env.local, o como flags --url / --service-key',
+    'Faltan datos obligatorios. Provee SUPABASE_SERVICE_ROLE_KEY y SUPABASE_URL, además de --email y --password.',
   )
   process.exit(1)
 }

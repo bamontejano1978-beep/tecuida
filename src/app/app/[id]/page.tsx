@@ -18,7 +18,6 @@
  */
 
 import { notFound } from 'next/navigation'
-import Link from 'next/link'
 import { getTenantConfigFromDB, getTenantFromHeaders } from '@/lib/tenant/headers'
 import { createAdminClient, createClient } from '@/lib/supabase/server'
 import ProgramPageClient from './program-page-client'
@@ -84,16 +83,6 @@ interface Props {
 // ---------------------------------------------------------------------------
 // Helpers
 // ---------------------------------------------------------------------------
-
-/**
- * El código de Supabase que indica "0 filas encontradas" con .single().
- * No es un error real; es esperado cuando el recurso no existe.
- */
-function isNotFoundError(err: unknown): boolean {
-  if (!err || typeof err !== 'object') return false
-  const e = err as Record<string, unknown>
-  return e.code === 'PGRST116'
-}
 
 // ---------------------------------------------------------------------------
 // Página

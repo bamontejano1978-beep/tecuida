@@ -11,6 +11,7 @@
 
 import { useState, useCallback, useRef, useLayoutEffect } from 'react'
 import Link from 'next/link'
+import Image from 'next/image'
 
 // ---------------------------------------------------------------------------
 // Tipos
@@ -276,11 +277,12 @@ function CategoryBannerItem({
           }}
         >
           {hasImage ? (
-            <img
+            <Image
               src={category.icono_url!}
               alt={category.nombre}
+              width={56}
+              height={56}
               className="w-11 h-11 sm:w-14 sm:h-14 object-contain"
-              loading="lazy"
             />
           ) : (
             <span className="text-[36px] sm:text-[44px] leading-none">
@@ -389,11 +391,12 @@ function CategoryBannerItem({
                   {/* Thumbnail */}
                   <div className="w-12 h-12 rounded-xl grid place-items-center text-2xl shrink-0 overflow-hidden bg-[#f5f0e6]">
                     {app.thumbnail_url ? (
-                      <img
+                      <Image
                         src={app.thumbnail_url}
                         alt={app.nombre}
+                        width={48}
+                        height={48}
                         className="h-full w-full object-cover"
-                        loading="lazy"
                       />
                     ) : (
                       <span>{TIPO_ICON[app.tipo] || '📖'}</span>

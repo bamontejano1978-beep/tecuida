@@ -125,19 +125,19 @@ curl -I https://tecuida.group
 |---------|-------|
 | **Producción** | https://tecuida.group |
 | **Develop** | https://tecuida.group/login (admin) / https://zafra.tecuida.group/ (tenant) |
-| **Admin user** | `admin.tecuida@tecuida.es` / `TestAdmin2026!Secure` |
+| **Admin user** | Configurado fuera del repositorio (gestor de secretos) |
 | **Admin panel** | https://tecuida.group/admin |
 | **Modo Bulk** | https://tecuida.group/admin/aplicaciones/bulk |
 | **Apps por municipio** | https://tecuida.group/admin/municipios/<id>/aplicaciones |
 | **Supabase dashboard** | https://supabase.com/dashboard/project/dxxxhocqfuygngtxpuae |
-| **Supabase anon key** | `eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImR4eHhob2NxZnV5Z25ndHhwdWFlIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODE1MzUyMDksImV4cCI6MjA5NzExMTIwOX0.-_IdQDSs-hq8BPO1YnkD_YeFEaL6bHTf52mHbucu8l8` |
+| **Supabase anon key** | Configurada mediante variables de entorno |
 | **Vercel project** | `barto-s-projects1/tecuida` |
-| **DB password** | `TeCuida2024!Secure` |
+| **DB password** | Configurada fuera del repositorio (gestor de secretos) |
 
 ### Variables de entorno (Vercel, prod)
 ```
 NEXT_PUBLIC_SUPABASE_URL=https://dxxxhocqfuygngtxpuae.supabase.co
-NEXT_PUBLIC_SUPABASE_ANON_KEY=<anon key arriba>
+NEXT_PUBLIC_SUPABASE_ANON_KEY=<configurada en el entorno>
 SUPABASE_SERVICE_ROLE_KEY=<configurada>
 NEXT_PUBLIC_BASE_DOMAIN=tecuida.group
 DEMO_MODE=false
@@ -254,7 +254,7 @@ cd "C:/Users/borea/OneDrive/Escritorio/ciudad te cuida/te-cuida-app"
 vercel --prod --yes
 
 # Sincronizar migraciones con Supabase
-npx supabase db push --password "TeCuida2024!Secure"
+npx supabase db push --password "<solicitar-al-gestor-de-secretos>"
 
 # Typecheck
 npx tsc --noEmit

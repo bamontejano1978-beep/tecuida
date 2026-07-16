@@ -65,7 +65,6 @@ export default async function MunicipioLayout({
     redirect('/login?error=unauthorized')
   }
 
-  const municipioId = userRow.municipality_id as string
   const municipioNombre = (userRow.municipality as unknown as { nombre_municipio: string })?.nombre_municipio || 'Tu municipio'
   const displayName = (userRow.alias || userRow.nombre || userRow.email) as string
 
@@ -120,8 +119,6 @@ export default async function MunicipioLayout({
 
       {/* Contenido */}
       <main className="flex-1">
-        {/* Pasar municipioId implícitamente: los Server Components hijos
-            leerán el searchParams o el municipality_id desde la sesión */}
         {children}
       </main>
 

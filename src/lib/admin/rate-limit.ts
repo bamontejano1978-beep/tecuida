@@ -1,136 +1,136 @@
-/**
- * Rate Limiter — Protección de APIs admin
- *
- * Limitador en memoria basado en IP. Cada IP tiene un bucket
- * de tokens que se consume con cada petición.
- *
- * Configuración:
- *   - 30 peticiones por minuto por IP
- *   - Se limpia automáticamente cada 5 minutos
- *
- * Requisitos: 13.4
- */
+/** Rate limiting compartido para rutas sensibles y administrativas. */
 
 import { NextResponse } from 'next/server'
 
-// ---------------------------------------------------------------------------
-// Configuración
-// ---------------------------------------------------------------------------
+const DEFAULT_LIMIT = 30
+const DEFAULT_WINDOW_MS = 60_000
 
-const MAX_REQUESTS = 30 // peticiones por minuto por IP
-const WINDOW_MS = 60 * 1000 // ventana de 1 minuto
-const CLEANUP_INTERVAL_MS = 5 * 60 * 1000 // limpiar cada 5 min
-
-// ---------------------------------------------------------------------------
-// Estado en memoria
-// ---------------------------------------------------------------------------
+export interface RateLimitOptions {
+  limit?: number
+  windowMs?: number
+  namespace?: string
+}
 
 interface RateLimitEntry {
   count: number
   resetAt: number
 }
 
-const store = new Map<string, RateLimitEntry>()
+const memoryStore = new Map<string, RateLimitEntry>()
 
-// Limpieza periódica de entradas expiradas
-let cleanupTimer: ReturnType<typeof setInterval> | null = null
-
-function startCleanup() {
-  if (cleanupTimer) return
-  cleanupTimer = setInterval(() => {
-    const now = Date.now()
-    const keysToDelete: string[] = []
-    store.forEach((entry, key) => {
-      if (now > entry.resetAt) {
-        keysToDelete.push(key)
-      }
-    })
-    keysToDelete.forEach((key) => store.delete(key))
-  }, CLEANUP_INTERVAL_MS)
-
-  // Permitir que el timer no bloquee el proceso
-  if (cleanupTimer && 'unref' in cleanupTimer) {
-    cleanupTimer.unref()
-  }
-}
-
-// ---------------------------------------------------------------------------
-// Helper
-// ---------------------------------------------------------------------------
-
-/**
- * Extrae la IP del cliente desde los headers de la request.
- *
- * Prioriza X-Forwarded-For (Vercel, proxies) y fallback a la IP directa.
- */
 function getClientIP(request: Request): string {
   const forwarded = request.headers.get('x-forwarded-for')
-  if (forwarded) {
-    return forwarded.split(',')[0].trim()
-  }
-  const realIp = request.headers.get('x-real-ip')
-  if (realIp) return realIp
-  return 'unknown'
+  if (forwarded) return forwarded.split(',')[0].trim()
+  return request.headers.get('x-real-ip') || 'unknown'
 }
 
-// ---------------------------------------------------------------------------
-// Middleware de rate limiting
-// ---------------------------------------------------------------------------
+function getNamespace(request: Request, custom?: string): string {
+  if (custom) return custom
+  const url = new URL(request.url)
+  return `${request.method.toLowerCase()}:${url.pathname}`
+}
 
-/**
- * Verifica si una petición excede el límite de tasa.
- *
- * @param request - La petición entrante
- * @returns NextResponse 429 si excede el límite, o null si está OK
- */
-export function checkRateLimit(request: Request): NextResponse | null {
-  startCleanup()
+function limitedResponse(limit: number, retryAfter: number): NextResponse {
+  return NextResponse.json(
+    {
+      error: 'Demasiadas peticiones. Intenta de nuevo más tarde.',
+      retryAfter,
+    },
+    {
+      status: 429,
+      headers: {
+        'Retry-After': String(retryAfter),
+        'X-RateLimit-Limit': String(limit),
+        'X-RateLimit-Remaining': '0',
+      },
+    },
+  )
+}
 
-  const ip = getClientIP(request)
+function checkMemoryLimit(
+  key: string,
+  limit: number,
+  windowMs: number,
+): NextResponse | null {
   const now = Date.now()
-  const entry = store.get(ip)
+  const entry = memoryStore.get(key)
 
-  // Primera petición de esta IP en la ventana actual
-  if (!entry || now > entry.resetAt) {
-    store.set(ip, { count: 1, resetAt: now + WINDOW_MS })
+  if (!entry || now >= entry.resetAt) {
+    memoryStore.set(key, { count: 1, resetAt: now + windowMs })
     return null
   }
 
-  // Incrementar contador
-  entry.count++
+  entry.count += 1
+  if (entry.count <= limit) return null
 
-  // Verificar límite
-  if (entry.count > MAX_REQUESTS) {
-    const retryAfter = Math.ceil((entry.resetAt - now) / 1000)
-    return NextResponse.json(
-      {
-        error: 'Demasiadas peticiones. Intenta de nuevo más tarde.',
-        retryAfter,
-      },
-      {
-        status: 429,
-        headers: { 'Retry-After': String(retryAfter) },
-      },
-    )
-  }
+  return limitedResponse(limit, Math.max(1, Math.ceil((entry.resetAt - now) / 1000)))
+}
 
-  return null
+function hasRedisConfig(): boolean {
+  return Boolean(
+    process.env.UPSTASH_REDIS_REST_URL &&
+      process.env.UPSTASH_REDIS_REST_TOKEN,
+  )
+}
+
+async function hashIdentifier(value: string): Promise<string> {
+  const bytes = new TextEncoder().encode(value)
+  const digest = await crypto.subtle.digest('SHA-256', bytes)
+  return Array.from(new Uint8Array(digest))
+    .map((byte) => byte.toString(16).padStart(2, '0'))
+    .join('')
+}
+
+/** Fallback síncrono para entornos locales sin Redis. */
+export function checkRateLimit(
+  request: Request,
+  options: RateLimitOptions = {},
+): NextResponse | null {
+  const limit = options.limit ?? DEFAULT_LIMIT
+  const windowMs = options.windowMs ?? DEFAULT_WINDOW_MS
+  const key = `${getNamespace(request, options.namespace)}:${getClientIP(request)}`
+  return checkMemoryLimit(key, limit, windowMs)
 }
 
 /**
- * Versión asíncrona para usar en API routes.
- *
- * @example
- * ```ts
- * export async function GET(request: Request) {
- *   const rateLimitResponse = await checkRateLimitAsync(request)
- *   if (rateLimitResponse) return rateLimitResponse
- *   // ... lógica normal
- * }
- * ```
+ * Usa Upstash Redis en producción para compartir el contador entre instancias.
+ * Si Redis no está configurado o falla temporalmente, degrada al límite local.
  */
 export async function checkRateLimitAsync(
   request: Request,
+  options: RateLimitOptions = {},
 ): Promise<NextResponse | null> {
-  return checkRateLimit(request)
+  if (!hasRedisConfig()) return checkRateLimit(request, options)
+
+  const limit = options.limit ?? DEFAULT_LIMIT
+  const windowMs = options.windowMs ?? DEFAULT_WINDOW_MS
+  const namespace = getNamespace(request, options.namespace)
+
+  try {
+    const [{ Redis }, identifier] = await Promise.all([
+      import('@upstash/redis'),
+      hashIdentifier(getClientIP(request)),
+    ])
+    const redis = new Redis({
+      url: process.env.UPSTASH_REDIS_REST_URL!,
+      token: process.env.UPSTASH_REDIS_REST_TOKEN!,
+    })
+    const key = `rate-limit:${namespace}:${identifier}`
+    const script = `
+      local count = redis.call('INCR', KEYS[1])
+      if count == 1 then redis.call('PEXPIRE', KEYS[1], ARGV[1]) end
+      return { count, redis.call('PTTL', KEYS[1]) }
+    `
+    const [count, ttlMs] = await redis.eval<[string], [number, number]>(
+      script,
+      [key],
+      [String(windowMs)],
+    )
+
+    if (count <= limit) return null
+    return limitedResponse(limit, Math.max(1, Math.ceil(ttlMs / 1000)))
+  } catch (error) {
+    console.error('[rate-limit] Redis no disponible; usando fallback local.', error)
+    return checkRateLimit(request, options)
+  }
 }

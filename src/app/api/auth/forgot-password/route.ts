@@ -11,6 +11,8 @@
 import { createServerClient } from '@supabase/ssr'
 import { type NextRequest, NextResponse } from 'next/server'
 import { createAuthCookiesAdapter } from '@/lib/supabase/cookies'
+import { checkRateLimitAsync } from '@/lib/admin/rate-limit'
+import { getTrustedOrigin } from '@/lib/request-origin'
 import { z } from 'zod'
 
 // ---------------------------------------------------------------------------
@@ -26,7 +28,14 @@ const forgotPasswordSchema = z.object({
 // ---------------------------------------------------------------------------
 
 export async function POST(request: NextRequest) {
-  const { origin } = new URL(request.url)
+  const rateLimit = await checkRateLimitAsync(request, {
+    limit: 3,
+    windowMs: 15 * 60_000,
+    namespace: 'auth:forgot-password',
+  })
+  if (rateLimit) return rateLimit
+
+  const origin = getTrustedOrigin(request)
 
   try {
     const formData = await request.formData()

@@ -39,7 +39,8 @@ interface CacheDriver {
 // ---------------------------------------------------------------------------
 
 async function createRedisDriver(): Promise<CacheDriver> {
-  const { Redis } = await import('@upstash/redis')
+  // El middleware de Next.js se ejecuta en Edge Runtime.
+  const { Redis } = await import('@upstash/redis/cloudflare')
   const redis = new Redis({
     url: process.env.UPSTASH_REDIS_REST_URL!,
     token: process.env.UPSTASH_REDIS_REST_TOKEN!,

@@ -15,6 +15,7 @@
 
 import { useState } from 'react'
 import Link from 'next/link'
+import Image from 'next/image'
 import { normalizeExternalUrl } from '@/lib/urls'
 import type { Application, ApplicationType } from '@/types'
 
@@ -135,11 +136,12 @@ export default function ApplicationCard({
           className={`flex h-10 w-10 items-center justify-center rounded-lg border overflow-hidden ${typeColor}`}
         >
           {hasThumbnail ? (
-            <img
-              src={application.thumbnail_url}
+            <Image
+              src={application.thumbnail_url!}
               alt={`Icono de ${application.nombre}`}
+              width={40}
+              height={40}
               className="h-full w-full object-cover"
-              loading="lazy"
               onError={() => setImgError(true)}
             />
           ) : (

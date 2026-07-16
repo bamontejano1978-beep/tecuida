@@ -153,7 +153,7 @@ export async function POST(request: Request) {
       insertRow.textos_institucionales = {
         ...insertRow.textos_institucionales as Record<string, unknown>,
         ...Object.fromEntries(
-          Object.entries(dto.textos_institucionales).filter(([_, v]) => v !== undefined),
+          Object.entries(dto.textos_institucionales).filter(([, v]) => v !== undefined),
         ),
       }
     }

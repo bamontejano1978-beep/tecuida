@@ -13,7 +13,6 @@
  */
 
 import type { Metadata } from 'next'
-import { headers } from 'next/headers'
 import Link from 'next/link'
 import Image from 'next/image'
 import { getTenantConfigFromDB, getTenantFromHeaders } from '@/lib/tenant/headers'

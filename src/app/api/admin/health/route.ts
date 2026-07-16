@@ -10,6 +10,8 @@
 import { createAdminClient } from '@/lib/supabase/server'
 import { NextResponse } from 'next/server'
 
+export const dynamic = 'force-dynamic'
+
 export async function GET() {
   try {
     const supabase = createAdminClient()
@@ -18,8 +20,9 @@ export async function GET() {
       .select('count', { count: 'exact', head: true })
 
     if (error) {
+      console.error('[health] Error de base de datos:', error.message)
       return NextResponse.json(
-        { status: 'unhealthy', error: error.message },
+        { status: 'unhealthy' },
         { status: 503 },
       )
     }
@@ -29,11 +32,9 @@ export async function GET() {
       timestamp: new Date().toISOString(),
     })
   } catch (err) {
+    console.error('[health] Error inesperado:', err)
     return NextResponse.json(
-      {
-        status: 'unhealthy',
-        error: err instanceof Error ? err.message : 'Unknown error',
-      },
+      { status: 'unhealthy' },
       { status: 503 },
     )
   }

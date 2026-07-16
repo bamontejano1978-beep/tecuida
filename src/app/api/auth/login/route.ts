@@ -16,6 +16,8 @@ import { createServerClient } from '@supabase/ssr'
 import { type NextRequest, NextResponse } from 'next/server'
 import { createAuthCookiesAdapter } from '@/lib/supabase/cookies'
 import { buildAuthCookies } from '@/lib/supabase/auth-cookies'
+import { checkRateLimitAsync } from '@/lib/admin/rate-limit'
+import { getTrustedOrigin } from '@/lib/request-origin'
 import { z } from 'zod'
 
 // ---------------------------------------------------------------------------
@@ -43,7 +45,14 @@ function getValidRedirect(raw: string | null): string {
 // ---------------------------------------------------------------------------
 
 export async function POST(request: NextRequest) {
-  const { origin } = new URL(request.url)
+  const rateLimit = await checkRateLimitAsync(request, {
+    limit: 5,
+    windowMs: 15 * 60_000,
+    namespace: 'auth:login',
+  })
+  if (rateLimit) return rateLimit
+
+  const origin = getTrustedOrigin(request)
 
   try {
     // 1. Parsear form data

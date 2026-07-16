@@ -16,6 +16,7 @@
 
 import { createAdminClient } from '@/lib/supabase/server'
 import { verifyAdminAccess } from '@/lib/admin/auth'
+import { checkRateLimitAsync } from '@/lib/admin/rate-limit'
 import { NextResponse, type NextRequest } from 'next/server'
 
 // ---------------------------------------------------------------------------
@@ -100,6 +101,13 @@ async function ensureMunicipalitiesBucket(client: ReturnType<typeof createAdminC
 // ---------------------------------------------------------------------------
 
 export async function POST(request: NextRequest): Promise<Response> {
+  const rateLimit = await checkRateLimitAsync(request, {
+    limit: 10,
+    windowMs: 60_000,
+    namespace: 'admin:municipality-image',
+  })
+  if (rateLimit) return rateLimit
+
   // 1. Verificar acceso de superadmin
   const adminUser = await verifyAdminAccess()
   if (adminUser instanceof NextResponse) return adminUser
