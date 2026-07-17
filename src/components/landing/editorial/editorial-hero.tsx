@@ -20,9 +20,11 @@ export interface EditorialHeroProps {
   tenant: MunicipalityConfig
   /** Mantenemos la firma coherente con la decisión del scope (header editorial) */
   previewTags?: string[]
-  /** Subtítulo (h2). Default = textos_institucionales.bienvenida del tenant. */
+  /** Subtítulo institucional (h2). */
   subtitle?: string
-  /** Descripción (p). Default = textos_institucionales.descripcion del tenant. */
+  /** Presentación principal de la plataforma. */
+  intro?: string
+  /** Descripción de los servicios y su propósito. */
   body?: string
 }
 
@@ -30,24 +32,30 @@ export default function EditorialHero({
   tenant,
   previewTags,
   subtitle,
+  intro,
   body,
 }: EditorialHeroProps) {
-  const fallbackSubtitle = subtitle || 'Bienestar, comunidad y participación'
+  const fallbackSubtitle = subtitle || 'Sostenibilidad Social'
+  const fallbackIntro =
+    intro ||
+    'Primera plataforma integral de sostenibilidad social centrada en el cuidado de las personas'
   const fallbackBody =
     body ||
-    tenant.textos_institucionales.descripcion ||
-    `Programas y recursos para cuidar de las personas en ${tenant.nombre_municipio}.`
+    'Programas, recursos y herramientas para promover el bienestar, la salud, la prevención y la calidad de vida en todas las etapas'
 
   const tagList =
-    previewTags ?? ['Salud emocional', 'Comunidad', 'Familia', 'Cultura', 'Deporte']
+    previewTags ?? ['BIENESTAR', 'SOSTENIBILIDAD SOCIAL', 'FUTURO']
 
   return (
     <section id="inicio" className={styles.hero}>
       <div className={styles.heroCopy}>
-        <h1>{tenant.nombre_municipio}</h1>
+        <h1>{tenant.nombre_municipio} TE CUIDA</h1>
         <h2>{fallbackSubtitle}</h2>
 
-        <div className={styles.tags} aria-label="Áreas del portal">
+        <p>{fallbackIntro}</p>
+        <p>{fallbackBody}</p>
+
+        <div className={styles.tags} aria-label="Principios del portal">
           {tagList.map((tag, i) => (
             <span key={i} className={styles.tag}>
               {tag}
@@ -55,20 +63,15 @@ export default function EditorialHero({
           ))}
         </div>
 
-        <p>{fallbackBody}</p>
-
         <div className={styles.actions}>
-          <a href="#programas" className={styles.btn}>
-            Conoce los programas
+          <a href="#programas" className={`${styles.btn} ${styles.btnPrimary}`}>
+            Ver programas
             <span className={styles.arrow} aria-hidden="true">
               →
             </span>
           </a>
-          <a href="/register" className={`${styles.btn} ${styles.btnPrimary}`}>
-            Únete al portal
-            <span className={styles.arrow} aria-hidden="true">
-              →
-            </span>
+          <a href="#ods" className={styles.btn}>
+            Conocer la plataforma
           </a>
         </div>
 
