@@ -16,7 +16,7 @@
 import { useState } from 'react'
 import Link from 'next/link'
 import Image from 'next/image'
-import { normalizeExternalUrl } from '@/lib/urls'
+import { getApplicationEntryPath } from '@/lib/application-links'
 import type { Application, ApplicationType } from '@/types'
 
 // ---------------------------------------------------------------------------
@@ -92,33 +92,11 @@ export default function ApplicationCard({
   const tier = tierBadges[application.tipo] || tierBadges.programa
   const hasThumbnail = !!application.thumbnail_url && !imgError
 
-  // Prioridad de href para evitar 404 al click:
-  //    1) app_slug      → subdominio propio (<slug>.tecuida.group) gestionado por el middleware
-  //    2) url_acceso    → URL externa (normalizada: si el operador escribió
-  //                       "example.com" sin scheme, aquí se le antepone
-  //                       "https://" para que el navegador no lo trate como
-  //                       una ruta relativa y no caiga en /404). Defensa
-  //                       contra el bug típico de apps tipo='programa'
-  //                       huérfanas con URL externa (migrations 029/031 +
-  //                       fallback GenericLanding en /app/[id]/page.tsx).
-  //    3) fallback      → /app/<id> (programas reales, recursos internos, etc.)
-  const normalizedUrlAcceso = normalizeExternalUrl(application.url_acceso)
-  const hasAppSlug = !!application.app_slug
-  const hasExternalUrl = !hasAppSlug && normalizedUrlAcceso != null
-
-  const href = hasAppSlug
-    ? `https://${application.app_slug}.tecuida.group`
-    : hasExternalUrl
-      ? normalizedUrlAcceso!
-      : `/app/${application.id}`
-
-  const isExternal = hasAppSlug || hasExternalUrl
+  const href = getApplicationEntryPath(application)
 
   return (
     <Link
       href={href}
-      target={isExternal ? '_blank' : undefined}
-      rel={isExternal ? 'noopener noreferrer' : undefined}
       className="group relative flex flex-col rounded-xl border border-gray-200 bg-white p-6 shadow-sm transition-all duration-200 hover:shadow-lg hover:border-indigo-200 hover:-translate-y-1 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
     >
       {/* Badge de nivel */}

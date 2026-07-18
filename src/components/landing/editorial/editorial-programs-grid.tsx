@@ -11,6 +11,7 @@
 
 import Link from 'next/link'
 import type { ApplicationType } from '@/types'
+import { getApplicationEntryPath } from '@/lib/application-links'
 import styles from './editorial.module.css'
 
 const ICON_BY_TYPE: Record<ApplicationType, string> = {
@@ -26,7 +27,7 @@ export interface EditorialApp {
   descripcion: string | null
   thumbnail_url: string | null
   tipo: ApplicationType
-  /** Slug externo de la app (mindful30.tecuida.group). Si existe, prefiere esa URL. */
+  /** Identificador público estable de la aplicación. */
   app_slug?: string | null
   /** URL externa directa (modo "URL externa" en create-form). */
   url_acceso?: string | null
@@ -36,24 +37,6 @@ export interface EditorialProgramsGridProps {
   apps: EditorialApp[]
   /** Color de acento fallido si no hay icono por tipo. */
   accent?: string
-}
-
-/**
- * Resuelve la URL final de cada card de programa.
- * Prioridad (idéntica al resto del repo, ver catalog-client.tsx / page.tsx
- * hacia /apps/[slug]):
- *   1. app_slug      → subdominio propio p. ej. "mindful30" → /apps/mindful30
- *   2. url_acceso    → URL externa cuando la app es externa (no rompe el
- *                      subdominio aunque venga informada por error humano)
- *   3. /app/<id>     → página interna genérica
- *
- * Importante: el orden correcto (slug primero) es lo que evita el bug histórico
- * de apps tipo='programa' huérfanas (ver migrations 029/031).
- */
-function resolveHref(app: EditorialApp): string {
-  if (app.app_slug) return `/apps/${app.app_slug}`
-  if (app.url_acceso) return app.url_acceso
-  return `/app/${app.id}`
 }
 
 /**
@@ -109,7 +92,7 @@ export default function EditorialProgramsGrid({
         return (
           <Link
             key={app.id}
-            href={resolveHref(app)}
+            href={getApplicationEntryPath(app)}
             className={styles.programCard}
             style={accent ? { borderLeft: `3px solid ${accent}` } : undefined}
           >

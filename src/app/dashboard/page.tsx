@@ -15,7 +15,7 @@ import Link from 'next/link'
 import Image from 'next/image'
 import { getTenantConfigFromDB, getTenantFromHeaders } from '@/lib/tenant/headers'
 import { createClient, createAdminClient } from '@/lib/supabase/server'
-import { normalizeExternalUrl } from '@/lib/urls'
+import { getApplicationEntryPath } from '@/lib/application-links'
 import SignOutButton from '@/components/ui/sign-out-button'
 
 // Forzar render dinámico en cada request. Sin esto, Next.js podría cachear
@@ -171,10 +171,8 @@ export default async function DashboardPage() {
     }
   })
 
-  // Apps válidas. Pre-normalizamos url_acceso aquí (no en JSX) para que
-  // el bloque Link quede limpio — la función `normalizeExternalUrl` añade
-  // "https://" si el operador guardó "example.com" sin scheme y devuelve
-  // `null` si el valor era vacío / sólo whitespace.
+  // Apps válidas. El destino público es siempre la entrada canónica /apps/…;
+  // la URL del proveedor queda encapsulada en esa página.
   const validApps = activeApps
     .filter((a) => a.application !== null)
     .map((a) => ({
@@ -183,7 +181,6 @@ export default async function DashboardPage() {
       descripcion: a.application!.descripcion || '',
       tipo: a.application!.tipo,
       appSlug: a.application!.app_slug || null,
-      urlAcceso: normalizeExternalUrl(a.application!.url_acceso),
     }))
 
   const appsAbiertas = validApps.filter((a) => openedAppIds.has(a.id))
@@ -279,24 +276,15 @@ export default async function DashboardPage() {
                     // Solo mostrar ✓ Abierta para tipos donde podemos trackear uso (programas y encuestas)
                     const canTrack = app.tipo === 'programa' || app.tipo === 'encuesta'
                     const showOpened = isOpened && canTrack
-                    // Misma prioridad de href que application-card.tsx:
-                    //   app_slug > url_acceso > /app/<id>
-                    // urlAcceso ya viene normalizado del mapping arriba
-                    // (con https:// antepuesto por lib/urls si era host puro).
-                    const hasAppSlug = !!app.appSlug
-                    const hasExternalUrl = !hasAppSlug && app.urlAcceso != null
-                    const appHref = hasAppSlug
-                      ? `https://${app.appSlug}.tecuida.group`
-                      : hasExternalUrl
-                        ? app.urlAcceso!
-                        : `/app/${app.id}`
-                    const isAppExternal = hasAppSlug || hasExternalUrl
+                    // Misma entrada estable que el catálogo y las landings.
+                    const appHref = getApplicationEntryPath({
+                      id: app.id,
+                      app_slug: app.appSlug,
+                    })
                     return (
                       <Link
                         key={app.id}
                         href={appHref}
-                        target={isAppExternal ? '_blank' : undefined}
-                        rel={isAppExternal ? 'noopener noreferrer' : undefined}
                         className={`block rounded-xl border p-4 transition-all hover:shadow-md ${
                           isOpened
                             ? 'bg-white border-emerald-200 hover:border-emerald-300'

@@ -3,7 +3,7 @@
  *
  * Verifica:
  *   - Renderizado del nombre, descripción, tipo, nivel, categoría
- *   - Enlace correcto a /app/:id
+ *   - Enlace correcto a la entrada canónica /apps/:slug-o-id
  *   - Fallback de descripción cuando no se proporciona
  *   - Renderizado condicional de categoría
  *   - CTA según tipo: "Abrir →" (programa/encuesta), "Instalar →" (herramienta/recurso)
@@ -62,12 +62,21 @@ describe('ApplicationCard', () => {
 
   // ─── Enlace ───────────────────────────────────────────────────
 
-  it('el enlace apunta a /app/:id', () => {
+  it('el enlace apunta a la entrada canónica por id', () => {
     const app = createApp({ id: 'bbbbbbbb-0000-0000-0000-000000000002' })
     render(<ApplicationCard application={app} />)
 
     const link = screen.getByRole('link')
-    expect(link).toHaveAttribute('href', '/app/bbbbbbbb-0000-0000-0000-000000000002')
+    expect(link).toHaveAttribute('href', '/apps/bbbbbbbb-0000-0000-0000-000000000002')
+  })
+
+  it('prefiere el slug en la entrada canónica y no abre un dominio externo', () => {
+    const app = createApp({ app_slug: 'mindful30', url_acceso: 'https://proveedor.example/app' })
+    render(<ApplicationCard application={app} />)
+
+    const link = screen.getByRole('link')
+    expect(link).toHaveAttribute('href', '/apps/mindful30')
+    expect(link).not.toHaveAttribute('target')
   })
 
   // ─── Badges de tipo ────────────────────────────────────────
@@ -180,7 +189,7 @@ describe('ApplicationCard', () => {
     expect(screen.getByText('Instalar →')).toBeInTheDocument()
 
     const link = screen.getByRole('link')
-    expect(link).toHaveAttribute('href', '/app/cccccccc-0000-0000-0000-000000000003')
+    expect(link).toHaveAttribute('href', '/apps/cccccccc-0000-0000-0000-000000000003')
   })
 
   // ─── Snapshot ─────────────────────────────────────────────────

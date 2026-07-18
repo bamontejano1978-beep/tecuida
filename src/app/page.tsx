@@ -52,12 +52,9 @@ interface AppRow {
     tipo: string
     activa: boolean
     /**
-     * Slug del subdominio propio de la app (p.ej. "mindful30") y URL externa.
-     * La card del catálogo usa estos campos para decidir el href:
-     *   app_slug      → <slug>.tecuida.group
-     *   url_acceso    → URL externa directo (evita /app/<id> → 404 en apps huérfanas)
-     * Ambos llegan nullable porque vienen del join de Supabase; ver
-     * migrations 029/031 y el fallback GenericLanding en /app/[id]/page.tsx.
+     * Identificador público y alojamiento final de la app. El catálogo usa
+     * siempre `/apps/<slug-o-id>`; `url_acceso` se resuelve dentro de esa
+     * entrada para poder cambiar el proveedor sin alterar enlaces publicados.
      */
     app_slug?: string | null
     url_acceso?: string | null
@@ -286,11 +283,8 @@ async function TenantPage({
     activa: boolean
     created_at: string | null
     /**
-     * Slug del subdominio propio de la app (p.ej. "mindful30") y/o URL
-     * externa. La card del catálogo usa estos campos para decidir el href:
-     *   app_slug      → <slug>.tecuida.group
-     *   url_acceso    → URL externa directo (evita /app/<id> → 404 en apps huérfanas)
-     * Ambos llegan nullable desde el join de Supabase; ver migraciones 029/031.
+     * Identificador público y alojamiento final. La navegación usa la entrada
+     * estable `/apps/<slug-o-id>` y deja el destino real encapsulado en ella.
      */
     app_slug: string | null
     url_acceso: string | null

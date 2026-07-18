@@ -1,5 +1,5 @@
 /**
- * Página PWA de aplicación — servida en <appSlug>.tecuida.group
+ * Entrada pública canónica de una aplicación: /apps/<slug-o-id>.
  *
  * Cada app tiene su propia identidad visual:
  *   - Hero con su thumbnail, color de marca y tipografía propia
@@ -7,17 +7,19 @@
  *   - Herramientas/Recursos/Encuestas: landing con acceso directo
  *
  * Server Component que:
- *   1. Lee x-app-* headers inyectados por el middleware
- *   2. Si no hay headers (acceso directo), busca por slug en DB
+ *   1. Lee x-app-* headers inyectados por el middleware para subdominios antiguos
+ *   2. Si no hay headers, busca por slug o UUID en la base de datos
  *   3. Renderiza el hero de la app + el contenido según tipo
  *
- * Ruta: /apps/[appSlug] (reescrita internamente por el middleware)
+ * Los subdominios existentes siguen funcionando como alias compatibles.
  */
 
 import { notFound } from 'next/navigation'
 import { headers } from 'next/headers'
 import { createAdminClient } from '@/lib/supabase/server'
 import { getAppProgramBundle } from '@/lib/tenant/app-program-cache'
+import { isApplicationId } from '@/lib/application-links'
+import { normalizeExternalUrl } from '@/lib/urls'
 import GenericAppLanding from '@/components/landing/generic-app-landing'
 import type { Program, ProgramModule, Lesson } from '@/types'
 import AppProgramClient from './program-client'
@@ -205,59 +207,43 @@ function AppHero({
 // Página principal
 // ---------------------------------------------------------------------------
 
-export default async function AppSubdomainPage({ params }: Props) {
+export default async function ApplicationEntryPage({ params }: Props) {
   const headerList = headers()
-  const appId = headerList.get('x-app-id')
-  const appName = headerList.get('x-app-name')
-  const appType = headerList.get('x-app-type')
-  const appUrl = headerList.get('x-app-url')
-  const appBrandColor = headerList.get('x-app-brand-color')
-  const appThumbnail = headerList.get('x-app-thumbnail')
-  const appDescription = headerList.get('x-app-description')
-  const appCategory = headerList.get('x-app-category')
+  let appId = headerList.get('x-app-id')
+  let appName = headerList.get('x-app-name')
+  let appType = headerList.get('x-app-type')
+  let appUrl = headerList.get('x-app-url')
+  let appBrandColor = headerList.get('x-app-brand-color')
+  let appThumbnail = headerList.get('x-app-thumbnail')
+  let appDescription = headerList.get('x-app-description')
+  let appCategory = headerList.get('x-app-category')
 
-  // Fallback: si no hay headers del middleware, buscar por slug
+  // El middleware ya entrega la app resuelta al entrar por un subdominio.
+  // En la URL canónica la resolvemos por slug o, para apps antiguas, por UUID.
   if (!appId) {
     const adminClient = createAdminClient()
-    const { data } = await adminClient
+    const query = adminClient
       .from('applications')
       .select('id, nombre, tipo, descripcion, thumbnail_url, brand_color, instrucciones, url_acceso, categoria:categories(nombre)')
-      .eq('app_slug', params.appSlug)
       .eq('activa', true)
-      .single()
+
+    const { data } = isApplicationId(params.appSlug)
+      ? await query.eq('id', params.appSlug).maybeSingle()
+      : await query.eq('app_slug', params.appSlug).maybeSingle()
 
     if (!data) notFound()
 
-    const tipo = (data.tipo as string) || 'herramienta'
-    const brandColor = (data.brand_color as string) || TYPE_COLORS[tipo] || '#4f46e5'
-    const catNombre = (data.categoria as unknown as { nombre: string } | null)?.nombre ?? null
-    const cta = TYPE_CTAS[tipo] || TYPE_CTAS.herramienta
-
-    return (
-      <>
-        <AppHero
-          nombre={data.nombre as string}
-          descripcion={(data.descripcion as string) || null}
-          tipo={tipo}
-          brandColor={brandColor}
-          thumbnailUrl={(data.thumbnail_url as string) || null}
-          categoriaNombre={catNombre}
-          ctaLabel={cta.label}
-          ctaHref="#contenido"
-        />
-        <div id="contenido">
-          <GenericAppLanding
-            nombre={data.nombre as string}
-            descripcion={(data.descripcion as string) || null}
-            tipo={tipo}
-            instrucciones={(data.instrucciones as string) || null}
-            url_acceso={(data.url_acceso as string) || null}
-            categoria_nombre={catNombre}
-          />
-        </div>
-      </>
-    )
+    appId = data.id as string
+    appName = data.nombre as string
+    appType = (data.tipo as string) || 'herramienta'
+    appUrl = (data.url_acceso as string) || null
+    appBrandColor = (data.brand_color as string) || null
+    appThumbnail = (data.thumbnail_url as string) || null
+    appDescription = (data.descripcion as string) || null
+    appCategory = (data.categoria as unknown as { nombre: string } | null)?.nombre ?? null
   }
+
+  if (!appId) notFound()
 
   // App resuelta por middleware
   const tipo = appType || 'programa'
@@ -277,7 +263,13 @@ export default async function AppSubdomainPage({ params }: Props) {
       .single()
 
     const cta = TYPE_CTAS[tipo] || TYPE_CTAS.herramienta
-    const urlAcceso = appUrl ?? (data?.url_acceso as string) ?? null
+    const urlAcceso = normalizeExternalUrl(
+      appUrl ?? (data?.url_acceso as string) ?? null,
+    )
+    const resolvedCategory =
+      catNombre ??
+      (data?.categoria as unknown as { nombre: string } | null)?.nombre ??
+      null
 
     return (
       <>
@@ -287,7 +279,7 @@ export default async function AppSubdomainPage({ params }: Props) {
           tipo={tipo}
           brandColor={brandColor}
           thumbnailUrl={thumbnailUrl}
-          categoriaNombre={catNombre ?? (data?.categoria as unknown as { nombre: string } | null)?.nombre ?? null}
+          categoriaNombre={resolvedCategory}
           ctaLabel={cta.label}
           ctaHref={urlAcceso || '#contenido'}
         />
@@ -298,7 +290,7 @@ export default async function AppSubdomainPage({ params }: Props) {
             tipo={tipo}
             instrucciones={(data?.instrucciones as string) || null}
             url_acceso={urlAcceso}
-            categoria_nombre={catNombre}
+            categoria_nombre={resolvedCategory}
           />
         </div>
       </>
@@ -325,7 +317,7 @@ export default async function AppSubdomainPage({ params }: Props) {
   // lugar de devolver un 404 confuso para el ciudadano.
   if (!programData) {
     console.warn(
-      `[AppSubdomainPage] App "${nombre}" (${tipo}) no tiene programa asociado. Renderizando landing genérica.`,
+      `[ApplicationEntryPage] App "${nombre}" (${tipo}) no tiene programa asociado. Renderizando landing genérica.`,
     )
 
     // Necesitamos los datos del app (instrucciones, url_acceso, categoría) para
@@ -337,7 +329,13 @@ export default async function AppSubdomainPage({ params }: Props) {
       .maybeSingle()
 
     const cta = TYPE_CTAS[tipo] || TYPE_CTAS.herramienta
-    const urlAcceso = appUrl ?? (appRow?.url_acceso as string) ?? null
+    const urlAcceso = normalizeExternalUrl(
+      appUrl ?? (appRow?.url_acceso as string) ?? null,
+    )
+    const resolvedCategory =
+      catNombre ??
+      (appRow?.categoria as unknown as { nombre: string } | null)?.nombre ??
+      null
     const fallbackDescripcion =
       (appRow?.descripcion as string | null | undefined) ?? descripcion ?? null
 
@@ -349,11 +347,7 @@ export default async function AppSubdomainPage({ params }: Props) {
           tipo={tipo}
           brandColor={brandColor}
           thumbnailUrl={thumbnailUrl}
-          categoriaNombre={
-            catNombre ??
-            (appRow?.categoria as unknown as { nombre: string } | null)?.nombre ??
-            null
-          }
+          categoriaNombre={resolvedCategory}
           ctaLabel={cta.label}
           ctaHref={urlAcceso || '#contenido'}
         />
@@ -364,7 +358,7 @@ export default async function AppSubdomainPage({ params }: Props) {
             tipo={tipo}
             instrucciones={(appRow?.instrucciones as string) || null}
             url_acceso={urlAcceso}
-            categoria_nombre={catNombre}
+            categoria_nombre={resolvedCategory}
           />
         </div>
       </>

@@ -168,16 +168,14 @@ export interface Application {
   thumbnail_url: string
   tipo: ApplicationType
   activa: boolean
-  /** Slug para el subdominio de la app (ej. "mindful30" → mindful30.tecuida.group) */
+  /** Identificador público estable (ej. "mindful30" → /apps/mindful30). */
   app_slug?: string | null
   /** Color de marca en hex (#rrggbb). NULL = el PWA usa el color por defecto del tipo. */
   brand_color?: string | null
   /**
-   * URL externa de la app (modo "🔗 URL externa" del create-form).
-   * Si NO está vacía y la app no tiene `app_slug`, la card del catálogo
-   * enlaza directamente a ella — saltándose `/app/<id>` para evitar el
-   * escenario típico del bug 404 en apps tipo='programa' huérfanas
-   * (ver migrations 029/031).
+   * Alojamiento final de una app externa (modo "🔗 URL externa").
+   * Las tarjetas pasan por `/apps/<slug-o-id>` y no publican este destino
+   * directamente, de modo que puede cambiar sin romper enlaces existentes.
    */
   url_acceso?: string | null
 }
