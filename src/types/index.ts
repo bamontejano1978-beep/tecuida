@@ -54,6 +54,17 @@ export interface InstitutionalTexts {
   cta_titulo?: string
   /** Texto descriptivo bajo el título del CTA */
   cta_texto?: string
+  /** Contenido específico del layout editorial, editable por municipio. */
+  editorial_subtitle?: string
+  editorial_intro?: string
+  editorial_body?: string
+  editorial_tags?: string[]
+  editorial_ods?: number[]
+  editorial_sections?: Array<'programas' | 'ods'>
+  seccion_stats_visible?: boolean
+  seccion_programas_visible?: boolean
+  seccion_cta_visible?: boolean
+  seccion_ods_visible?: boolean
 }
 
 // ---------------------------------------------------------------------------

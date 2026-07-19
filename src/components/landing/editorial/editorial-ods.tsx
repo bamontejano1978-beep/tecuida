@@ -31,16 +31,29 @@ const ODS: readonly OdsItem[] = [
 export interface EditorialOdsProps {
   /** Municipio destino (usado para personalizar el copy contextual). */
   nombreMunicipio: string
+  /** Selección configurable de ODS (1–17). */
+  odsNumbers?: number[]
 }
 
-export default function EditorialOds({ nombreMunicipio }: EditorialOdsProps) {
+const ODS_COLORS: Record<number, string> = {
+  1: '#e5243b', 2: '#dda63a', 3: '#4c9f38', 4: '#c5192d', 5: '#ff3a21',
+  6: '#26bde2', 7: '#fcc30b', 8: '#a21942', 9: '#fd6925', 10: '#dd1367',
+  11: '#fd9d24', 12: '#bf8b2e', 13: '#3f7e44', 14: '#0a97d9', 15: '#56c02b',
+  16: '#00689d', 17: '#19486a',
+}
+
+export default function EditorialOds({ nombreMunicipio, odsNumbers }: EditorialOdsProps) {
+  const selectedOds = (odsNumbers?.length ? odsNumbers : ODS.map((item) => item.number))
+    .filter((number, index, values) => number >= 1 && number <= 17 && values.indexOf(number) === index)
+    .map((number) => ({ number, color: ODS_COLORS[number] }))
+
   return (
     <section id="ods" className={styles.panels} aria-label="Agenda 2030 y compromiso institucional">
       <div className={styles.panelsGrid}>
         <article id="agenda" className={styles.panel}>
           <h2>Agenda 2030</h2>
           <div className={styles.odsRow} aria-label="Objetivos de Desarrollo Sostenible prioritarios">
-            {ODS.map((ods) => (
+            {selectedOds.map((ods) => (
               <span
                 key={ods.number}
                 className={styles.ods}

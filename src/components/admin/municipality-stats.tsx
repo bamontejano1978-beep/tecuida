@@ -43,6 +43,29 @@ interface MunicipalityStatsData {
   monthlyActivity: MonthlyRow[]
 }
 
+async function fetchMunicipalityStatsRpc(
+  municipioId: string,
+): Promise<MunicipalityStatsData | null> {
+  const supabase = createAdminClient()
+  const { data, error } = await supabase.rpc('get_municipality_stats', {
+    p_municipality_id: municipioId,
+  })
+
+  if (error || !data || typeof data !== 'object') return null
+  const row = data as unknown as MunicipalityStatsData
+  return {
+    ...row,
+    appsUsage: row.appsUsage || [],
+    monthlyActivity: (row.monthlyActivity || []).map((month) => {
+      const [year, monthNumber] = month.mes.split('-')
+      return {
+        ...month,
+        mes: `${MONTHS_ES[Number(monthNumber) - 1]} ${year.slice(2)}`,
+      }
+    }),
+  }
+}
+
 // ---------------------------------------------------------------------------
 // Constantes
 // ---------------------------------------------------------------------------
@@ -353,7 +376,11 @@ interface MunicipalityStatsProps {
 export default async function MunicipalityStats({
   municipioId,
 }: MunicipalityStatsProps) {
-  const stats = await fetchMunicipalityStats(municipioId)
+  // La RPC evita el límite histórico de 5.000 filas. Conservamos el cálculo
+  // anterior como fallback durante despliegues donde la migración aún no esté aplicada.
+  const stats =
+    (await fetchMunicipalityStatsRpc(municipioId)) ||
+    (await fetchMunicipalityStats(municipioId))
 
   if (!stats) {
     return (

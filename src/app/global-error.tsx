@@ -18,6 +18,16 @@ interface GlobalErrorProps {
 export default function GlobalError({ error, reset }: GlobalErrorProps) {
   useEffect(() => {
     console.error('[GlobalError]', error)
+    void fetch('/api/client-errors', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      keepalive: true,
+      body: JSON.stringify({
+        digest: error.digest,
+        message: error.message,
+        path: window.location.pathname,
+      }),
+    })
   }, [error])
 
   return (

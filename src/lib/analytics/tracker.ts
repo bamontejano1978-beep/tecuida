@@ -16,7 +16,6 @@
  */
 
 import { useCallback, useRef } from 'react'
-import { createClient } from '@/lib/supabase/client'
 import { getConsentSync } from '@/lib/analytics/consent'
 
 // ---------------------------------------------------------------------------
@@ -37,6 +36,8 @@ export type AnalyticsEventName =
   | 'login'
   | 'register'
   | 'logout'
+  | 'activity_registered'
+  | 'activity_cancelled'
 
 /** Payload flexible para cada evento */
 export interface AnalyticsPayload {
@@ -72,16 +73,18 @@ export function useAnalytics(
     queueRef.current = []
 
     try {
-      const supabase = createClient()
-
-      const rows = events.map((e) => ({
-        municipality_id: municipalityId || '00000000-0000-0000-0000-000000000000',
-        user_id: userId || null,
-        evento: e.evento,
-        payload: e.payload,
-      }))
-
-      await supabase.from('analytics_events').insert(rows)
+      await Promise.all(events.map((event) =>
+        fetch('/api/analytics', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          keepalive: true,
+          body: JSON.stringify({
+            evento: event.evento,
+            payload: { ...event.payload, authenticated: Boolean(userId) },
+            municipality_id: municipalityId || undefined,
+          }),
+        }),
+      ))
     } catch {
       // Silencioso: no interrumpir la UX por errores de analytics
     }

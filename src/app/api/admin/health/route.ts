@@ -9,6 +9,7 @@
 
 import { createAdminClient } from '@/lib/supabase/server'
 import { NextResponse } from 'next/server'
+import { logEvent, notifyOperationalAlert } from '@/lib/observability/logger'
 
 export const dynamic = 'force-dynamic'
 
@@ -20,19 +21,27 @@ export async function GET() {
       .select('count', { count: 'exact', head: true })
 
     if (error) {
-      console.error('[health] Error de base de datos:', error.message)
+      logEvent('error', 'health_database_unavailable', {}, error)
+      await notifyOperationalAlert('health_database_unavailable', {
+        deployment: process.env.VERCEL_GIT_COMMIT_SHA || 'local',
+      })
       return NextResponse.json(
-        { status: 'unhealthy' },
+        { status: 'unhealthy', database: 'unavailable', deployment: process.env.VERCEL_GIT_COMMIT_SHA || 'local' },
         { status: 503 },
       )
     }
 
     return NextResponse.json({
       status: 'healthy',
+      database: 'available',
+      deployment: process.env.VERCEL_GIT_COMMIT_SHA || 'local',
       timestamp: new Date().toISOString(),
     })
   } catch (err) {
-    console.error('[health] Error inesperado:', err)
+    logEvent('error', 'health_unexpected_error', {}, err)
+    await notifyOperationalAlert('health_unexpected_error', {
+      deployment: process.env.VERCEL_GIT_COMMIT_SHA || 'local',
+    })
     return NextResponse.json(
       { status: 'unhealthy' },
       { status: 503 },

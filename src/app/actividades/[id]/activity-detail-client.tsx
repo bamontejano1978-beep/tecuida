@@ -21,6 +21,7 @@
 import { useState, useEffect, useId } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
+import { useAnalytics } from '@/lib/analytics/tracker'
 
 interface ActivityLite {
   id: string
@@ -84,6 +85,7 @@ export default function ActivityDetailClient({
   const [success, setSuccess] = useState<string | null>(null)
   const [notas, setNotas] = useState('')
   const notasId = useId()
+  const { track, flushNow } = useAnalytics(user?.id, null)
 
   const hasSpots =
     activity.aforo === null || activity.plazas_inscritas < activity.aforo
@@ -122,6 +124,8 @@ export default function ActivityDetailClient({
           ? 'Ya tenías una plaza reservada.'
           : `Te has apuntado a "${activity.nombre}".`
       setSuccess(reactivationMsg)
+      track('activity_registered', { activity_id: activity.id })
+      void flushNow()
       setNotas('')
       router.refresh()
     } catch (err) {
@@ -144,6 +148,8 @@ export default function ActivityDetailClient({
         throw new Error(errBody.error ?? 'No se pudo cancelar.')
       }
       setSuccess('Has cancelado tu inscripción.')
+      track('activity_cancelled', { activity_id: activity.id })
+      void flushNow()
       router.refresh()
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Error inesperado')

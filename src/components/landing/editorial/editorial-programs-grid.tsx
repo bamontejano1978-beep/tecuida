@@ -9,9 +9,9 @@
  * (sin hacer una segunda query).
  */
 
-import Link from 'next/link'
 import type { ApplicationType } from '@/types'
 import { getApplicationEntryPath } from '@/lib/application-links'
+import TrackedApplicationLink from '@/components/analytics/tracked-application-link'
 import styles from './editorial.module.css'
 
 const ICON_BY_TYPE: Record<ApplicationType, string> = {
@@ -90,8 +90,9 @@ export default function EditorialProgramsGrid({
           )
 
         return (
-          <Link
+          <TrackedApplicationLink
             key={app.id}
+            applicationId={app.id}
             href={getApplicationEntryPath(app)}
             className={styles.programCard}
             style={accent ? { borderLeft: `3px solid ${accent}` } : undefined}
@@ -99,7 +100,7 @@ export default function EditorialProgramsGrid({
             <div className={styles.programIcon}>{icon}</div>
             <h3>{app.nombre}</h3>
             <p>{app.descripcion || 'Sin descripción disponible.'}</p>
-          </Link>
+          </TrackedApplicationLink>
         )
       })}
     </section>

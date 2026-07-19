@@ -15,6 +15,7 @@ import { useState } from 'react'
 import ModuleAccordion from '@/components/program/module-accordion'
 import LessonViewer from '@/components/program/lesson-viewer'
 import type { ProgramModule, Lesson } from '@/types'
+import { useAnalytics } from '@/lib/analytics/tracker'
 
 interface AppProgramClientProps {
   modules: ProgramModule[]
@@ -29,6 +30,13 @@ export default function AppProgramClient({
 }: AppProgramClientProps) {
   const [selectedLesson, setSelectedLesson] = useState<Lesson | null>(null)
   const [completedLessons] = useState<Set<string>>(new Set())
+  const { track, flushNow } = useAnalytics(null, null)
+
+  function selectLesson(lesson: Lesson) {
+    setSelectedLesson(lesson)
+    track('lesson_started', { lesson_id: lesson.id, program_id: programId })
+    void flushNow()
+  }
 
   // Encontrar el índice de la lección actual
   const allLessons = modules.flatMap((m) => m.lessons)
@@ -59,7 +67,7 @@ export default function AppProgramClient({
             modules={modules}
             currentLessonId={selectedLesson?.id}
             completedLessons={completedLessons}
-            onSelectLesson={setSelectedLesson}
+            onSelectLesson={selectLesson}
             primaryColor={appBrandColor}
           />
         </div>

@@ -30,4 +30,21 @@ describe('EditorialHero', () => {
     )
     expect(screen.getAllByText(/^(BIENESTAR|SOSTENIBILIDAD SOCIAL|FUTURO)$/)).toHaveLength(3)
   })
+
+  it('acepta contenido editorial configurado desde administración', () => {
+    const { container } = render(
+      <EditorialHero
+        tenant={tenant}
+        subtitle="Municipio saludable"
+        intro="Una estrategia propia"
+        body="Programas adaptados a cada etapa vital"
+        previewTags={['SALUD', 'CUIDADOS']}
+      />,
+    )
+
+    expect(screen.getByRole('heading', { level: 2 })).toHaveTextContent('Municipio saludable')
+    expect(container).toHaveTextContent('Una estrategia propia')
+    expect(container).toHaveTextContent('Programas adaptados a cada etapa vital')
+    expect(screen.getAllByText(/^(SALUD|CUIDADOS)$/)).toHaveLength(2)
+  })
 })

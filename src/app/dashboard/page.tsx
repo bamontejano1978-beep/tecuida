@@ -17,6 +17,7 @@ import { getTenantConfigFromDB, getTenantFromHeaders } from '@/lib/tenant/header
 import { createClient, createAdminClient } from '@/lib/supabase/server'
 import { getApplicationEntryPath } from '@/lib/application-links'
 import SignOutButton from '@/components/ui/sign-out-button'
+import TrackedApplicationLink from '@/components/analytics/tracked-application-link'
 
 // Forzar render dinámico en cada request. Sin esto, Next.js podría cachear
 // la respuesta del `fetch` interno de supabase-js en el Data Cache y servir
@@ -282,8 +283,9 @@ export default async function DashboardPage() {
                       app_slug: app.appSlug,
                     })
                     return (
-                      <Link
+                      <TrackedApplicationLink
                         key={app.id}
+                        applicationId={app.id}
                         href={appHref}
                         className={`block rounded-xl border p-4 transition-all hover:shadow-md ${
                           isOpened
@@ -316,7 +318,7 @@ export default async function DashboardPage() {
                             {isOpened ? 'Abrir de nuevo →' : 'Abrir →'}
                           </span>
                         </div>
-                      </Link>
+                      </TrackedApplicationLink>
                     )
                   })}
                 </div>

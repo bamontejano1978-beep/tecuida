@@ -12,10 +12,10 @@
  */
 
 import '@/app/globals.css'
-import { headers } from 'next/headers'
 import type { Metadata } from 'next'
 import PwaRegister from './pwa-register'
 import Link from 'next/link'
+import { getPublicApplication } from '@/lib/applications/public-application'
 
 // ---------------------------------------------------------------------------
 // Helpers: derivar colores del brand_color
@@ -62,11 +62,14 @@ export async function generateMetadata({
 }: {
   params: { appSlug: string }
 }): Promise<Metadata> {
+  const app = await getPublicApplication(params.appSlug)
   return {
+    title: app?.nombre || 'Aplicación — TE CUIDA',
+    description: app?.descripcion || 'Aplicación de bienestar ciudadano de TE CUIDA',
     manifest: `/apps/${params.appSlug}/manifest.json`,
     appleWebApp: {
       capable: true,
-      title: 'TE CUIDA',
+      title: app?.nombre || 'TE CUIDA',
       statusBarStyle: 'black-translucent',
     },
   }
@@ -76,18 +79,18 @@ export async function generateMetadata({
 // Layout
 // ---------------------------------------------------------------------------
 
-export default function AppLayout({
+export default async function AppLayout({
   children,
   params,
 }: {
   children: React.ReactNode
   params: { appSlug: string }
 }) {
-  const headersList = headers()
-  const appName = headersList.get('x-app-name') || 'Aplicación'
-  const appType = headersList.get('x-app-type') || 'programa'
-  const brandColor = headersList.get('x-app-brand-color') || null
-  const isReto30 = params.appSlug === 'reto30'
+  const app = await getPublicApplication(params.appSlug)
+  const appName = app?.nombre || 'Aplicación'
+  const appType = app?.tipo || 'programa'
+  const brandColor = app?.brand_color || null
+  const isReto30 = (app?.app_slug || params.appSlug) === 'reto30'
 
   // Reto30 tiene su propio tema oscuro + glassmorphism
   if (isReto30) {

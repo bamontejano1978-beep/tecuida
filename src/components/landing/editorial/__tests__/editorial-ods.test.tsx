@@ -28,4 +28,14 @@ describe('EditorialOds', () => {
       'Alineada con la salud, la igualdad, la educación, la inclusión y un municipio más sostenible.',
     )
   })
+
+  it('permite seleccionar los ODS desde la configuración municipal', () => {
+    render(<EditorialOds nombreMunicipio="Zafra" odsNumbers={[1, 8, 13]} />)
+
+    expect(screen.getAllByText(/^ODS \d+$/).map((node) => node.textContent)).toEqual([
+      'ODS 1',
+      'ODS 8',
+      'ODS 13',
+    ])
+  })
 })

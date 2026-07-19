@@ -10,7 +10,7 @@ manteniendo los datos aislados por `municipality_id`.
 - Supabase para autenticación, PostgreSQL, RLS y almacenamiento.
 - Upstash Redis para caché de tenants y rate limiting distribuido.
 - Zod para validar entradas de formularios y API.
-- Jest, Testing Library y pgTAP para pruebas.
+- Jest, Testing Library, Playwright y pgTAP para pruebas.
 - Vercel para despliegue y dominios multitenant.
 
 Las áreas principales están en:
@@ -50,6 +50,20 @@ Variables principales:
 - `UPSTASH_REDIS_REST_TOKEN`
 - `REGISTER_APP_API_KEY`
 - `DEMO_MODE`
+- `HEALTH_ALERT_WEBHOOK_URL` (opcional, para avisos operativos)
+
+## Personalizacion municipal
+
+Cada municipio puede utilizar la landing clasica o la variante editorial desde
+su ficha de administracion. La variante editorial permite configurar subtitulo,
+introduccion, texto institucional, etiquetas, ODS visibles, orden de secciones y
+visibilidad de programas y ODS. El formulario incluye una vista previa local que
+no publica cambios hasta guardar.
+
+Las aplicaciones se gestionan desde un registro unico. La URL publica canonica
+es `/apps/<slug-o-id>` y resuelve de forma uniforme aplicaciones nativas,
+paquetes ZIP y destinos externos. El panel de cada aplicacion muestra el tipo de
+alojamiento, el destino efectivo y accesos para comprobar ambas rutas.
 
 ## Calidad y pruebas
 
@@ -58,6 +72,7 @@ npm run lint
 npm run typecheck
 npm test
 npm run test:coverage
+npm run test:e2e
 npm run build
 ```
 
@@ -94,7 +109,8 @@ Eliminarlo únicamente en el último commit no lo invalida.
 5. Desplegar la aplicación después de confirmar la compatibilidad de esquema.
 
 Vercel ejecuta `npm run build`. GitHub Actions valida lint, tipos, Jest,
-cobertura, migraciones y pruebas PostgreSQL en cada push o pull request.
+cobertura, migraciones, pruebas PostgreSQL y navegacion real con Playwright en
+cada push o pull request.
 
 ## Operación
 
@@ -102,3 +118,16 @@ El endpoint `/api/admin/health` comprueba conectividad sin exponer mensajes
 internos de la base de datos. Las tareas operativas y credenciales deben vivir en
 el gestor de secretos y en la documentación privada del equipo, no en archivos de
 checkpoint versionados.
+
+Los errores del navegador se registran de forma sanitizada mediante
+`/api/client-errors`. El endpoint de salud incorpora un identificador de
+despliegue y puede avisar a un webhook configurando `HEALTH_ALERT_WEBHOOK_URL`.
+La analitica funcional se envia a `/api/analytics` solo despues del consentimiento
+del visitante; el servidor valida los eventos, aplica limite distribuido y
+determina el municipio de usuarios autenticados sin confiar en el navegador.
+
+La migracion `049_platform_operability.sql` incorpora el RPC agregado
+`get_municipality_stats`, que calcula las estadisticas municipales dentro de
+PostgreSQL para evitar descargar filas individuales al servidor web. Debe
+aplicarse antes de desplegar esta version; mientras tanto, el panel conserva una
+ruta de compatibilidad con el calculo anterior.

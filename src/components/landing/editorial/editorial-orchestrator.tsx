@@ -54,14 +54,13 @@ export default function EditorialOrchestrator({
   // no hace falta cast. Si en algún futuro se añade un campo opcional como
   // fallback al render editorial, basta con encadenar `|| '#16452f'`.
   const accent = tenant.colores_corporativos.accent || '#16452f'
+  const texts = tenant.textos_institucionales
+  const sectionOrder = texts.editorial_sections?.length
+    ? texts.editorial_sections
+    : (['programas', 'ods'] as const)
 
-  return (
-    <div className={styles.editorial} data-layout="editorial">
-      <EditorialTopbar tenant={tenant} />
-
-      <EditorialHero tenant={tenant} />
-
-      {/* ── Catálogo plano de programas (sin acordeón) ── */}
+  const programsSection = (
+    <section key="programas-section" aria-label="Programas del municipio">
       <header style={{ textAlign: 'center', margin: '70px 16px 18px' }}>
         <p
           style={{
@@ -74,7 +73,7 @@ export default function EditorialOrchestrator({
             margin: 0,
           }}
         >
-          ¿En qué podemos ayudarte?
+          {texts.programas_subtitulo || '¿En qué podemos ayudarte?'}
         </p>
         <h2
           style={{
@@ -84,11 +83,32 @@ export default function EditorialOrchestrator({
             margin: '8px 0 0',
           }}
         >
-          Nuestros programas
+          {texts.programas_titulo || 'Nuestros programas'}
         </h2>
       </header>
-
       <EditorialProgramsGrid apps={validApps} accent={accent} />
+    </section>
+  )
+
+  const odsSection = (
+    <EditorialOds
+      key="ods-section"
+      nombreMunicipio={tenant.nombre_municipio}
+      odsNumbers={texts.editorial_ods}
+    />
+  )
+
+  return (
+    <div className={styles.editorial} data-layout="editorial">
+      <EditorialTopbar tenant={tenant} />
+
+      <EditorialHero
+        tenant={tenant}
+        subtitle={texts.editorial_subtitle}
+        intro={texts.editorial_intro}
+        body={texts.editorial_body}
+        previewTags={texts.editorial_tags}
+      />
 
       {/*
         Nota: featuredActivities se calculan en page.tsx pero NO se
@@ -99,8 +119,11 @@ export default function EditorialOrchestrator({
         a aceptar featuredActivities en props.
        */}
 
-      {/* ── Agenda 2030 + compromiso institucional ── */}
-      <EditorialOds nombreMunicipio={tenant.nombre_municipio} />
+      {sectionOrder.map((section) => {
+        if (section === 'programas' && texts.seccion_programas_visible !== false) return programsSection
+        if (section === 'ods' && texts.seccion_ods_visible !== false) return odsSection
+        return null
+      })}
 
       <EditorialFooter tenant={tenant} />
     </div>

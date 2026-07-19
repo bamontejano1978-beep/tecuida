@@ -8,20 +8,13 @@
  */
 
 import { NextResponse, type NextRequest } from 'next/server'
-import { createAdminClient } from '@/lib/supabase/server'
+import { getPublicApplication } from '@/lib/applications/public-application'
 
 export async function GET(
   _request: NextRequest,
   { params }: { params: { appSlug: string } },
 ) {
-  const adminClient = createAdminClient()
-
-  const { data } = await adminClient
-    .from('applications')
-    .select('nombre, thumbnail_url')
-    .eq('app_slug', params.appSlug)
-    .eq('activa', true)
-    .single()
+  const data = await getPublicApplication(params.appSlug)
 
   if (!data) {
     return new NextResponse('App no encontrada', { status: 404 })
@@ -37,7 +30,7 @@ export async function GET(
     start_url: `/apps/${params.appSlug}`,
     display: 'standalone',
     background_color: '#ffffff',
-    theme_color: '#4f46e5',
+    theme_color: data.brand_color || '#4f46e5',
     orientation: 'portrait-primary',
     scope: `/apps/${params.appSlug}`,
     icons: data.thumbnail_url

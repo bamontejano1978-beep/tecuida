@@ -12,7 +12,8 @@
     "test": "jest --runInBand",
     "test:db": "supabase test db",
     "test:watch": "jest --watch",
-    "test:coverage": "jest --coverage"
+    "test:coverage": "jest --coverage",
+    "test:e2e": "playwright test"
   },
   "dependencies": {
     "@supabase/ssr": "^0.3.0",
@@ -27,6 +28,7 @@
     "zod": "^3.25.76"
   },
   "devDependencies": {
+    "@playwright/test": "^1.61.1",
     "@testing-library/jest-dom": "^6.9.1",
     "@testing-library/react": "^15.0.7",
     "@testing-library/user-event": "^14.6.1",

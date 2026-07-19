@@ -239,6 +239,11 @@ async function resolveTenant(
 
 export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl
+  const requestId =
+    request.headers.get('x-request-id') ||
+    (typeof crypto.randomUUID === 'function'
+      ? crypto.randomUUID()
+      : `${Date.now().toString(36)}-${Math.random().toString(36).slice(2)}`)
 
   // 0. Saltar updateSession en POST /login y POST /register.
   //    Son Server Actions de autenticación que establecen cookies
@@ -314,6 +319,7 @@ export async function middleware(request: NextRequest) {
       appUrl.pathname = `/apps/${slug}`
 
       const appHeaders = new Headers(request.headers)
+      appHeaders.set('x-request-id', requestId)
       appHeaders.set('x-app-id', app.id)
       appHeaders.set('x-app-name', app.nombre)
       appHeaders.set('x-app-type', app.tipo)
@@ -352,6 +358,7 @@ export async function middleware(request: NextRequest) {
 
   // 9. Inyectar headers del tenant en la request
   const tenantHeaders = new Headers(request.headers)
+  tenantHeaders.set('x-request-id', requestId)
   tenantHeaders.set('x-tenant-id', config.id)
   tenantHeaders.set('x-tenant-slug', config.slug)
   tenantHeaders.set('x-tenant-name', config.nombre_municipio)
@@ -372,6 +379,7 @@ export async function middleware(request: NextRequest) {
   supabaseResponse.cookies.getAll().forEach((cookie) => {
     response.cookies.set(cookie.name, cookie.value, cookie)
   })
+  response.headers.set('x-request-id', requestId)
 
   return response
 }

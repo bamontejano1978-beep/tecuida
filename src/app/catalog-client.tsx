@@ -11,6 +11,7 @@ import { useState, useMemo } from 'react'
 import ApplicationCard from '@/components/catalog/application-card'
 import CategoryFilter from '@/components/catalog/category-filter'
 import type { Application } from '@/types'
+import { useAnalytics } from '@/lib/analytics/tracker'
 
 // ---------------------------------------------------------------------------
 // Helpers
@@ -41,6 +42,7 @@ export default function CatalogClient({
   primaryColor,
 }: CatalogClientProps) {
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null)
+  const { track } = useAnalytics(null, null)
 
   // Búsqueda por nombre
   const [searchQuery, setSearchQuery] = useState('')
@@ -82,7 +84,10 @@ export default function CatalogClient({
         <CategoryFilter
           categories={categoriesWithDynamicCounts}
           selected={selectedCategory}
-          onSelect={setSelectedCategory}
+          onSelect={(categoryId) => {
+            setSelectedCategory(categoryId)
+            track('category_filter', { category_id: categoryId })
+          }}
           primaryColor={primaryColor}
         />
         {/* Barra de búsqueda */}
@@ -101,6 +106,14 @@ export default function CatalogClient({
             type="search"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
+            onBlur={() => {
+              if (searchQuery.trim()) {
+                track('catalog_search', {
+                  query_length: searchQuery.trim().length,
+                  results: filteredApps.length,
+                })
+              }
+            }}
             placeholder="Buscar aplicaciones…"
             className="block w-full rounded-lg border border-gray-300 pl-10 pr-4 py-2 text-sm shadow-sm placeholder:text-gray-400 focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
           />

@@ -55,6 +55,7 @@ export default async function EditMunicipioPage({ params }: EditMunicipioPagePro
     logo_url: (data.logo_url as string) || null,
     email_contacto: (data.email_contacto as string) || null,
     telefono_contacto: (data.telefono_contacto as string) || null,
+    layout_variant: ((data.layout_variant as string) || 'classic') as 'classic' | 'editorial',
     textos_institucionales: {
       bienvenida: (data.textos_institucionales as Record<string, unknown>)?.bienvenida as string || '',
       descripcion: (data.textos_institucionales as Record<string, unknown>)?.descripcion as string || '',
@@ -65,6 +66,14 @@ export default async function EditMunicipioPage({ params }: EditMunicipioPagePro
       programas_subtitulo: (data.textos_institucionales as Record<string, unknown>)?.programas_subtitulo as string || '',
       cta_titulo: (data.textos_institucionales as Record<string, unknown>)?.cta_titulo as string || '',
       cta_texto: (data.textos_institucionales as Record<string, unknown>)?.cta_texto as string || '',
+      editorial_subtitle: (data.textos_institucionales as Record<string, unknown>)?.editorial_subtitle as string || '',
+      editorial_intro: (data.textos_institucionales as Record<string, unknown>)?.editorial_intro as string || '',
+      editorial_body: (data.textos_institucionales as Record<string, unknown>)?.editorial_body as string || '',
+      editorial_tags: ((data.textos_institucionales as Record<string, unknown>)?.editorial_tags as string[]) || [],
+      editorial_ods: ((data.textos_institucionales as Record<string, unknown>)?.editorial_ods as number[]) || [3, 4, 5, 10, 11, 16, 17],
+      editorial_sections: ((data.textos_institucionales as Record<string, unknown>)?.editorial_sections as Array<'programas' | 'ods'>) || ['programas', 'ods'],
+      seccion_programas_visible: (data.textos_institucionales as Record<string, unknown>)?.seccion_programas_visible !== false,
+      seccion_ods_visible: (data.textos_institucionales as Record<string, unknown>)?.seccion_ods_visible !== false,
     },
     created_at: data.created_at as string,
   }

@@ -14,9 +14,9 @@
 'use client'
 
 import { useState } from 'react'
-import Link from 'next/link'
 import Image from 'next/image'
 import { getApplicationEntryPath } from '@/lib/application-links'
+import TrackedApplicationLink from '@/components/analytics/tracked-application-link'
 import type { Application, ApplicationType } from '@/types'
 
 // ---------------------------------------------------------------------------
@@ -95,7 +95,8 @@ export default function ApplicationCard({
   const href = getApplicationEntryPath(application)
 
   return (
-    <Link
+    <TrackedApplicationLink
+      applicationId={application.id}
       href={href}
       className="group relative flex flex-col rounded-xl border border-gray-200 bg-white p-6 shadow-sm transition-all duration-200 hover:shadow-lg hover:border-indigo-200 hover:-translate-y-1 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
     >
@@ -156,6 +157,6 @@ export default function ApplicationCard({
             : 'Abrir →'}
         </span>
       </div>
-    </Link>
+    </TrackedApplicationLink>
   )
 }

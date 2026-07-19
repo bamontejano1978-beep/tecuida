@@ -140,6 +140,8 @@ export async function PUT(
       updateData.email_contacto = updates.email_contacto
     if (updates.telefono_contacto !== undefined)
       updateData.telefono_contacto = updates.telefono_contacto
+    if (updates.layout_variant !== undefined)
+      updateData.layout_variant = updates.layout_variant
     if (updates.textos_institucionales !== undefined)
       updateData.textos_institucionales = updates.textos_institucionales
 

@@ -37,6 +37,13 @@ const institutionalTextsSchema = z.object({
   seccion_stats_visible: z.boolean().optional(),
   seccion_programas_visible: z.boolean().optional(),
   seccion_cta_visible: z.boolean().optional(),
+  editorial_subtitle: z.string().max(120).optional(),
+  editorial_intro: z.string().max(300).optional(),
+  editorial_body: z.string().max(600).optional(),
+  editorial_tags: z.array(z.string().min(1).max(40)).max(8).optional(),
+  editorial_ods: z.array(z.number().int().min(1).max(17)).max(17).optional(),
+  editorial_sections: z.array(z.enum(['programas', 'ods'])).max(2).optional(),
+  seccion_ods_visible: z.boolean().optional(),
 })
 
 /**
@@ -62,6 +69,7 @@ export const CreateMunicipalitySchema = z.object({
   logo_url: z.string().url('La URL del logo debe ser una URL válida').nullable().optional(),
   email_contacto: z.string().email('Debe ser un email válido').nullable().optional(),
   telefono_contacto: z.string().max(30, 'El teléfono no puede superar los 30 caracteres').nullable().optional(),
+  layout_variant: z.enum(['classic', 'editorial']).optional(),
   textos_institucionales: institutionalTextsSchema.optional(),
 })
 

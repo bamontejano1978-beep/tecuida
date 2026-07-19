@@ -6,20 +6,15 @@
  *   - Programas: ModuleAccordion + LessonViewer interactivos
  *   - Herramientas/Recursos/Encuestas: landing con acceso directo
  *
- * Server Component que:
- *   1. Lee x-app-* headers inyectados por el middleware para subdominios antiguos
- *   2. Si no hay headers, busca por slug o UUID en la base de datos
- *   3. Renderiza el hero de la app + el contenido según tipo
+ * Server Component que usa el mismo resolvedor que layout y manifest,
+ * admitiendo tanto slug como UUID.
  *
  * Los subdominios existentes siguen funcionando como alias compatibles.
  */
 
 import { notFound } from 'next/navigation'
-import { headers } from 'next/headers'
-import { createAdminClient } from '@/lib/supabase/server'
 import { getAppProgramBundle } from '@/lib/tenant/app-program-cache'
-import { isApplicationId } from '@/lib/application-links'
-import { normalizeExternalUrl } from '@/lib/urls'
+import { getPublicApplication } from '@/lib/applications/public-application'
 import GenericAppLanding from '@/components/landing/generic-app-landing'
 import type { Program, ProgramModule, Lesson } from '@/types'
 import AppProgramClient from './program-client'
@@ -208,89 +203,41 @@ function AppHero({
 // ---------------------------------------------------------------------------
 
 export default async function ApplicationEntryPage({ params }: Props) {
-  const headerList = headers()
-  let appId = headerList.get('x-app-id')
-  let appName = headerList.get('x-app-name')
-  let appType = headerList.get('x-app-type')
-  let appUrl = headerList.get('x-app-url')
-  let appBrandColor = headerList.get('x-app-brand-color')
-  let appThumbnail = headerList.get('x-app-thumbnail')
-  let appDescription = headerList.get('x-app-description')
-  let appCategory = headerList.get('x-app-category')
+  const app = await getPublicApplication(params.appSlug)
+  if (!app) notFound()
 
-  // El middleware ya entrega la app resuelta al entrar por un subdominio.
-  // En la URL canónica la resolvemos por slug o, para apps antiguas, por UUID.
-  if (!appId) {
-    const adminClient = createAdminClient()
-    const query = adminClient
-      .from('applications')
-      .select('id, nombre, tipo, descripcion, thumbnail_url, brand_color, instrucciones, url_acceso, categoria:categories(nombre)')
-      .eq('activa', true)
-
-    const { data } = isApplicationId(params.appSlug)
-      ? await query.eq('id', params.appSlug).maybeSingle()
-      : await query.eq('app_slug', params.appSlug).maybeSingle()
-
-    if (!data) notFound()
-
-    appId = data.id as string
-    appName = data.nombre as string
-    appType = (data.tipo as string) || 'herramienta'
-    appUrl = (data.url_acceso as string) || null
-    appBrandColor = (data.brand_color as string) || null
-    appThumbnail = (data.thumbnail_url as string) || null
-    appDescription = (data.descripcion as string) || null
-    appCategory = (data.categoria as unknown as { nombre: string } | null)?.nombre ?? null
-  }
-
-  if (!appId) notFound()
-
-  // App resuelta por middleware
-  const tipo = appType || 'programa'
-  const brandColor = appBrandColor || TYPE_COLORS[tipo] || '#4f46e5'
-  const nombre = appName || 'Aplicación'
-  const descripcion = appDescription || null
-  const thumbnailUrl = appThumbnail || null
-  const catNombre = appCategory || null
+  const appId = app.id
+  const tipo = app.tipo
+  const brandColor = app.brand_color || TYPE_COLORS[tipo] || '#4f46e5'
+  const nombre = app.nombre
+  const descripcion = app.descripcion
+  const thumbnailUrl = app.thumbnail_url
+  const catNombre = app.categoria_nombre
 
   // ── No-programa: hero + landing genérica ──
   if (tipo !== 'programa') {
-    const adminClient = createAdminClient()
-    const { data } = await adminClient
-      .from('applications')
-      .select('descripcion, instrucciones, url_acceso, categoria:categories(nombre)')
-      .eq('id', appId)
-      .single()
-
     const cta = TYPE_CTAS[tipo] || TYPE_CTAS.herramienta
-    const urlAcceso = normalizeExternalUrl(
-      appUrl ?? (data?.url_acceso as string) ?? null,
-    )
-    const resolvedCategory =
-      catNombre ??
-      (data?.categoria as unknown as { nombre: string } | null)?.nombre ??
-      null
 
     return (
       <>
         <AppHero
           nombre={nombre}
-          descripcion={descripcion ?? (data?.descripcion as string) ?? null}
+          descripcion={descripcion}
           tipo={tipo}
           brandColor={brandColor}
           thumbnailUrl={thumbnailUrl}
-          categoriaNombre={resolvedCategory}
+          categoriaNombre={catNombre}
           ctaLabel={cta.label}
-          ctaHref={urlAcceso || '#contenido'}
+          ctaHref={app.url_acceso || '#contenido'}
         />
         <div id="contenido">
           <GenericAppLanding
             nombre={nombre}
-            descripcion={data?.descripcion ? (data.descripcion as string) : descripcion}
+            descripcion={descripcion}
             tipo={tipo}
-            instrucciones={(data?.instrucciones as string) || null}
-            url_acceso={urlAcceso}
-            categoria_nombre={resolvedCategory}
+            instrucciones={app.instrucciones}
+            url_acceso={app.url_acceso}
+            categoria_nombre={catNombre}
           />
         </div>
       </>
@@ -298,9 +245,7 @@ export default async function ApplicationEntryPage({ params }: Props) {
   }
 
   // ── Programa: hero + datos completos (program, modules, lessons) ──
-  const isReto30 = params.appSlug === 'reto30'
-
-  const adminClient = createAdminClient()
+  const isReto30 = (app.app_slug || params.appSlug) === 'reto30'
 
   // Bundle cacheado con tag `app-program-<appId>` (invalidación POR APP).
   // El helper `getAppProgramBundle` envuelve las 3 queries
@@ -320,45 +265,28 @@ export default async function ApplicationEntryPage({ params }: Props) {
       `[ApplicationEntryPage] App "${nombre}" (${tipo}) no tiene programa asociado. Renderizando landing genérica.`,
     )
 
-    // Necesitamos los datos del app (instrucciones, url_acceso, categoría) para
-    // pintar la landing genérica con la misma coherencia que la rama no-programa.
-    const { data: appRow } = await adminClient
-      .from('applications')
-      .select('descripcion, instrucciones, url_acceso, categoria:categories(nombre)')
-      .eq('id', appId)
-      .maybeSingle()
-
     const cta = TYPE_CTAS[tipo] || TYPE_CTAS.herramienta
-    const urlAcceso = normalizeExternalUrl(
-      appUrl ?? (appRow?.url_acceso as string) ?? null,
-    )
-    const resolvedCategory =
-      catNombre ??
-      (appRow?.categoria as unknown as { nombre: string } | null)?.nombre ??
-      null
-    const fallbackDescripcion =
-      (appRow?.descripcion as string | null | undefined) ?? descripcion ?? null
 
     return (
       <>
         <AppHero
           nombre={nombre}
-          descripcion={fallbackDescripcion}
+          descripcion={descripcion}
           tipo={tipo}
           brandColor={brandColor}
           thumbnailUrl={thumbnailUrl}
-          categoriaNombre={resolvedCategory}
+          categoriaNombre={catNombre}
           ctaLabel={cta.label}
-          ctaHref={urlAcceso || '#contenido'}
+          ctaHref={app.url_acceso || '#contenido'}
         />
         <div id="contenido">
           <GenericAppLanding
             nombre={nombre}
-            descripcion={fallbackDescripcion}
+            descripcion={descripcion}
             tipo={tipo}
-            instrucciones={(appRow?.instrucciones as string) || null}
-            url_acceso={urlAcceso}
-            categoria_nombre={resolvedCategory}
+            instrucciones={app.instrucciones}
+            url_acceso={app.url_acceso}
+            categoria_nombre={catNombre}
           />
         </div>
       </>

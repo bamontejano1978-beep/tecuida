@@ -67,6 +67,20 @@ export default function EditApplicationForm({
   const [submitError, setSubmitError] = useState<string | null>(null)
   const [submitOk, setSubmitOk] = useState<string | null>(null)
   const [loading, setLoading] = useState(false)
+  const [copied, setCopied] = useState(false)
+
+  const publicIdentifier = formData.app_slug.trim() || application.id
+  const canonicalUrl = `https://tecuida.group/apps/${encodeURIComponent(publicIdentifier)}`
+  const hostingType = formData.url_acceso.startsWith('/a/')
+    ? 'Paquete alojado en TE CUIDA'
+    : formData.url_acceso
+      ? 'Proveedor externo'
+      : formData.tipo === 'programa'
+        ? 'Programa nativo'
+        : 'Landing informativa'
+  const configurationReady =
+    !!formData.nombre.trim() &&
+    (!!formData.url_acceso.trim() || formData.tipo === 'programa' || !!formData.instrucciones.trim())
 
   function updateField<K extends keyof typeof formData>(
     field: K,
@@ -190,6 +204,51 @@ export default function EditApplicationForm({
           ID: {application.id.slice(0, 8)}…
         </span>
       </div>
+
+      {/* Registro central de acceso */}
+      <section className="rounded-xl border border-sky-200 bg-sky-50 p-4" aria-labelledby="application-registry-title">
+        <div className="flex flex-wrap items-start justify-between gap-3">
+          <div>
+            <h2 id="application-registry-title" className="text-sm font-semibold text-sky-900">
+              Registro central de acceso
+            </h2>
+            <p className="mt-1 text-xs text-sky-700">
+              Esta dirección permanece estable aunque cambie el alojamiento real.
+            </p>
+          </div>
+          <span className={`rounded-full px-2.5 py-1 text-xs font-semibold ${configurationReady ? 'bg-emerald-100 text-emerald-700' : 'bg-amber-100 text-amber-800'}`}>
+            {configurationReady ? 'Configuración completa' : 'Revisar configuración'}
+          </span>
+        </div>
+        <div className="mt-3 rounded-lg border border-sky-100 bg-white p-3">
+          <p className="break-all font-mono text-xs text-gray-700">{canonicalUrl}</p>
+          <dl className="mt-2 grid gap-2 text-xs sm:grid-cols-2">
+            <div><dt className="text-gray-400">Alojamiento</dt><dd className="font-medium text-gray-700">{hostingType}</dd></div>
+            <div><dt className="text-gray-400">Destino actual</dt><dd className="truncate font-medium text-gray-700">{formData.url_acceso || 'Contenido interno'}</dd></div>
+          </dl>
+        </div>
+        <div className="mt-3 flex flex-wrap gap-2">
+          <button
+            type="button"
+            onClick={async () => {
+              await navigator.clipboard.writeText(canonicalUrl)
+              setCopied(true)
+              window.setTimeout(() => setCopied(false), 2000)
+            }}
+            className="rounded-lg bg-sky-700 px-3 py-2 text-xs font-semibold text-white hover:bg-sky-600"
+          >
+            {copied ? 'Copiada ✓' : 'Copiar URL pública'}
+          </button>
+          <a href={canonicalUrl} target="_blank" rel="noopener noreferrer" className="rounded-lg border border-sky-300 bg-white px-3 py-2 text-xs font-semibold text-sky-800 hover:bg-sky-100">
+            Probar acceso ↗
+          </a>
+          {formData.url_acceso && (
+            <a href={formData.url_acceso} target="_blank" rel="noopener noreferrer" className="rounded-lg border border-gray-300 bg-white px-3 py-2 text-xs font-semibold text-gray-700 hover:bg-gray-50">
+              Abrir alojamiento ↗
+            </a>
+          )}
+        </div>
+      </section>
 
       {/* Nombre */}
       <div>
