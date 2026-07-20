@@ -124,7 +124,10 @@ export default function AppThumbnailUploader({
   }
 
   // ── Derive display URL ─────────────────────────────────
-  const displayUrl = preview || (mode === 'revert' ? currentUrl : null)
+  // El valor controlado también se muestra en modo "clear". Esto permite
+  // reutilizar el uploader para iconos municipales que pueden eliminarse para
+  // volver al icono global de la aplicación.
+  const displayUrl = preview || currentUrl || null
 
   return (
     <div className="space-y-2">

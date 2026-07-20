@@ -186,6 +186,24 @@ describe('PUT /api/admin/municipalities/[id]/applications — invalidación de c
     expect(cacheMock.revalidatePath).not.toHaveBeenCalled()
   })
 
+  it('rechaza iconos personalizados de aplicaciones que no están activas', async () => {
+    const response = await PUT(
+      makePutRequest({
+        municipality_id: MUNICIPIO_ID,
+        application_ids: [],
+        thumbnail_overrides: {
+          [APP_ID]: 'https://cdn.example.com/icono-municipal.png',
+        },
+      }),
+      { params: { id: MUNICIPIO_ID } },
+    )
+
+    expect(response.status).toBe(422)
+    expect(createAdminClient).not.toHaveBeenCalled()
+    expect(cacheMock.revalidateTag).not.toHaveBeenCalled()
+    expect(cacheMock.revalidatePath).not.toHaveBeenCalled()
+  })
+
   it('NO llama revalidateTag ni revalidatePath si el municipio no existe', async () => {
     ;(createAdminClient as jest.Mock).mockReturnValue(
       buildSupabaseMock([{ data: null, error: { message: 'not found' } }]),

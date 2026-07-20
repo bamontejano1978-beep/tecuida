@@ -64,6 +64,8 @@ Las aplicaciones se gestionan desde un registro unico. La URL publica canonica
 es `/apps/<slug-o-id>` y resuelve de forma uniforme aplicaciones nativas,
 paquetes ZIP y destinos externos. El panel de cada aplicacion muestra el tipo de
 alojamiento, el destino efectivo y accesos para comprobar ambas rutas.
+Cada asignacion municipal puede incorporar un icono propio para la landing y el
+catalogo; si no se configura, hereda automaticamente el icono global.
 
 ## Calidad y pruebas
 

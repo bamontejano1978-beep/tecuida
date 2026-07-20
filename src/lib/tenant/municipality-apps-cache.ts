@@ -47,6 +47,7 @@ import { createAdminClient } from '@/lib/supabase/server'
  */
 export interface MunicipalityAppRow {
   application_id: string
+  thumbnail_url_override: string | null
   application: {
     id: string
     category_id: string
@@ -104,6 +105,7 @@ async function _fetchMunicipalityApps(
     .from('municipality_applications')
     .select(
       `application_id,
+      thumbnail_url_override,
       application:applications!inner (
         id,
         category_id,

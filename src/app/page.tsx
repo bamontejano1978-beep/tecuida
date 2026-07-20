@@ -36,6 +36,7 @@ import type { CorporateColors, InstitutionalTexts } from '@/types'
 // Importado localmente para mantener el bundle de municipios clásicos
 // sin pagar el coste de los componentes del rediseño.
 import { default as EditorialOrchestrator } from '@/components/landing/editorial/editorial-orchestrator'
+import { getMunicipalityApplicationThumbnail } from '@/lib/tenant/municipality-app-thumbnail'
 
 // ---------------------------------------------------------------------------
 // Tipos locales
@@ -43,6 +44,7 @@ import { default as EditorialOrchestrator } from '@/components/landing/editorial
 
 interface AppRow {
   application_id: string
+  thumbnail_url_override: string | null
   application: {
     id: string
     category_id: string
@@ -816,7 +818,10 @@ export default async function HomePage() {
       categoria_id: a.application!.category_id,
       nombre: a.application!.nombre,
       descripcion: a.application!.descripcion,
-      thumbnail_url: a.application!.thumbnail_url || '',
+      thumbnail_url: getMunicipalityApplicationThumbnail(
+        a.thumbnail_url_override,
+        a.application!.thumbnail_url,
+      ),
       tipo: a.application!.tipo as 'programa' | 'herramienta' | 'encuesta' | 'recurso',
       activa: a.application!.activa,
       created_at: a.application!.created_at || null,

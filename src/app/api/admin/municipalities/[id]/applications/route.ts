@@ -4,8 +4,8 @@
  * GET /api/admin/municipalities/[id]/applications   → Listar apps activas
  * PUT /api/admin/municipalities/[id]/applications   → Sincronizar apps
  *
- * El PUT recibe { application_ids: UUID[] } y reemplaza
- * completamente las aplicaciones del municipio por las de la lista.
+ * El PUT recibe { application_ids: UUID[], thumbnail_overrides?: Record<UUID, URL> }
+ * y reemplaza completamente las aplicaciones del municipio por las de la lista.
  *
  * Seguridad: Usa createAdminClient() con service_role_key.
  *
@@ -60,6 +60,7 @@ export async function GET(
         application_id,
         activa,
         fecha_activacion,
+        thumbnail_url_override,
         application:applications (
           id,
           category_id,
@@ -139,7 +140,21 @@ export async function PUT(
     )
   }
 
-  const { application_ids } = parsed.data
+  const { application_ids, thumbnail_overrides } = parsed.data
+
+  const selectedIds = new Set(application_ids)
+  const orphanOverrideIds = Object.keys(thumbnail_overrides).filter(
+    (appId) => !selectedIds.has(appId),
+  )
+  if (orphanOverrideIds.length > 0) {
+    return NextResponse.json(
+      {
+        error: 'Solo se puede personalizar el icono de aplicaciones activas',
+        invalid_ids: orphanOverrideIds,
+      },
+      { status: 422 },
+    )
+  }
 
   try {
     const supabase = createAdminClient()
@@ -209,6 +224,7 @@ export async function PUT(
         municipality_id: params.id,
         application_id: appId,
         activa: true,
+        thumbnail_url_override: thumbnail_overrides[appId] || null,
       }))
 
       const { error: insertError } = await supabase
@@ -236,6 +252,7 @@ export async function PUT(
         application_id,
         activa,
         fecha_activacion,
+        thumbnail_url_override,
         application:applications (
           id,
           nombre,

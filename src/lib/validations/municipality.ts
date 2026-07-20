@@ -84,6 +84,13 @@ export const UpdateMunicipalityAppsSchema = z.object({
   application_ids: z
     .array(z.string().uuid('Cada application_id debe ser un UUID válido'))
     .min(0),
+  thumbnail_overrides: z
+    .record(
+      z.string().uuid('Cada clave de thumbnail_overrides debe ser un UUID válido'),
+      z.string().url('Cada icono personalizado debe ser una URL válida').max(2048),
+    )
+    .optional()
+    .default({}),
 })
 
 export type UpdateMunicipalityAppsDTO = z.infer<typeof UpdateMunicipalityAppsSchema>

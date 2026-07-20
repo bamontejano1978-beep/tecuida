@@ -34,6 +34,12 @@ interface AppRow {
   descripcion: string
   tipo: string
   activa: boolean
+  thumbnail_url: string | null
+}
+
+interface ActiveAppRow {
+  application_id: string
+  thumbnail_url_override: string | null
 }
 
 // ---------------------------------------------------------------------------
@@ -72,7 +78,7 @@ export default async function ManageAppsPage({ params }: ManageAppsPageProps) {
   // Todas las apps del catálogo
   const { data: apps } = await supabase
     .from('applications')
-    .select('id, category_id, nombre, descripcion, tipo, activa')
+    .select('id, category_id, nombre, descripcion, tipo, activa, thumbnail_url')
     .eq('activa', true)
     .order('nombre')
 
@@ -85,11 +91,17 @@ export default async function ManageAppsPage({ params }: ManageAppsPageProps) {
   // Apps activas de este municipio
   const { data: activeApps } = await supabase
     .from('municipality_applications')
-    .select('application_id')
+    .select('application_id, thumbnail_url_override')
     .eq('municipality_id', params.id)
     .eq('activa', true)
 
-  const activeIds = new Set((activeApps || []).map((a) => a.application_id))
+  const activeRows = (activeApps || []) as unknown as ActiveAppRow[]
+  const activeIds = new Set(activeRows.map((a) => a.application_id))
+  const thumbnailOverrides = Object.fromEntries(
+    activeRows
+      .filter((a) => a.thumbnail_url_override)
+      .map((a) => [a.application_id, a.thumbnail_url_override as string]),
+  )
   const appsList: AppRow[] = (apps || []) as unknown as AppRow[]
   const catsList: CategoryRow[] = (categories || []) as unknown as CategoryRow[]
 
@@ -143,6 +155,7 @@ export default async function ManageAppsPage({ params }: ManageAppsPageProps) {
       <ManageAppsForm
         municipalityId={params.id}
         activeIds={activeIds}
+        thumbnailOverrides={thumbnailOverrides}
         categories={categoriesWithApps}
       />
     </div>
