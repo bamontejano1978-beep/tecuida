@@ -71,6 +71,7 @@ export async function GET(request: NextRequest) {
   //    crear la fila en public.users
   const metadata = user.user_metadata as Record<string, unknown> | undefined
   let tenantSlug = (metadata?.municipality_slug as string) || ''
+  const isManagerInvitation = metadata?.invitation_kind === 'municipal_manager'
 
   if (metadata?.municipality_slug) {
     try {
@@ -209,9 +210,11 @@ export async function GET(request: NextRequest) {
   }
 
   // 5. Redirigir al dashboard con el tenant slug
-  const finalRedirect = tenantSlug
-    ? `${origin}/dashboard?tenant=${tenantSlug}`
-    : `${origin}/dashboard`
+  const finalRedirect = isManagerInvitation
+    ? `${origin}/auth/accept-invite`
+    : tenantSlug
+      ? `${origin}/dashboard?tenant=${tenantSlug}`
+      : `${origin}/dashboard`
 
   // Reconstruir la respuesta de redirección preservando las cookies de sesión
   const finalResponse = NextResponse.redirect(finalRedirect)

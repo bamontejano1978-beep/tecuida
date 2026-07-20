@@ -81,6 +81,15 @@ al menos 32 caracteres, ser distinto por entorno y mantenerse estable durante
 toda la vigencia de los lotes. La landing y el catalogo siguen siendo publicos;
 la restriccion se aplica a la creacion de cuentas y al area privada.
 
+## Gestores municipales
+
+El superadministrador puede invitar directamente a un gestor desde la ficha del
+municipio. La persona recibe un enlace para crear su contraseña, queda vinculada
+al municipio con el rol `admin_municipio` y no consume un codigo ciudadano. La
+misma pantalla muestra las invitaciones pendientes y permite reenviarlas o
+cancelarlas. Los ciudadanos ya registrados pueden seguir promocionandose con la
+accion **Hacer gestor**.
+
 ## Calidad y pruebas
 
 ```bash

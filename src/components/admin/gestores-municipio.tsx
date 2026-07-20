@@ -27,12 +27,23 @@ interface MunicipioUser {
   created_at: string
 }
 
+interface ManagerInvitation {
+  id: string
+  email: string
+  estado: 'pendiente' | 'aceptada'
+  created_at: string
+  last_sent_at: string
+  accepted_at: string | null
+}
+
 // ---------------------------------------------------------------------------
 // Componente
 // ---------------------------------------------------------------------------
 
 export default function GestoresMunicipio({ municipioId }: { municipioId: string }) {
   const [users, setUsers] = useState<MunicipioUser[]>([])
+  const [invitations, setInvitations] = useState<ManagerInvitation[]>([])
+  const [inviteEmail, setInviteEmail] = useState('')
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [togglingId, setTogglingId] = useState<string | null>(null)
@@ -43,15 +54,22 @@ export default function GestoresMunicipio({ municipioId }: { municipioId: string
     setLoading(true)
     setError(null)
     try {
-      const res = await fetch(
-        `/api/admin/municipalities/${municipioId}/users/role`,
-      )
-      if (!res.ok) {
-        const body = await res.json().catch(() => ({}))
+      const [usersResponse, invitationsResponse] = await Promise.all([
+        fetch(`/api/admin/municipalities/${municipioId}/users/role`),
+        fetch(`/api/admin/municipalities/${municipioId}/managers`),
+      ])
+      if (!usersResponse.ok || !invitationsResponse.ok) {
+        const body = await (usersResponse.ok ? invitationsResponse : usersResponse)
+          .json()
+          .catch(() => ({}))
         throw new Error(body.error || 'Error al cargar usuarios')
       }
-      const data = await res.json()
-      setUsers(data.users || [])
+      const [usersData, invitationsData] = await Promise.all([
+        usersResponse.json(),
+        invitationsResponse.json(),
+      ])
+      setUsers(usersData.users || [])
+      setInvitations(invitationsData.invitations || [])
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Error inesperado')
     } finally {
@@ -101,8 +119,49 @@ export default function GestoresMunicipio({ municipioId }: { municipioId: string
     }
   }
 
+  async function handleInvitationAction(
+    action: 'invite' | 'resend' | 'cancel',
+    invitationId?: string,
+  ) {
+    const busyKey = invitationId || 'invite'
+    setTogglingId(busyKey)
+    setFeedback(null)
+
+    try {
+      const response = await fetch(
+        `/api/admin/municipalities/${municipioId}/managers`,
+        {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(
+            action === 'invite'
+              ? { action, email: inviteEmail }
+              : { action, invitation_id: invitationId },
+          ),
+        },
+      )
+      const body = await response.json().catch(() => ({}))
+      if (!response.ok) throw new Error(body.error || 'No se pudo completar la operación')
+
+      setFeedback({ message: body.message, ok: true })
+      if (action === 'invite') setInviteEmail('')
+      await loadUsers()
+    } catch (err) {
+      setFeedback({
+        message: err instanceof Error ? err.message : 'Error inesperado',
+        ok: false,
+      })
+    } finally {
+      setTogglingId(null)
+    }
+  }
+
   // Separar gestores y ciudadanos
-  const gestores = users.filter((u) => u.rol === 'admin_municipio')
+  const pendingInvitations = invitations.filter((invitation) => invitation.estado === 'pendiente')
+  const pendingEmails = new Set(pendingInvitations.map((invitation) => invitation.email.toLowerCase()))
+  const gestores = users.filter(
+    (u) => u.rol === 'admin_municipio' && !pendingEmails.has(u.email.toLowerCase()),
+  )
   const ciudadanos = users.filter((u) => u.rol === 'ciudadano')
 
   const displayName = (u: MunicipioUser) => u.alias || u.nombre || u.email.split('@')[0]
@@ -142,6 +201,76 @@ export default function GestoresMunicipio({ municipioId }: { municipioId: string
         </div>
       )}
 
+      <div className="rounded-xl border border-indigo-100 bg-indigo-50/60 p-4">
+        <h4 className="text-sm font-semibold text-gray-900">Añadir gestor</h4>
+        <p className="mt-1 text-xs text-gray-600">
+          Le enviaremos un enlace para crear su contraseña. Quedará vinculado directamente a este municipio y no necesitará un código ciudadano.
+        </p>
+        <div className="mt-3 flex flex-col gap-2 sm:flex-row">
+          <input
+            type="email"
+            value={inviteEmail}
+            onChange={(event) => setInviteEmail(event.target.value)}
+            placeholder="gestor@ayuntamiento.es"
+            aria-label="Correo del nuevo gestor"
+            className="min-w-0 flex-1 rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm"
+          />
+          <button
+            type="button"
+            onClick={() => handleInvitationAction('invite')}
+            disabled={togglingId !== null || !inviteEmail.trim()}
+            className="rounded-lg bg-indigo-600 px-4 py-2 text-sm font-semibold text-white hover:bg-indigo-500 disabled:opacity-50"
+          >
+            {togglingId === 'invite' ? 'Enviando…' : 'Enviar invitación'}
+          </button>
+        </div>
+      </div>
+
+      {pendingInvitations.length > 0 && (
+        <div>
+          <p className="mb-2 text-xs font-semibold text-amber-700">
+            Invitaciones pendientes ({pendingInvitations.length})
+          </p>
+          <div className="space-y-2">
+            {pendingInvitations.map((invitation) => (
+              <div
+                key={invitation.id}
+                className="flex flex-wrap items-center justify-between gap-2 rounded-lg border border-amber-100 bg-amber-50/60 px-3 py-2"
+              >
+                <div className="min-w-0">
+                  <p className="truncate text-sm font-medium text-gray-800">{invitation.email}</p>
+                  <p className="text-[11px] text-gray-500">
+                    Enviada {new Date(invitation.last_sent_at).toLocaleDateString('es-ES')}
+                  </p>
+                </div>
+                <div className="flex gap-2">
+                  <button
+                    type="button"
+                    onClick={() => handleInvitationAction('resend', invitation.id)}
+                    disabled={togglingId !== null}
+                    className="text-xs font-semibold text-indigo-600 hover:text-indigo-500 disabled:opacity-50"
+                  >
+                    Reenviar
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      if (window.confirm(`¿Cancelar la invitación de ${invitation.email}?`)) {
+                        handleInvitationAction('cancel', invitation.id)
+                      }
+                    }}
+                    disabled={togglingId !== null}
+                    className="text-xs font-semibold text-red-600 hover:text-red-500 disabled:opacity-50"
+                  >
+                    Cancelar
+                  </button>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
       {/* Loading */}
       {loading && users.length === 0 && (
         <div className="text-center py-8">
@@ -160,7 +289,7 @@ export default function GestoresMunicipio({ municipioId }: { municipioId: string
       {/* Tabla de gestores actuales */}
       {!loading && !error && (
         <>
-          {gestores.length === 0 && ciudadanos.length === 0 ? (
+          {gestores.length === 0 && ciudadanos.length === 0 && pendingInvitations.length === 0 ? (
             <p className="text-xs text-gray-400 text-center py-4">
               No hay usuarios registrados en este municipio.
             </p>
