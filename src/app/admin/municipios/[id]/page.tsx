@@ -118,6 +118,12 @@ export default async function EditMunicipioPage({ params }: EditMunicipioPagePro
             </svg>
             Ver estadísticas
           </Link>
+          <Link
+            href={`/admin/municipios/${params.id}/codigos`}
+            className="inline-flex items-center gap-2 rounded-lg bg-emerald-700 px-4 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-emerald-600 transition-colors"
+          >
+            Códigos de acceso
+          </Link>
           <LandingPreviewButton
             href={landingUrl}
             label="Ver landing pública"

@@ -16,6 +16,10 @@
 import { createServerClient } from '@supabase/ssr'
 import { type NextRequest, NextResponse } from 'next/server'
 import { createAuthCookiesAdapter, createReadOnlyCookiesAdapter } from '@/lib/supabase/cookies'
+import {
+  finalizeMunicipalInviteRegistration,
+  releaseMunicipalInviteCode,
+} from '@/lib/auth/municipal-invite-codes'
 
 export async function GET(request: NextRequest) {
   const { searchParams, origin } = new URL(request.url)
@@ -88,7 +92,7 @@ export async function GET(request: NextRequest) {
       // sesión (migración 012). Los listados admin sí filtran.
       const { data: municipality } = await adminClient
         .from('municipalities')
-        .select('id')
+        .select('id, invite_codes_required')
         .eq('slug', metadata.municipality_slug as string)
         .single()
 
@@ -100,7 +104,25 @@ export async function GET(request: NextRequest) {
           .eq('id', user.id)
           .maybeSingle()
 
-        if (!existingUser) {
+        const reservationToken = metadata.invite_reservation_token as string | undefined
+
+        if (!existingUser && reservationToken) {
+          await finalizeMunicipalInviteRegistration(adminClient, {
+            token: reservationToken,
+            userId: user.id,
+            email: user.email || '',
+            alias: (metadata.alias as string) || null,
+            genero: (metadata.genero as string) || null,
+            anioNacimiento: (metadata.anio_nacimiento as number) || null,
+          })
+        } else if (!existingUser && municipality.invite_codes_required) {
+          console.error(
+            `[auth/callback] Falta reserva municipal para ${user.id}`,
+          )
+          return NextResponse.redirect(
+            `${origin}/register?error=municipal_code_required`,
+          )
+        } else if (!existingUser) {
           const { error: insertError } = await adminClient.from('users').insert({
             id: user.id,
             municipality_id: municipality.id,
@@ -111,6 +133,8 @@ export async function GET(request: NextRequest) {
             nombre: null,
             apellidos: null,
             rol: 'ciudadano',
+            residency_status: 'open_registration',
+            residency_method: 'open_registration',
           })
 
           if (insertError) {
@@ -136,6 +160,21 @@ export async function GET(request: NextRequest) {
         '[auth/callback] Error inesperado al crear perfil:',
         err,
       )
+      const reservationToken = metadata.invite_reservation_token as string | undefined
+      if (reservationToken && user.email) {
+        const cleanupClient = createServerClient(
+          process.env.NEXT_PUBLIC_SUPABASE_URL!,
+          process.env.SUPABASE_SERVICE_ROLE_KEY!,
+          {
+            cookies: createReadOnlyCookiesAdapter(),
+            auth: { autoRefreshToken: false, persistSession: false },
+          },
+        )
+        await Promise.allSettled([
+          releaseMunicipalInviteCode(cleanupClient, reservationToken, user.email),
+          cleanupClient.auth.admin.deleteUser(user.id),
+        ])
+      }
       return NextResponse.redirect(
         `${origin}/register?error=profile_creation_failed`,
       )

@@ -67,6 +67,20 @@ alojamiento, el destino efectivo y accesos para comprobar ambas rutas.
 Cada asignacion municipal puede incorporar un icono propio para la landing y el
 catalogo; si no se configura, hereda automaticamente el icono global.
 
+## Acceso municipal mediante codigos
+
+Cada municipio puede generar lotes de codigos de un solo uso desde su ficha de
+administracion y activar la restriccion cuando disponga de codigos vigentes. El
+registro reserva el codigo durante la confirmacion del correo y lo consume de
+forma atomica al crear el perfil. Las cuentas existentes conservan el estado
+`legacy_verified` y los municipios sin restriccion mantienen el registro abierto.
+
+Los codigos completos solo se entregan una vez al generar el CSV. La base de
+datos almacena un HMAC, nunca el codigo original. `INVITE_CODE_PEPPER` debe tener
+al menos 32 caracteres, ser distinto por entorno y mantenerse estable durante
+toda la vigencia de los lotes. La landing y el catalogo siguen siendo publicos;
+la restriccion se aplica a la creacion de cuentas y al area privada.
+
 ## Calidad y pruebas
 
 ```bash

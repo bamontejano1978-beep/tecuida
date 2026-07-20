@@ -10,6 +10,12 @@ import { createAuthCookiesAdapter } from '@/lib/supabase/cookies'
 import { buildAuthCookies } from '@/lib/supabase/auth-cookies'
 import { checkRateLimitAsync } from '@/lib/admin/rate-limit'
 import { getTrustedOrigin } from '@/lib/request-origin'
+import { createAdminClient } from '@/lib/supabase/server'
+import {
+  finalizeMunicipalInviteRegistration,
+  releaseMunicipalInviteCode,
+  reserveMunicipalInviteCode,
+} from '@/lib/auth/municipal-invite-codes'
 import { z } from 'zod'
 
 // ---------------------------------------------------------------------------
@@ -39,6 +45,7 @@ const registerSchema = z.object({
       if (n < 1900 || n > currentYear - 10) return undefined
       return n
     }),
+  access_code: z.string().trim().max(40, 'Código municipal inválido').optional(),
 })
 
 function getTenantSlug(request: NextRequest): string | null {
@@ -94,6 +101,7 @@ export async function POST(request: NextRequest) {
       alias: formData.get('alias') || undefined,
       genero: formData.get('genero') || undefined,
       anio_nacimiento: formData.get('anio_nacimiento') || undefined,
+      access_code: formData.get('access_code') || undefined,
     })
 
     if (!parsed.success) {
@@ -104,7 +112,53 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // 3. Cliente Supabase
+    // 3. Resolver el municipio y, cuando proceda, reservar el código antes
+    // de crear la identidad. La reserva caduca si no se confirma el correo.
+    const adminClient = createAdminClient()
+    const { data: municipality, error: municipalityError } = await adminClient
+      .from('municipalities')
+      .select('id, invite_codes_required')
+      .eq('slug', slug)
+      .single()
+
+    if (municipalityError || !municipality) {
+      return NextResponse.redirect(
+        `${origin}/register?error=${encodeURIComponent('Municipio no encontrado.')}`,
+        303,
+      )
+    }
+
+    let inviteReservation: { token: string; emailHash: string } | null = null
+    if (municipality.invite_codes_required) {
+      if (!parsed.data.access_code) {
+        return NextResponse.redirect(
+          `${origin}/register?error=${encodeURIComponent('Necesitas un código municipal válido para registrarte.')}`,
+          303,
+        )
+      }
+      try {
+        inviteReservation = await reserveMunicipalInviteCode(
+          adminClient,
+          municipality.id,
+          parsed.data.access_code,
+          parsed.data.email,
+        )
+      } catch (error) {
+        console.error('[api/auth/register] Error reservando código:', error)
+        return NextResponse.redirect(
+          `${origin}/register?error=${encodeURIComponent('No se pudo validar el código municipal.')}`,
+          303,
+        )
+      }
+      if (!inviteReservation) {
+        return NextResponse.redirect(
+          `${origin}/register?error=${encodeURIComponent('El código municipal no es válido, ha caducado o ya fue utilizado.')}`,
+          303,
+        )
+      }
+    }
+
+    // 4. Cliente Supabase
     const supabase = createServerClient(
       process.env.NEXT_PUBLIC_SUPABASE_URL!,
       process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
@@ -113,7 +167,7 @@ export async function POST(request: NextRequest) {
       },
     )
 
-    // 4. Registrar
+    // 5. Registrar
     const callbackUrl = `${origin}/auth/callback`
     const {
       data: signUpData,
@@ -128,11 +182,19 @@ export async function POST(request: NextRequest) {
           alias: parsed.data.alias || null,
           genero: parsed.data.genero || null,
           anio_nacimiento: parsed.data.anio_nacimiento || null,
+          invite_reservation_token: inviteReservation?.token || null,
         },
       },
     })
 
     if (signUpError) {
+      if (inviteReservation) {
+        await releaseMunicipalInviteCode(
+          adminClient,
+          inviteReservation.token,
+          parsed.data.email,
+        )
+      }
       if (signUpError.message.includes('already registered')) {
         return NextResponse.redirect(
           `${origin}/register?error=${encodeURIComponent('Ya existe una cuenta con este correo')}`,
@@ -145,44 +207,66 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // 5. Email confirmation requerida → redirigir a confirmación
+    // Supabase puede ocultar que el correo ya existe devolviendo un usuario
+    // sin identidades. Liberamos la reserva para que el código no se pierda.
+    if (signUpData.user && signUpData.user.identities?.length === 0) {
+      if (inviteReservation) {
+        await releaseMunicipalInviteCode(
+          adminClient,
+          inviteReservation.token,
+          parsed.data.email,
+        )
+      }
+      return NextResponse.redirect(
+        `${origin}/register?error=${encodeURIComponent('No se pudo crear la cuenta con esos datos.')}`,
+        303,
+      )
+    }
+
+    if (!signUpData.user) {
+      if (inviteReservation) {
+        await releaseMunicipalInviteCode(
+          adminClient,
+          inviteReservation.token,
+          parsed.data.email,
+        )
+      }
+      return NextResponse.redirect(
+        `${origin}/register?error=${encodeURIComponent('No se pudo crear la cuenta con esos datos.')}`,
+        303,
+      )
+    }
+
+    // 6. Email confirmation requerida → redirigir a confirmación
     if (!signUpData.session) {
       return NextResponse.redirect(`${origin}/register/confirmation`, 303)
     }
 
-    // 6. Email confirmation NO requerida → sesión activa.
+    // 7. Email confirmation NO requerida → sesión activa.
     //    Insertar en public.users (admin client bypasea RLS).
     try {
-      const adminClient = createServerClient(
-        process.env.NEXT_PUBLIC_SUPABASE_URL!,
-        process.env.SUPABASE_SERVICE_ROLE_KEY!,
-        {
-          cookies: {
-            get: () => undefined,
-            getAll: () => [],
-            setAll: () => {},
-          },
-          auth: { autoRefreshToken: false, persistSession: false },
-        },
-      )
-
-      const { data: mun } = await adminClient
-        .from('municipalities')
-        .select('id')
-        .eq('slug', slug)
-        .single()
-
-      if (mun && signUpData.user) {
-        const { data: existing } = await adminClient
+      if (inviteReservation) {
+        await finalizeMunicipalInviteRegistration(adminClient, {
+          token: inviteReservation.token,
+          userId: signUpData.user.id,
+          email: parsed.data.email,
+          alias: parsed.data.alias,
+          genero: parsed.data.genero,
+          anioNacimiento: parsed.data.anio_nacimiento,
+        })
+      } else {
+        const { data: existing, error: existingError } = await adminClient
           .from('users')
           .select('id')
           .eq('id', signUpData.user.id)
           .maybeSingle()
 
+        if (existingError) throw new Error(existingError.message)
+
         if (!existing) {
-          await adminClient.from('users').insert({
+          const { error: insertError } = await adminClient.from('users').insert({
             id: signUpData.user.id,
-            municipality_id: mun.id,
+            municipality_id: municipality.id,
             email: parsed.data.email,
             alias: parsed.data.alias || null,
             genero: parsed.data.genero || null,
@@ -190,14 +274,31 @@ export async function POST(request: NextRequest) {
             nombre: null,
             apellidos: null,
             rol: 'ciudadano',
+            residency_status: 'open_registration',
+            residency_method: 'open_registration',
           })
+          if (insertError) throw new Error(insertError.message)
         }
       }
     } catch (err) {
       console.error('[api/auth/register] Error creando perfil:', err)
+      if (inviteReservation && signUpData.user) {
+        await Promise.allSettled([
+          releaseMunicipalInviteCode(
+            adminClient,
+            inviteReservation.token,
+            parsed.data.email,
+          ),
+          adminClient.auth.admin.deleteUser(signUpData.user.id),
+        ])
+        return NextResponse.redirect(
+          `${origin}/register?error=${encodeURIComponent('No se pudo completar la validación municipal. Inténtalo de nuevo.')}`,
+          303,
+        )
+      }
     }
 
-    // 7. Construir cookies y redirigir (303 See Other)
+    // 8. Construir cookies y redirigir (303 See Other)
     const authCookies = buildAuthCookies(signUpData.session)
 
     const redirectTo = getValidRedirect(
