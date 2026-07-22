@@ -48,6 +48,7 @@ function request(body: unknown) {
 
 beforeEach(() => {
   jest.clearAllMocks()
+  delete process.env.RESEND_API_KEY
   checkRateLimitAsync.mockResolvedValue(null)
   verifyAdminAccess.mockResolvedValue({
     id: '33333333-3333-3333-3333-333333333333',
@@ -97,15 +98,22 @@ it('invita, vincula y registra al nuevo gestor', async () => {
     { data: null, error: null },
     { data: invitation, error: null },
   ])
-  const inviteUserByEmail = jest.fn().mockResolvedValue({
-    data: { user: { id: AUTH_USER_ID } },
+  const generateLink = jest.fn().mockResolvedValue({
+    data: {
+      user: { id: AUTH_USER_ID },
+      properties: {
+        action_link: 'https://auth.example/invite-token',
+        hashed_token: 'hashed-token',
+        verification_type: 'invite',
+      },
+    },
     error: null,
   })
   createAdminClient.mockReturnValue({
     from: () => db,
     auth: {
       admin: {
-        inviteUserByEmail,
+        generateLink,
         deleteUser: jest.fn(),
       },
     },
@@ -118,11 +126,16 @@ it('invita, vincula y registra al nuevo gestor', async () => {
 
   expect(response.status).toBe(201)
   expect(body.invitation).toEqual(invitation)
-  expect(inviteUserByEmail).toHaveBeenCalledWith(
-    'gestor@test.com',
+  expect(body.delivery).toBe('manual')
+  expect(body.manual_link).toBe('http://localhost/auth/accept-invite?token_hash=hashed-token&type=invite')
+  expect(generateLink).toHaveBeenCalledWith(
     expect.objectContaining({
-      redirectTo: 'http://localhost/auth/accept-invite',
-      data: expect.objectContaining({ invitation_kind: 'municipal_manager' }),
+      type: 'invite',
+      email: 'gestor@test.com',
+      options: expect.objectContaining({
+        redirectTo: 'http://localhost/auth/accept-invite',
+        data: expect.objectContaining({ invitation_kind: 'municipal_manager' }),
+      }),
     }),
   )
 })

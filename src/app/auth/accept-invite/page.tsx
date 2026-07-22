@@ -10,6 +10,36 @@ type InviteDetails = {
   municipality_name: string
 }
 
+const MANAGER_INVITE_OTP_TYPES = [
+  'invite',
+  'recovery',
+  'magiclink',
+  'email',
+  'signup',
+] as const
+
+type ManagerInviteOtpType = (typeof MANAGER_INVITE_OTP_TYPES)[number]
+
+function isManagerInviteOtpType(type: string | null): type is ManagerInviteOtpType {
+  return MANAGER_INVITE_OTP_TYPES.includes(type as ManagerInviteOtpType)
+}
+
+function friendlyAuthError(reason: unknown) {
+  const message = reason instanceof Error ? reason.message : ''
+  const lower = message.toLowerCase()
+
+  if (
+    lower.includes('expired') ||
+    lower.includes('invalid') ||
+    lower.includes('token') ||
+    lower.includes('email link')
+  ) {
+    return 'El enlace de acceso no es valido o ha caducado. Pide al administrador que pulse "Reenviar" y usa el enlace nuevo.'
+  }
+
+  return message || 'No se pudo abrir la invitacion.'
+}
+
 export default function AcceptManagerInvitePage() {
   const router = useRouter()
   const [details, setDetails] = useState<InviteDetails | null>(null)
@@ -41,13 +71,15 @@ export default function AcceptManagerInvitePage() {
         })
         if (sessionError) throw sessionError
         window.history.replaceState({}, '', '/auth/accept-invite')
-      } else if (tokenHash && (type === 'invite' || type === 'recovery')) {
+      } else if (tokenHash && isManagerInviteOtpType(type)) {
         const { error: otpError } = await supabase.auth.verifyOtp({
           token_hash: tokenHash,
           type,
         })
         if (otpError) throw otpError
         window.history.replaceState({}, '', '/auth/accept-invite')
+      } else if (tokenHash) {
+        throw new Error('Tipo de enlace de acceso no compatible.')
       }
 
       const response = await fetch('/api/auth/manager-invitation/accept', {
@@ -64,7 +96,7 @@ export default function AcceptManagerInvitePage() {
     recoverInvitationSession()
       .catch((reason) => {
         if (active) {
-          setError(reason instanceof Error ? reason.message : 'No se pudo abrir la invitación.')
+          setError(friendlyAuthError(reason))
         }
       })
       .finally(() => {

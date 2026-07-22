@@ -47,7 +47,11 @@ export default function GestoresMunicipio({ municipioId }: { municipioId: string
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [togglingId, setTogglingId] = useState<string | null>(null)
-  const [feedback, setFeedback] = useState<{ message: string; ok: boolean } | null>(null)
+  const [feedback, setFeedback] = useState<{
+    message: string
+    ok: boolean
+    manualLink?: string
+  } | null>(null)
 
   // Cargar usuarios del municipio
   const loadUsers = useCallback(async () => {
@@ -143,7 +147,11 @@ export default function GestoresMunicipio({ municipioId }: { municipioId: string
       const body = await response.json().catch(() => ({}))
       if (!response.ok) throw new Error(body.error || 'No se pudo completar la operación')
 
-      setFeedback({ message: body.message, ok: true })
+      setFeedback({
+        message: body.message,
+        ok: true,
+        manualLink: typeof body.manual_link === 'string' ? body.manual_link : undefined,
+      })
       if (action === 'invite') setInviteEmail('')
       await loadUsers()
     } catch (err) {
@@ -197,7 +205,23 @@ export default function GestoresMunicipio({ municipioId }: { municipioId: string
               : 'bg-red-50 text-red-700 border border-red-200'
           }`}
         >
-          {feedback.message}
+          <p>{feedback.message}</p>
+          {feedback.manualLink && (
+            <div className="mt-2 rounded border border-emerald-200 bg-white p-2 text-[11px] font-normal text-gray-700">
+              <p className="mb-1 font-semibold text-emerald-700">
+                Modo sin correo automatico
+              </p>
+              <input
+                readOnly
+                value={feedback.manualLink}
+                onFocus={(event) => event.currentTarget.select()}
+                className="w-full rounded border border-gray-200 bg-gray-50 px-2 py-1 font-mono text-[10px] text-gray-700"
+              />
+              <p className="mt-1 text-gray-500">
+                Copia este enlace y enviaselo al gestor. Le permitira crear su contrasena y entrar sin codigo ciudadano.
+              </p>
+            </div>
+          )}
         </div>
       )}
 
