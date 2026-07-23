@@ -98,6 +98,14 @@ export default async function MunicipioLayout({
               >
                 📊 Estadísticas
               </Link>
+              {isMunicipioAdmin && (
+                <Link
+                  href="/municipio/codigos"
+                  className="text-sm font-medium text-gray-600 hover:text-gray-900 transition-colors"
+                >
+                  Códigos de acceso
+                </Link>
+              )}
               {isSuperadmin && (
                 <Link
                   href="/admin"

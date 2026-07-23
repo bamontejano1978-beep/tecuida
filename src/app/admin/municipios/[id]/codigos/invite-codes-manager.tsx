@@ -29,12 +29,14 @@ export default function InviteCodesManager({
   required: initialRequired,
   configured,
   batches,
+  apiEndpoint,
 }: {
   municipalityId: string
   municipalityName: string
   required: boolean
   configured: boolean
   batches: BatchSummary[]
+  apiEndpoint?: string
 }) {
   const router = useRouter()
   const [required, setRequired] = useState(initialRequired)
@@ -46,7 +48,7 @@ export default function InviteCodesManager({
   const [generated, setGenerated] = useState<GeneratedBatch | null>(null)
 
   async function callApi(body: Record<string, unknown>) {
-    const response = await fetch(`/api/admin/municipalities/${municipalityId}/invite-codes`, {
+    const response = await fetch(apiEndpoint || `/api/admin/municipalities/${municipalityId}/invite-codes`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(body),
