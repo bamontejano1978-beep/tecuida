@@ -6,8 +6,13 @@ import { isInviteCodesConfigured } from '@/lib/auth/municipal-invite-codes'
 import InviteCodesManager from '@/app/admin/municipios/[id]/codigos/invite-codes-manager'
 
 interface CodeRow {
+  id: string
+  code_value: string | null
+  code_prefix: string
   estado: 'disponible' | 'reservado' | 'consumido' | 'revocado'
   expires_at: string | null
+  consumed_at: string | null
+  created_at: string
 }
 
 interface BatchRow {
@@ -36,7 +41,7 @@ export default async function MunicipalInviteCodesPage() {
       .single(),
     supabase
       .from('municipal_invite_batches')
-      .select('id, nombre, cantidad, expires_at, estado, created_at, municipal_invite_codes(estado, expires_at)')
+      .select('id, nombre, cantidad, expires_at, estado, created_at, municipal_invite_codes(id, code_value, code_prefix, estado, expires_at, consumed_at, created_at)')
       .eq('municipality_id', municipalityId)
       .order('created_at', { ascending: false }),
   ])
@@ -50,6 +55,7 @@ export default async function MunicipalInviteCodesPage() {
         ? 'caducado'
         : code.estado,
     )
+    type EffectiveCodeStatus = CodeRow['estado'] | 'caducado'
     return {
       id: batch.id,
       nombre: batch.nombre,
@@ -62,6 +68,19 @@ export default async function MunicipalInviteCodesPage() {
       consumidos: effectiveStates.filter((state) => state === 'consumido').length,
       caducados: effectiveStates.filter((state) => state === 'caducado').length,
       revocados: effectiveStates.filter((state) => state === 'revocado').length,
+      codes: batch.municipal_invite_codes
+        .map((code) => ({
+          id: code.id,
+          value: code.code_value,
+          prefix: code.code_prefix,
+          estado: (code.estado === 'disponible' && code.expires_at && new Date(code.expires_at).getTime() <= now
+            ? 'caducado'
+            : code.estado) as EffectiveCodeStatus,
+          expires_at: code.expires_at,
+          consumed_at: code.consumed_at,
+          created_at: code.created_at,
+        }))
+        .sort((a, b) => a.created_at.localeCompare(b.created_at)),
     }
   })
 

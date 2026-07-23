@@ -103,6 +103,7 @@ export async function POST(request: Request) {
       const rows = codes.map((code) => ({
         batch_id: batch.id,
         municipality_id: municipalityId,
+        code_value: code,
         code_hash: hashInviteCode(code),
         code_prefix: `${code.slice(0, 7)}…`,
         expires_at: expiresAt,

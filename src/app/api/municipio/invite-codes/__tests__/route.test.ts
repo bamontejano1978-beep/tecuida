@@ -131,5 +131,6 @@ it('genera siempre para el municipio de la sesión e ignora otro municipio envia
   }))
   expect(insertedCodes).toHaveLength(2)
   expect(insertedCodes.every((row) => row.municipality_id === OWN_MUNICIPALITY)).toBe(true)
+  expect(insertedCodes.every((row) => typeof row.code_value === 'string')).toBe(true)
   expect(insertedCodes.every((row) => !body.codes.includes(row.code_hash))).toBe(true)
 })

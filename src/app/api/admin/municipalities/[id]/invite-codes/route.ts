@@ -95,6 +95,7 @@ export async function POST(
       const rows = codes.map((code) => ({
         batch_id: batch.id,
         municipality_id: municipality.id,
+        code_value: code,
         code_hash: hashInviteCode(code),
         code_prefix: `${code.slice(0, 7)}…`,
         expires_at: expiresAt,
