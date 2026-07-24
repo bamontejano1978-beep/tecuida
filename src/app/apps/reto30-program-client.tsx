@@ -1,132 +1,192 @@
-/**
- * Reto30ProgramClient — Experiencia fiel al PWA original
- *
- * Flujo UX replicado del original (React + Vite + Firebase):
- *   1. Modal de bienvenida con quote del día (1 vez por día)
- *   2. Día central focal con flechas ← → y candado 🔒 en días futuros
- *   3. 3 tarjetas de micro-tareas (🧠 Reflexión, ☀️ Actividad, ❤️ Relaciones)
- *      cada una completable individualmente con confetti
- *   4. Barra de progreso X/30
- *   5. Bloqueo diario real: solo puedes ver hasta el día desbloqueado
- *      (calculado desde START_DATE en localStorage)
- *   6. Demo mode: días 1-2 gratis, a partir del 3 se muestra aviso
- *      de registro (adaptado al ecosistema Te Cuida)
- *   7. Día 31: pantalla de celebración con corona animada
- *
- * Persistencia: localStorage para START_DATE y tareas completadas.
- * Sin backend necesario — el PWA público funciona offline.
- *
- * Client Component — 'use client'.
- */
-
 'use client'
 
-import { useState, useCallback, useEffect, useRef } from 'react'
-import type { ProgramModule, Lesson } from '@/types'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import Image from 'next/image'
+import type { Lesson, ProgramModule } from '@/types'
+import { dailyQuotes as reto30Quotes } from './reto30-quotes'
+import { dailyQuotes as caregiverQuotes } from './mindful30-caregivers-quotes'
 import './reto30.css'
 
-// ---------------------------------------------------------------------------
-// Quotes diarias (original quotes.ts del reto30-pwa)
-// ---------------------------------------------------------------------------
-
-const DAILY_QUOTES: Record<number, string> = {
-  1: 'El viaje de mil kilómetros comienza con un solo paso. — Lao Tzu',
-  2: 'No puedes detener las olas, pero puedes aprender a surfear. — Jon Kabat-Zinn',
-  3: 'La mente es todo. En lo que piensas, te conviertes. — Buddha',
-  4: 'No es lo que te sucede, sino cómo reaccionas lo que importa. — Epicteto',
-  5: 'Entre estímulo y respuesta hay un espacio. En ese espacio está nuestro poder para elegir. — Viktor Frankl',
-  6: 'La felicidad no es algo ya hecho. Viene de tus propias acciones. — Dalai Lama',
-  7: 'Cada día es una nueva oportunidad para cambiar tu vida.',
-  8: 'No te creas todo lo que piensas.',
-  9: 'La calma no es la ausencia de tormenta, sino la paz en medio de ella.',
-  10: 'El presente es el único momento que realmente tenemos.',
-  11: 'Lo que los demás piensen de ti no es asunto tuyo.',
-  12: 'Las pequeñas acciones diarias crean grandes transformaciones.',
-  13: 'Respira. Todo está bien. Estás vivo/a. Eso ya es un milagro.',
-  14: 'Suelta lo que no puedes controlar. Abraza lo que sí.',
-  15: 'Has llegado a la mitad del camino. Lo mejor está por venir.',
-  16: 'Dentro de un año, ¿importará esto? Respira y relativiza.',
-  17: 'No minimices tus logros. Cada paso cuenta.',
-  18: 'No saques conclusiones precipitadas. La realidad suele ser más amable.',
-  19: 'Busca lo bueno. Siempre hay algo bueno, por pequeño que sea.',
-  20: 'No confundas cansancio con derrota.',
-  21: 'Lo suficientemente bien es mejor que perfecto e inexistente.',
-  22: 'Acepta los cumplidos. Te mereces lo bueno que te llega.',
-  23: 'Haz el bien sin esperar nada a cambio. Esa es la libertad.',
-  24: 'No te compares. Solo ves la portada del libro de los demás.',
-  25: 'Cuestiona tus creencias limitantes. Muchas son heredadas, no reales.',
-  26: 'No puedes controlar a otros, pero sí cómo respondes tú.',
-  27: 'Prefiere ser amable a tener razón.',
-  28: 'Los errores son lecciones, no fracasos.',
-  29: 'La mente sabia escucha la lógica, el corazón y la experiencia.',
-  30: 'El final es solo un nuevo comienzo. Lo has conseguido.',
-}
-
-// ---------------------------------------------------------------------------
-// Tipos locales
-// ---------------------------------------------------------------------------
+type AreaKey = 'thoughts' | 'activities' | 'relationships'
+type ViewKey = 'today' | 'map' | 'resources' | 'journal'
 
 interface Reto30Day {
   module: ProgramModule
-  lessons: Lesson[] // [0] = reflexión, [1] = actividad, [2] = relaciones
+  lessons: Lesson[]
+}
+
+interface TaskItem {
+  id: string
+  day: number
+  lesson: Lesson
+  area: AreaKey
+  areaName: string
+  icon: string
+  color: string
+  title: string
+  body: string
+  actionItem: string
+  resource?: Reto30Resource
+}
+
+interface Reto30Resource {
+  id: string
+  type: 'guide' | 'cbt' | 'social' | 'tool'
+  title: string
+  content: {
+    prompt?: string
+    guide?: string
+    steps?: string[]
+    script?: string
+    advice?: string
+    description?: string
+  }
 }
 
 interface Reto30ProgramClientProps {
   modules: ProgramModule[]
   programId: string
   appBrandColor: string
+  variant?: 'reto30' | 'caregivers'
 }
 
-// ---------------------------------------------------------------------------
-// Constantes de localStorage
-// ---------------------------------------------------------------------------
+interface BeforeInstallPromptEvent extends Event {
+  prompt: () => Promise<void>
+  userChoice: Promise<{ outcome: 'accepted' | 'dismissed'; platform: string }>
+}
 
-const LS_START_DATE = 'reto30_start_date'
-const LS_COMPLETED = 'reto30_completed_tasks'
-const LS_WELCOME_SEEN = 'reto30_welcome_lastseen'
+const AREA_META: Record<AreaKey, { name: string; icon: string; color: string; className: string }> = {
+  thoughts: {
+    name: 'Reflexion',
+    icon: 'M12 3.75a6.75 6.75 0 0 0-4.66 11.63v1.87A1.75 1.75 0 0 0 9.1 19h5.8a1.75 1.75 0 0 0 1.75-1.75v-1.87A6.75 6.75 0 0 0 12 3.75Zm-2.25 17h4.5',
+    color: '#a78bfa',
+    className: 'pillar-thoughts',
+  },
+  activities: {
+    name: 'Actividad',
+    icon: 'M12 3v2.5m0 13V21m9-9h-2.5M5.5 12H3m15.36-6.36-1.77 1.77M7.41 16.59l-1.77 1.77m12.72 0-1.77-1.77M7.41 7.41 5.64 5.64M12 8.25A3.75 3.75 0 1 0 12 15.75 3.75 3.75 0 0 0 12 8.25Z',
+    color: '#fbbf24',
+    className: 'pillar-activities',
+  },
+  relationships: {
+    name: 'Relaciones',
+    icon: 'M20.25 8.75c0 5.25-8.25 10-8.25 10s-8.25-4.75-8.25-10A4.5 4.5 0 0 1 12 6a4.5 4.5 0 0 1 8.25 2.75Z',
+    color: '#f472b6',
+    className: 'pillar-relationships',
+  },
+}
 
-// ---------------------------------------------------------------------------
-// Helpers: bloqueo diario (fiel al original progress.ts)
-// ---------------------------------------------------------------------------
+const AREAS: AreaKey[] = ['thoughts', 'activities', 'relationships']
 
-function getTodayMidnight(): Date {
+function getStorageKey(programId: string, key: string) {
+  return `reto30:${programId}:${key}`
+}
+
+function getTodayKey() {
+  return new Date().toISOString().split('T')[0] || ''
+}
+
+function getTodayMidnight() {
   const d = new Date()
   d.setHours(0, 0, 0, 0)
   return d
 }
 
-function getUnlockedDay(startDateStr: string | null): number {
+function getUnlockedDay(startDateStr: string | null, totalDays: number) {
   if (!startDateStr) return 1
   const start = new Date(startDateStr)
   start.setHours(0, 0, 0, 0)
-  const today = getTodayMidnight()
   const diffDays = Math.floor(
-    (today.getTime() - start.getTime()) / (1000 * 60 * 60 * 24),
+    (getTodayMidnight().getTime() - start.getTime()) / (1000 * 60 * 60 * 24),
   )
-  // El día se desbloquea progresivamente: día 1 el primer día,
-  // día 2 al siguiente, etc. Máximo 31 (completado).
-  // NO se capa en modo demo — la navegación es libre;
-  // el paywall es solo un aviso visual para días > 2.
-  return Math.min(diffDays + 1, 31)
+  return Math.min(Math.max(diffDays + 1, 1), totalDays + 1)
 }
 
-// ---------------------------------------------------------------------------
-// Helpers: confetti con canvas
-// ---------------------------------------------------------------------------
-
-function hexToRgb(hex: string) {
-  const h = hex.replace('#', '')
-  return {
-    r: parseInt(h.slice(0, 2), 16),
-    g: parseInt(h.slice(2, 4), 16),
-    b: parseInt(h.slice(4, 6), 16),
+function maybeRepairMojibake(value: string | null | undefined) {
+  if (!value) return ''
+  try {
+    const decoded = decodeURIComponent(escape(value))
+    const score = (text: string) => (text.match(/Ã|Â|â|ð/g) || []).length
+    return score(decoded) < score(value) ? decoded : value
+  } catch {
+    return value
   }
 }
 
-function launchConfetti(
-  canvas: HTMLCanvasElement | null,
-  brandColor: string,
-): void {
+function stripLeadingMarks(value: string) {
+  return value
+    .replace(/^[^\p{L}\p{N}"'¿¡]+/u, '')
+    .replace(/\s+/g, ' ')
+    .trim()
+}
+
+function titleForLesson(lesson: Lesson) {
+  return stripLeadingMarks(maybeRepairMojibake(lesson.titulo))
+}
+
+function bodyForLesson(lesson: Lesson) {
+  return maybeRepairMojibake(lesson.contenido_texto || '')
+}
+
+function actionForLesson(lesson: Lesson) {
+  return maybeRepairMojibake(lesson.ejercicio?.instrucciones || '')
+}
+
+function resourceForLesson(lesson: Lesson) {
+  return (lesson as Lesson & { reto30Resource?: Reto30Resource }).reto30Resource
+}
+
+function cleanResource(resource: Reto30Resource | undefined) {
+  if (!resource) return undefined
+  return {
+    ...resource,
+    title: maybeRepairMojibake(resource.title),
+    content: {
+      ...resource.content,
+      prompt: maybeRepairMojibake(resource.content.prompt),
+      guide: maybeRepairMojibake(resource.content.guide),
+      script: maybeRepairMojibake(resource.content.script),
+      advice: maybeRepairMojibake(resource.content.advice),
+      description: maybeRepairMojibake(resource.content.description),
+      steps: resource.content.steps?.map((step) => maybeRepairMojibake(step)),
+    },
+  }
+}
+
+function splitIntoSteps(text: string) {
+  const clean = text.replace(/\s+/g, ' ').trim()
+  if (!clean) return ['Lee el ejercicio con calma.', 'Hazlo a tu ritmo.', 'Guarda una nota sobre como te has sentido.']
+  const parts = clean
+    .split(/(?<=[.!?])\s+/)
+    .map((part) => part.trim())
+    .filter(Boolean)
+  return parts.length >= 3 ? parts.slice(0, 4) : [clean, 'Dedica unos minutos sin distracciones.', 'Marca la tarea cuando la hayas completado.']
+}
+
+function loadJson<T>(key: string, fallback: T): T {
+  try {
+    const raw = localStorage.getItem(key)
+    return raw ? (JSON.parse(raw) as T) : fallback
+  } catch {
+    return fallback
+  }
+}
+
+function saveJson<T>(key: string, value: T) {
+  localStorage.setItem(key, JSON.stringify(value))
+}
+
+function hexToRgb(hex: string) {
+  const normalized = hex.replace('#', '')
+  if (normalized.length !== 6) return { r: 20, g: 184, b: 166 }
+  return {
+    r: parseInt(normalized.slice(0, 2), 16),
+    g: parseInt(normalized.slice(2, 4), 16),
+    b: parseInt(normalized.slice(4, 6), 16),
+  }
+}
+
+function launchConfetti(canvas: HTMLCanvasElement | null, brandColor: string) {
   if (!canvas) return
   const ctx = canvas.getContext('2d')
   if (!ctx) return
@@ -137,542 +197,772 @@ function launchConfetti(
   const rgb = hexToRgb(brandColor)
   const colors = [
     brandColor,
-    `rgba(${rgb.r},${rgb.g},${rgb.b},0.7)`,
-    '#7c3aed',
-    '#ec4899',
+    `rgba(${rgb.r}, ${rgb.g}, ${rgb.b}, .75)`,
+    '#a78bfa',
     '#fbbf24',
     '#f472b6',
-    '#a78bfa',
-    '#f8fafc',
+    '#ffffff',
   ]
 
-  interface Particle {
-    x: number; y: number; vx: number; vy: number
-    size: number; color: string; rotation: number; rotationSpeed: number; life: number
-  }
-
-  const particles: Particle[] = []
-  for (let i = 0; i < 80; i++) {
-    particles.push({
-      x: Math.random() * canvas.width,
-      y: -20 - Math.random() * 100,
-      vx: (Math.random() - 0.5) * 8,
-      vy: Math.random() * 3 + 2,
-      size: Math.random() * 8 + 4,
-      color: colors[Math.floor(Math.random() * colors.length)],
-      rotation: Math.random() * 360,
-      rotationSpeed: (Math.random() - 0.5) * 10,
-      life: 1,
-    })
-  }
+  const particles = Array.from({ length: 90 }, () => ({
+    x: Math.random() * canvas.width,
+    y: -20 - Math.random() * 100,
+    vx: (Math.random() - 0.5) * 7,
+    vy: Math.random() * 3 + 2,
+    size: Math.random() * 8 + 4,
+    color: colors[Math.floor(Math.random() * colors.length)] || brandColor,
+    rotation: Math.random() * 360,
+    rotationSpeed: (Math.random() - 0.5) * 10,
+    life: 1,
+  }))
 
   let frame = 0
   let animId = 0
 
-  function animate(): void {
-    if (frame >= 90) {
-      if (ctx && canvas) {
-        ctx.clearRect(0, 0, canvas.width, canvas.height)
-        canvas.width = 0; canvas.height = 0
-      }
-      cancelAnimationFrame(animId)
-      return
-    }
-    frame++
-    if (ctx && canvas) {
+  function animate() {
+    if (!ctx || !canvas) return
+    frame += 1
+    ctx.clearRect(0, 0, canvas.width, canvas.height)
+    particles.forEach((p) => {
+      p.x += p.vx
+      p.vy += 0.1
+      p.y += p.vy
+      p.rotation += p.rotationSpeed
+      p.life -= 0.008
+      ctx.save()
+      ctx.translate(p.x, p.y)
+      ctx.rotate((p.rotation * Math.PI) / 180)
+      ctx.globalAlpha = Math.max(0, p.life)
+      ctx.fillStyle = p.color
+      ctx.fillRect(-p.size / 2, -p.size / 2, p.size, p.size * 0.6)
+      ctx.restore()
+    })
+    if (frame < 100) {
+      animId = requestAnimationFrame(animate)
+    } else {
       ctx.clearRect(0, 0, canvas.width, canvas.height)
-      for (const p of particles) {
-        p.x += p.vx; p.vy += 0.1; p.y += p.vy
-        p.rotation += p.rotationSpeed; p.life -= 0.008
-        ctx.save()
-        ctx.translate(p.x, p.y)
-        ctx.rotate((p.rotation * Math.PI) / 180)
-        ctx.globalAlpha = Math.max(0, p.life)
-        ctx.fillStyle = p.color
-        ctx.fillRect(-p.size / 2, -p.size / 2, p.size, p.size * 0.6)
-        ctx.restore()
-      }
+      canvas.width = 0
+      canvas.height = 0
+      cancelAnimationFrame(animId)
     }
-    animId = requestAnimationFrame(animate)
   }
+
   animId = requestAnimationFrame(animate)
 }
 
-// ---------------------------------------------------------------------------
-// Constantes de pilares
-// ---------------------------------------------------------------------------
-
-const PILLAR_NAMES = ['Reflexión', 'Actividad', 'Relaciones'] as const
-const PILLAR_EMOJI = ['🧠', '☀️', '❤️'] as const
-const PILLAR_CSS = [
-  'pillar-thoughts',
-  'pillar-activities',
-  'pillar-relationships',
-] as const
-
-// ---------------------------------------------------------------------------
-// Componente
-// ---------------------------------------------------------------------------
+function IconPath({ path }: { path: string }) {
+  return (
+    <svg aria-hidden="true" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}>
+      <path strokeLinecap="round" strokeLinejoin="round" d={path} />
+    </svg>
+  )
+}
 
 export default function Reto30ProgramClient({
   modules,
+  programId,
   appBrandColor,
+  variant = 'reto30',
 }: Reto30ProgramClientProps) {
-  // ── Armar los 30 días ordenados con sus 3 lecciones ──
-  const days: Reto30Day[] = modules
-    .sort((a, b) => a.numero - b.numero)
-    .map((mod) => ({
-      module: mod,
-      lessons: mod.lessons.sort((a, b) => a.orden - b.orden).slice(0, 3),
-    }))
+  const isCaregivers = variant === 'caregivers'
+  const appName = isCaregivers ? 'Mindful30 Cuidadores' : 'Reto30'
+  const appShortName = isCaregivers ? 'Cuidadores' : 'Reto30'
+  const appIcon = isCaregivers ? '/mindful30-caregivers-icon-192.png' : '/reto30-icon-192.png'
+  const startKey = getStorageKey(programId, 'start-date')
+  const completedKey = getStorageKey(programId, 'completed')
+  const notesKey = getStorageKey(programId, 'notes')
+  const welcomeKey = getStorageKey(programId, 'welcome-last-seen')
+  const moodKey = getStorageKey(programId, 'mood')
 
-  // ── Estado ──
+  const days: Reto30Day[] = useMemo(
+    () =>
+      [...modules]
+        .sort((a, b) => a.numero - b.numero)
+        .slice(0, 30)
+        .map((module) => ({
+          module: {
+            ...module,
+            nombre: maybeRepairMojibake(module.nombre),
+            descripcion: maybeRepairMojibake(module.descripcion),
+          },
+          lessons: [...module.lessons].sort((a, b) => a.orden - b.orden).slice(0, 3),
+        })),
+    [modules],
+  )
+
+  const totalDays = days.length || 30
   const [hydrated, setHydrated] = useState(false)
   const [startDate, setStartDate] = useState<string | null>(null)
   const [completed, setCompleted] = useState<Record<string, boolean>>({})
+  const [notes, setNotes] = useState<Record<string, string>>({})
+  const [moods, setMoods] = useState<Record<string, string>>({})
   const [currentDay, setCurrentDay] = useState(1)
+  const [view, setView] = useState<ViewKey>('today')
+  const [selectedTaskId, setSelectedTaskId] = useState<string | null>(null)
   const [showWelcome, setShowWelcome] = useState(false)
+  const [copied, setCopied] = useState(false)
+  const [breathingActive, setBreathingActive] = useState(false)
+  const [breathingTick, setBreathingTick] = useState(0)
+  const [installPrompt, setInstallPrompt] = useState<BeforeInstallPromptEvent | null>(null)
+  const [isStandalone, setIsStandalone] = useState(false)
+  const [showInstallHelp, setShowInstallHelp] = useState(false)
   const confettiRef = useRef<HTMLCanvasElement>(null)
 
-  const IS_DEMO = true
-  const FREE_DAYS = 2
-  const unlockedDay = getUnlockedDay(startDate)
-  const isPaywalled = IS_DEMO && currentDay > FREE_DAYS
-  const totalDays = days.length
+  const unlockedDay = getUnlockedDay(startDate, totalDays)
+  const activeDay = days[currentDay - 1] || days[0]
 
-  // ── Hidratación desde localStorage (una vez al montar) ──
+  const tasks = useMemo<TaskItem[]>(() => {
+    if (!activeDay) return []
+    return activeDay.lessons.map((lesson, index) => {
+      const area = AREAS[index] || 'thoughts'
+      const meta = AREA_META[area]
+      return {
+        id: lesson.id,
+        day: activeDay.module.numero,
+        lesson,
+        area,
+        areaName: meta.name,
+        icon: meta.icon,
+        color: meta.color,
+        title: titleForLesson(lesson),
+        body: bodyForLesson(lesson),
+        actionItem: actionForLesson(lesson),
+        resource: cleanResource(resourceForLesson(lesson)),
+      }
+    })
+  }, [activeDay])
+
+  const allTasks = useMemo<TaskItem[]>(
+    () =>
+      days.flatMap((day) =>
+        day.lessons.map((lesson, index) => {
+          const area = AREAS[index] || 'thoughts'
+          const meta = AREA_META[area]
+          return {
+            id: lesson.id,
+            day: day.module.numero,
+            lesson,
+            area,
+            areaName: meta.name,
+            icon: meta.icon,
+            color: meta.color,
+            title: titleForLesson(lesson),
+            body: bodyForLesson(lesson),
+            actionItem: actionForLesson(lesson),
+            resource: cleanResource(resourceForLesson(lesson)),
+          }
+        }),
+      ),
+    [days],
+  )
+
+  const selectedTask = useMemo(
+    () => allTasks.find((task) => task.id === selectedTaskId) || tasks[0] || null,
+    [allTasks, selectedTaskId, tasks],
+  )
+
+  const completedCount = allTasks.filter((task) => completed[task.id]).length
+  const totalTasks = allTasks.length || totalDays * 3
+  const dayCompletedCount = tasks.filter((task) => completed[task.id]).length
+  const dayIsComplete = tasks.length > 0 && dayCompletedCount === tasks.length
+  const progressPercent = totalTasks > 0 ? Math.round((completedCount / totalTasks) * 100) : 0
+
   useEffect(() => {
-    const savedStart = localStorage.getItem(LS_START_DATE)
-    const savedCompleted = localStorage.getItem(LS_COMPLETED)
-    const savedWelcome = localStorage.getItem(LS_WELCOME_SEEN)
+    const savedStart = localStorage.getItem(startKey) || getTodayKey()
+    if (!localStorage.getItem(startKey)) localStorage.setItem(startKey, savedStart)
 
-    // Fecha de inicio
-    if (savedStart) {
-      setStartDate(savedStart)
-    } else {
-      const today = getTodayMidnight().toISOString()
-      localStorage.setItem(LS_START_DATE, today)
-      setStartDate(today)
-    }
+    setStartDate(savedStart)
+    setCompleted(loadJson<Record<string, boolean>>(completedKey, {}))
+    setNotes(loadJson<Record<string, string>>(notesKey, {}))
+    setMoods(loadJson<Record<string, string>>(moodKey, {}))
 
-    // Tareas completadas
-    if (savedCompleted) {
-      try { setCompleted(JSON.parse(savedCompleted)) } catch { /* ignore */ }
-    }
-
-    // Welcome modal: mostrar si última visita fue en otro día
-    const todayStr = getTodayMidnight().toISOString().slice(0, 10)
-    if (savedWelcome !== todayStr) {
-      setShowWelcome(true)
-    }
-
+    const unlocked = getUnlockedDay(savedStart, totalDays)
+    setCurrentDay(Math.min(unlocked, totalDays))
+    setShowWelcome(localStorage.getItem(welcomeKey) !== getTodayKey())
     setHydrated(true)
+  }, [completedKey, moodKey, notesKey, startKey, totalDays, welcomeKey])
+
+  useEffect(() => {
+    if (!breathingActive) return
+    const timer = window.setInterval(() => setBreathingTick((tick) => tick + 1), 1000)
+    return () => window.clearInterval(timer)
+  }, [breathingActive])
+
+  useEffect(() => {
+    const standalone = window.matchMedia('(display-mode: standalone)')
+    const navigatorWithStandalone = navigator as Navigator & { standalone?: boolean }
+    const updateStandalone = () => {
+      setIsStandalone(standalone.matches || navigatorWithStandalone.standalone === true)
+    }
+    const handleInstallPrompt = (event: Event) => {
+      event.preventDefault()
+      setInstallPrompt(event as BeforeInstallPromptEvent)
+    }
+    const handleInstalled = () => {
+      setInstallPrompt(null)
+      setIsStandalone(true)
+      setShowInstallHelp(false)
+    }
+
+    updateStandalone()
+    standalone.addEventListener('change', updateStandalone)
+    window.addEventListener('beforeinstallprompt', handleInstallPrompt)
+    window.addEventListener('appinstalled', handleInstalled)
+
+    return () => {
+      standalone.removeEventListener('change', updateStandalone)
+      window.removeEventListener('beforeinstallprompt', handleInstallPrompt)
+      window.removeEventListener('appinstalled', handleInstalled)
+    }
   }, [])
 
-  // ── Persistir tareas completadas ──
-  const persistCompleted = useCallback((next: Record<string, boolean>) => {
-    localStorage.setItem(LS_COMPLETED, JSON.stringify(next))
-  }, [])
-
-  // ── Verificar si todas las tareas de un día están completas ──
-  const isDayFullyComplete = useCallback(
-    (dayIndex: number): boolean => {
-      const day = days[dayIndex]
-      if (!day) return false
-      return day.lessons.length > 0 && day.lessons.every((l) => completed[l.id])
+  const saveCompleted = useCallback(
+    (next: Record<string, boolean>) => {
+      setCompleted(next)
+      saveJson(completedKey, next)
     },
-    [days, completed],
+    [completedKey],
   )
 
-  // ── Marcar/desmarcar tarea individual ──
   const toggleTask = useCallback(
-    (lessonId: string) => {
-      setCompleted((prev) => {
-        const wasCompleted = prev[lessonId]
-        const next = { ...prev, [lessonId]: !wasCompleted }
-        persistCompleted(next)
-        if (!wasCompleted) {
-          setTimeout(() => launchConfetti(confettiRef.current, appBrandColor), 50)
-        }
-        return next
-      })
+    (taskId: string) => {
+      const next = { ...completed, [taskId]: !completed[taskId] }
+      saveCompleted(next)
+      if (!completed[taskId]) launchConfetti(confettiRef.current, appBrandColor)
     },
-    [appBrandColor, persistCompleted],
+    [appBrandColor, completed, saveCompleted],
   )
 
-  // ── Cerrar welcome modal ──
-  const closeWelcome = useCallback(() => {
-    setShowWelcome(false)
-    localStorage.setItem(LS_WELCOME_SEEN, getTodayMidnight().toISOString().slice(0, 10))
-  }, [])
+  const saveNote = useCallback(
+    (taskId: string, value: string) => {
+      const next = { ...notes, [taskId]: value }
+      setNotes(next)
+      saveJson(notesKey, next)
+    },
+    [notes, notesKey],
+  )
 
-  // ── Navegación entre días ──
+  const saveMood = useCallback(
+    (day: number, value: string) => {
+      const next = { ...moods, [String(day)]: value }
+      setMoods(next)
+      saveJson(moodKey, next)
+    },
+    [moodKey, moods],
+  )
+
   const goToDay = useCallback(
     (day: number) => {
-      if (day >= 1 && day <= totalDays && day <= unlockedDay) {
-        setCurrentDay(day)
-        window.scrollTo({ top: 0, behavior: 'smooth' })
-      }
+      if (day < 1 || day > totalDays || day > unlockedDay) return
+      setCurrentDay(day)
+      setSelectedTaskId(null)
+      setView('today')
+      window.requestAnimationFrame(() => window.scrollTo({ top: 0, behavior: 'smooth' }))
     },
     [totalDays, unlockedDay],
   )
 
-  // ── Completar el día y avanzar ──
-  const handleCompleteDay = useCallback(() => {
-    if (!isDayFullyComplete(currentDay - 1)) return
-    if (currentDay === totalDays) {
-      setCurrentDay(31) // Día 31 = celebración
+  const closeWelcome = () => {
+    localStorage.setItem(welcomeKey, getTodayKey())
+    setShowWelcome(false)
+  }
+
+  const resetProgress = () => {
+    if (!window.confirm(`Reiniciar ${appName} en este dispositivo?`)) return
+    localStorage.removeItem(startKey)
+    localStorage.removeItem(completedKey)
+    localStorage.removeItem(notesKey)
+    localStorage.removeItem(moodKey)
+    setStartDate(getTodayKey())
+    localStorage.setItem(startKey, getTodayKey())
+    setCompleted({})
+    setNotes({})
+    setMoods({})
+    setCurrentDay(1)
+    setView('today')
+    setSelectedTaskId(null)
+  }
+
+  const completeDay = () => {
+    if (!dayIsComplete) return
+    if (currentDay >= totalDays) {
+      launchConfetti(confettiRef.current, appBrandColor)
       return
     }
-    const next = currentDay + 1
-    if (next <= unlockedDay) {
-      setCurrentDay(next)
-      window.scrollTo({ top: 0, behavior: 'smooth' })
+    if (currentDay < unlockedDay) {
+      goToDay(currentDay + 1)
+      return
     }
-  }, [currentDay, isDayFullyComplete, totalDays, unlockedDay])
+    window.alert('Dia completado. El siguiente se desbloquea manana para mantener el ritmo diario del reto.')
+  }
 
-  // ── Reiniciar progreso (para debug) ──
-  const resetProgress = useCallback(() => {
-    localStorage.removeItem(LS_START_DATE)
-    localStorage.removeItem(LS_COMPLETED)
-    localStorage.removeItem(LS_WELCOME_SEEN)
-    setCompleted({})
-    const today = getTodayMidnight().toISOString()
-    localStorage.setItem(LS_START_DATE, today)
-    setStartDate(today)
-    setCurrentDay(1)
-    setShowWelcome(true)
-  }, [])
+  const copyScript = async (text: string) => {
+    try {
+      await navigator.clipboard.writeText(text)
+      setCopied(true)
+      window.setTimeout(() => setCopied(false), 1800)
+    } catch {
+      setCopied(false)
+    }
+  }
 
-  // ── Tareas completadas totales ──
-  const completedTasks = Object.values(completed).filter(Boolean).length
-  const totalTasks = totalDays * 3
-  // ── Quotes ──
-  const quote = DAILY_QUOTES[currentDay] || 'Un día más. Un paso más.'
+  const installApp = async () => {
+    if (!installPrompt) {
+      setShowInstallHelp(true)
+      return
+    }
 
-  // ── Loading pre-hydratación ──
+    await installPrompt.prompt()
+    const choice = await installPrompt.userChoice
+    if (choice.outcome === 'accepted') setIsStandalone(true)
+    setInstallPrompt(null)
+  }
+
   if (!hydrated) {
     return (
-      <div className="reto30 min-h-screen bg-[#0f172a] flex items-center justify-center">
-        <div className="text-[#94a3b8] text-sm animate-pulse">Cargando Reto30…</div>
+      <div className="reto30 min-h-[420px] bg-[var(--r30-bg)] text-[var(--r30-muted)]">
+        <div className="grid min-h-[420px] place-items-center text-sm">Cargando {appName}...</div>
       </div>
     )
   }
 
-  // Día actual (1-indexed → 0-indexed array)
-  const dayData = days[currentDay - 1]
-  const tasks = dayData?.lessons || []
+  if (!activeDay) {
+    return (
+      <div className="reto30 rounded-2xl bg-[var(--r30-bg)] p-8 text-[var(--r30-text)]">
+        No hay contenido disponible para {appName}.
+      </div>
+    )
+  }
+
+  const currentMood = moods[String(currentDay)] || ''
+  const quotes = isCaregivers ? caregiverQuotes : reto30Quotes
+  const quote = maybeRepairMojibake(quotes[Math.min(currentDay, 30)] || quotes[1])
+  const tabItems: Array<{ key: ViewKey; label: string; path: string }> = [
+    {
+      key: 'today',
+      label: 'Inicio',
+      path: 'M3.75 12 12 4.5 20.25 12M5.25 10.5v8.25h13.5V10.5',
+    },
+    {
+      key: 'map',
+      label: 'Mapa',
+      path: 'M9 18.75 3.75 21V5.25L9 3m0 15.75 6 2.25m-6-2.25V3m6 18 5.25-2.25V3L15 5.25m0 15.75V5.25M9 3l6 2.25',
+    },
+    {
+      key: 'resources',
+      label: 'Recursos',
+      path: 'M12 6.75v11.25m0-11.25c-1.2-1.08-2.83-1.5-4.5-1.5S4.2 5.67 3 6.75v11.25c1.2-1.08 2.83-1.5 4.5-1.5s3.3.42 4.5 1.5m0-11.25c1.2-1.08 2.83-1.5 4.5-1.5s3.3.42 4.5 1.5v11.25c-1.2-1.08-2.83-1.5-4.5-1.5s-3.3.42-4.5 1.5',
+    },
+    {
+      key: 'journal',
+      label: 'Diario',
+      path: 'M7.5 4.5h9A1.5 1.5 0 0 1 18 6v12a1.5 1.5 0 0 1-1.5 1.5h-9A1.5 1.5 0 0 1 6 18V6a1.5 1.5 0 0 1 1.5-1.5Zm2.25 4.5h4.5m-4.5 3h4.5m-4.5 3h2.25',
+    },
+  ]
 
   return (
-    <div className="reto30 min-h-screen bg-[var(--r30-bg)] text-[var(--r30-text)] font-sans selection:bg-[var(--r30-primary)] selection:text-white">
+    <div className={`reto30 ${isCaregivers ? 'caregivers30' : ''} r30-shell min-h-screen text-[var(--r30-text)]`}>
       <canvas ref={confettiRef} className="confetti-canvas" aria-hidden="true" />
 
-      {/* ════════════════════════════════════════════════════════════
-          MODAL DE BIENVENIDA — quote del día
-          ════════════════════════════════════════════════════════════ */}
       {showWelcome && (
-        <div
-          className="fixed inset-0 z-[100] flex items-center justify-center p-6"
-          style={{ backgroundColor: 'rgba(15, 23, 42, 0.92)' }}
-        >
-          <div className="glass-card max-w-md w-full p-8 text-center animate-reto30-in">
-            <div className="text-4xl mb-4">🌅</div>
-            <p className="text-xs font-semibold uppercase tracking-[.2em] text-[var(--r30-primary)] mb-3">
-              Día {currentDay} · Bienvenida
+        <div className="r30-modal-backdrop" role="dialog" aria-modal="true" aria-labelledby="reto30-welcome-title">
+          <div className="glass-card r30-welcome animate-reto30-in">
+            <div className="r30-spark" aria-hidden="true">30</div>
+            <h2 id="reto30-welcome-title">Bienvenido/a a tu dia {currentDay}</h2>
+            <p>
+              {isCaregivers
+                ? 'Una pausa diaria para cuidarte mientras cuidas. Acceso completo, sin codigo de activacion, dentro de TE CUIDA.'
+                : 'Una practica breve para mente, cuerpo y relaciones. Sin codigo de activacion, sin pagos, dentro de TE CUIDA.'}
             </p>
-            <blockquote className="text-lg italic text-[var(--r30-text)] mb-6 leading-relaxed">
-              &ldquo;{quote}&rdquo;
-            </blockquote>
-            <p className="text-sm text-[var(--r30-muted)] mb-6">
-              Hoy tienes 3 micro-tareas. Pequeños gestos que transforman tu
-              día. ¿Empezamos?
-            </p>
-            <button
-              onClick={closeWelcome}
-              className="inline-flex items-center gap-2 rounded-xl px-6 py-3 text-sm font-bold text-white transition-all hover:scale-105"
-              style={{
-                background: `linear-gradient(135deg, ${appBrandColor}, ${appBrandColor}dd)`,
-              }}
-            >
-              Comenzar el día →
+            <blockquote>{quote}</blockquote>
+            <button className="r30-primary" onClick={closeWelcome} style={{ background: appBrandColor }}>
+              Comenzar
             </button>
           </div>
         </div>
       )}
 
-      <div className="mx-auto max-w-2xl px-4 py-6 sm:px-6 sm:py-10">
-        {/* ════════════════════════════════════════════════════════════
-            HEADER — progreso + barra
-            ════════════════════════════════════════════════════════════ */}
-        <div className="mb-6">
-          <div className="flex items-center justify-between mb-2">
-            <p className="text-xs font-semibold uppercase tracking-[.2em] text-[var(--r30-muted)]">
-              Reto30
+      {showInstallHelp && (
+        <div className="r30-modal-backdrop" role="dialog" aria-modal="true" aria-labelledby="reto30-install-title">
+          <div className="glass-card r30-install-sheet animate-reto30-in">
+            <Image src={appIcon} alt="" width={64} height={64} priority />
+            <h2 id="reto30-install-title">Instalar {appName}</h2>
+            <p>
+              Abre el menu de tu navegador y elige <strong>Instalar aplicacion</strong> o
+              <strong> Anadir a pantalla de inicio</strong>.
             </p>
-            <span className="text-xs text-[var(--r30-muted)] tabular-nums">
-              {currentDay <= 30 ? `${completedTasks}/${totalTasks} tareas` : 'Completado'}
-            </span>
+            <button className="r30-primary" onClick={() => setShowInstallHelp(false)} style={{ background: appBrandColor }}>
+              Entendido
+            </button>
           </div>
-          <div className="progress-track mb-1">
-            <div
-              className="progress-fill"
-              style={{
-                width: `${currentDay > 30 ? 100 : (currentDay / 30) * 100}%`,
-                background: `linear-gradient(90deg, ${appBrandColor}, ${appBrandColor}dd)`,
-              }}
-            />
+        </div>
+      )}
+
+      <div className="r30-app">
+        <div className="r30-appbar">
+          <a href="/" className="r30-back" aria-label="Volver a TE CUIDA">
+            <IconPath path="M15.75 19.5 8.25 12l7.5-7.5" />
+          </a>
+          <div className="r30-brand">
+            <Image src={appIcon} alt="" width={40} height={40} priority />
+            <div>
+              <strong>{appName}</strong>
+              <span>{isCaregivers ? 'AUTOCUIDADO PROFESIONAL' : 'TE CUIDA'}</span>
+            </div>
           </div>
-          <p className="text-xs text-[var(--r30-muted)]">
-            {currentDay > 30
-              ? '¡Reto completado!'
-              : `Día ${currentDay} de ${totalDays}`}
-          </p>
+          {!isStandalone && (
+            <button type="button" className="r30-install" onClick={installApp} aria-label={`Instalar ${appName}`}>
+              <IconPath path="M12 3v12m0 0 4.5-4.5M12 15l-4.5-4.5M4.5 17.25v1.5A2.25 2.25 0 0 0 6.75 21h10.5a2.25 2.25 0 0 0 2.25-2.25v-1.5" />
+              <span>Instalar</span>
+            </button>
+          )}
         </div>
 
-        {/* ════════════════════════════════════════════════════════════
-            DÍA 31 — CELEBRACIÓN
-            ════════════════════════════════════════════════════════════ */}
-        {currentDay === 31 && (
-          <div className="glass-card p-10 text-center animate-reto30-in">
-            <div className="animate-reto30-pulse inline-flex items-center justify-center h-20 w-20 rounded-full bg-[var(--r30-primary)]/20 mb-6">
-              <span className="text-4xl">👑</span>
-            </div>
-            <h2 className="text-3xl font-bold text-[var(--r30-text)] mb-3">
-              ¡Lo has conseguido!
-            </h2>
-            <p className="text-[var(--r30-muted)] mb-6 max-w-sm mx-auto leading-relaxed">
-              30 días. 90 micro-tareas. Has construido hábitos que duran toda
-              la vida. Esto no es un final: es el comienzo de tu nueva forma de
-              relacionarte contigo mismo/a.
-            </p>
-            <div className="flex flex-wrap gap-3 justify-center">
-              <button
-                onClick={() => setCurrentDay(30)}
-                className="inline-flex items-center gap-2 rounded-xl px-5 py-2.5 text-sm font-semibold transition-all hover:scale-105"
-                style={{
-                  backgroundColor: `${appBrandColor}20`,
-                  color: appBrandColor,
-                }}
-              >
-                ← Repasar día 30
-              </button>
-              <button
-                onClick={resetProgress}
-                className="inline-flex items-center gap-2 rounded-xl px-5 py-2.5 text-sm font-semibold text-[var(--r30-muted)] hover:text-[var(--r30-text)] transition-all border border-white/10 hover:border-white/20"
-              >
-                🔄 Empezar de nuevo
-              </button>
-            </div>
+        <header className="r30-topbar">
+          <div>
+            <p className="r30-kicker">{appShortName}</p>
+            <h2>Dia {currentDay}</h2>
+            <p>{stripLeadingMarks(activeDay.module.nombre) || 'Tu practica diaria'}</p>
           </div>
-        )}
+          <div className="r30-score" style={{ borderColor: `${appBrandColor}55` }}>
+            <strong>{progressPercent}%</strong>
+            <span>{completedCount}/{totalTasks}</span>
+          </div>
+        </header>
 
-        {/* ════════════════════════════════════════════════════════════
-            PAYWALL NUDGE — demo mode más allá del día 2
-            ════════════════════════════════════════════════════════════ */}
-        {currentDay <= 30 && isPaywalled && (
-          <div className="glass-card p-6 mb-6 text-center animate-reto30-in">
-            <div className="text-3xl mb-3">🔓</div>
-            <p className="text-sm font-semibold text-[var(--r30-text)] mb-2">
-              Modo demo — Día {currentDay}
-            </p>
-            <p className="text-xs text-[var(--r30-muted)] mb-4 max-w-sm mx-auto">
-              Estás viendo el contenido completo del Reto30. Para desbloquear
-              los días automáticamente y guardar tu progreso, regístrate en el
-              portal de tu municipio.
-            </p>
-            <a
-              href="/register"
-              className="inline-flex items-center gap-2 rounded-xl px-5 py-2.5 text-sm font-bold text-white transition-all hover:scale-105"
-              style={{
-                background: `linear-gradient(135deg, ${appBrandColor}, ${appBrandColor}dd)`,
-              }}
+        <div className="r30-progress">
+          <span style={{ width: `${progressPercent}%`, background: appBrandColor }} />
+        </div>
+
+        <nav className="r30-tabs" aria-label={`Secciones de ${appName}`}>
+          {tabItems.map((item) => (
+            <button
+              key={item.key}
+              className={view === item.key ? 'active' : ''}
+              onClick={() => setView(item.key)}
+              type="button"
             >
-              Registrarse gratis →
-            </a>
-          </div>
-        )}
+              <IconPath path={item.path} />
+              <span>{item.label}</span>
+            </button>
+          ))}
+        </nav>
 
-        {/* ════════════════════════════════════════════════════════════
-            DÍA CENTRAL FOCAL — navegación + 3 tarjetas de tareas
-            ════════════════════════════════════════════════════════════ */}
-        {currentDay <= 30 && (
-          <>
-            {/* ── Navegación día central focal ── */}
-            <div className="flex items-center justify-center gap-4 mb-6">
-              <button
-                onClick={() => goToDay(currentDay - 1)}
-                disabled={currentDay === 1}
-                className="grid h-10 w-10 place-items-center rounded-full border border-white/10 text-[var(--r30-muted)] hover:text-[var(--r30-text)] hover:border-white/20 transition-all disabled:opacity-20 disabled:cursor-not-allowed"
-                aria-label="Día anterior"
-              >
-                <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 19.5 8.25 12l7.5-7.5" />
-                </svg>
-              </button>
-
-              {/* Número del día central */}
-              <div className="text-center min-w-[80px]">
-                <span
-                  className="text-5xl font-bold tabular-nums"
-                  style={{ color: appBrandColor }}
-                >
-                  {currentDay}
-                </span>
-                <p className="text-xs text-[var(--r30-muted)] mt-1">/ {totalDays}</p>
+        {view === 'today' && (
+          <main className="r30-grid r30-dashboard">
+            <section className="r30-main">
+              <div className="r30-day-nav">
+                <button onClick={() => goToDay(currentDay - 1)} disabled={currentDay === 1} aria-label="Dia anterior">
+                  <span aria-hidden="true">&lt;</span>
+                </button>
+                <div>
+                  <strong>{currentDay}</strong>
+                  <span>de {totalDays}</span>
+                </div>
+                <button onClick={() => goToDay(currentDay + 1)} disabled={currentDay >= unlockedDay || currentDay >= totalDays} aria-label="Dia siguiente">
+                  <span aria-hidden="true">{currentDay >= unlockedDay ? 'lock' : '>'}</span>
+                </button>
               </div>
 
-              {/* Botón siguiente o candado */}
-              {currentDay < unlockedDay ? (
-                <button
-                  onClick={() => goToDay(currentDay + 1)}
-                  className="grid h-10 w-10 place-items-center rounded-full border border-white/10 text-[var(--r30-muted)] hover:text-[var(--r30-text)] hover:border-white/20 transition-all"
-                  aria-label="Día siguiente"
-                >
-                  <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" d="m8.25 4.5 7.5 7.5-7.5 7.5" />
-                  </svg>
-                </button>
-              ) : currentDay === unlockedDay && currentDay < 30 ? (
-                <div className="grid h-10 w-10 place-items-center rounded-full border border-white/5 text-[var(--r30-muted)]/40">
-                  <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M16.5 10.5V6.75a4.5 4.5 0 1 0-9 0v3.75m-.75 11.25h10.5a2.25 2.25 0 0 0 2.25-2.25v-6.75a2.25 2.25 0 0 0-2.25-2.25H6.75a2.25 2.25 0 0 0-2.25 2.25v6.75a2.25 2.25 0 0 0 2.25 2.25Z" />
-                  </svg>
-                </div>
-              ) : null}
+              <div className="r30-quote glass-card">
+                <span>Frase del dia</span>
+                <p>{quote}</p>
+              </div>
+
+              <div className="r30-task-list">
+                {tasks.map((task) => {
+                  const done = !!completed[task.id]
+                  return (
+                    <button
+                      key={task.id}
+                      type="button"
+                      className={`glass-card r30-task ${AREA_META[task.area].className} ${done ? 'completed' : ''}`}
+                      onClick={() => setSelectedTaskId(task.id)}
+                    >
+                      <span className="r30-task-icon" style={{ color: task.color }}>
+                        <IconPath path={task.icon} />
+                      </span>
+                      <span className="r30-task-copy">
+                        <small>{task.areaName}</small>
+                        <strong>{task.title}</strong>
+                        <span>{task.body}</span>
+                      </span>
+                      <span className={done ? 'r30-check done' : 'r30-check'}>{done ? 'OK' : ''}</span>
+                    </button>
+                  )
+                })}
+              </div>
+
+              <button
+                type="button"
+                className="r30-primary r30-complete-day"
+                disabled={!dayIsComplete}
+                onClick={completeDay}
+                style={{ background: dayIsComplete ? appBrandColor : undefined }}
+              >
+                {dayIsComplete ? 'Dia completado' : `${dayCompletedCount}/3 tareas completadas`}
+              </button>
+            </section>
+
+          </main>
+        )}
+
+        {view === 'map' && (
+          <main className="glass-card r30-map-panel animate-reto30-in">
+            <div className="r30-section-head">
+              <div>
+                <span>Mapa del reto</span>
+                <h3>30 dias de practica</h3>
+              </div>
+              <button type="button" onClick={() => goToDay(Math.min(unlockedDay, totalDays))}>Ir a hoy</button>
             </div>
-
-            {/* ── Título del día ── */}
-            <h1 className="text-xl font-bold text-center text-[var(--r30-text)] mb-6">
-              {dayData?.module.nombre || `Día ${currentDay}`}
-            </h1>
-
-            {/* ── 3 tarjetas de micro-tareas ── */}
-            <div className="space-y-4 mb-8">
-              {tasks.map((task, i) => {
-                const isCompleted = completed[task.id] || false
+            <div className="r30-day-map">
+              {days.map((day) => {
+                const locked = day.module.numero > unlockedDay
+                const dayDone = day.lessons.length > 0 && day.lessons.every((lesson) => completed[lesson.id])
                 return (
                   <button
-                    key={task.id}
-                    onClick={() => toggleTask(task.id)}
-                    className={`glass-card w-full text-left p-5 sm:p-6 group ${PILLAR_CSS[i]} ${isCompleted ? 'completed' : ''}`}
+                    key={day.module.id}
+                    type="button"
+                    className={`${currentDay === day.module.numero ? 'current' : ''} ${dayDone ? 'done' : ''} ${locked ? 'locked' : ''}`}
+                    disabled={locked}
+                    onClick={() => goToDay(day.module.numero)}
                   >
-                    <div className="flex items-start gap-4">
-                      {/* Icono del pilar */}
-                      <div
-                        className={`grid h-12 w-12 shrink-0 place-items-center rounded-2xl text-xl transition-all ${
-                          isCompleted
-                            ? 'bg-[var(--r30-primary)]/20 ring-1 ring-[var(--r30-primary)]/30'
-                            : 'bg-white/5 group-hover:bg-white/10'
-                        }`}
-                      >
-                        {isCompleted ? '✅' : PILLAR_EMOJI[i]}
-                      </div>
-
-                      <div className="min-w-0 flex-1">
-                        <div className="flex items-center gap-2 mb-1.5">
-                          <span
-                            className="text-xs font-semibold uppercase tracking-wider"
-                            style={{
-                              color: isCompleted ? 'var(--r30-primary)' : 'var(--pillar-color)',
-                            }}
-                          >
-                            {PILLAR_NAMES[i]}
-                          </span>
-                          {isCompleted && (
-                            <span className="inline-flex items-center rounded-full bg-[var(--r30-primary)]/15 px-2 py-0.5 text-[10px] font-bold text-[var(--r30-primary)]">
-                              HECHO
-                            </span>
-                          )}
-                        </div>
-                        <h3
-                          className={`text-sm font-semibold mb-1 transition-colors ${
-                            isCompleted
-                              ? 'text-[var(--r30-muted)] line-through decoration-[var(--r30-primary)]/40'
-                              : 'text-[var(--r30-text)]'
-                          }`}
-                        >
-                          {task.titulo.replace(/^[🧠☀️❤️]\s*/, '')}
-                        </h3>
-                        {task.contenido_texto && (
-                          <p
-                            className={`text-xs leading-relaxed line-clamp-3 ${
-                              isCompleted ? 'text-[var(--r30-muted)]/40' : 'text-[var(--r30-muted)]'
-                            }`}
-                          >
-                            {task.contenido_texto}
-                          </p>
-                        )}
-                        <div className="mt-2 text-[10px] text-[var(--r30-muted)]/40">
-                          {task.duracion_minutos} min
-                        </div>
-                      </div>
-
-                      {/* Círculo de completado */}
-                      <div
-                        className={`grid h-6 w-6 shrink-0 place-items-center rounded-full border-2 transition-all ${
-                          isCompleted
-                            ? 'border-[var(--r30-primary)] bg-[var(--r30-primary)]'
-                            : 'border-white/15 group-hover:border-[var(--r30-primary)]/40'
-                        }`}
-                      >
-                        {isCompleted && (
-                          <svg className="w-3 h-3 text-white" fill="none" viewBox="0 0 24 24" strokeWidth={3} stroke="currentColor">
-                            <path strokeLinecap="round" strokeLinejoin="round" d="m4.5 12.75 6 6 9-13.5" />
-                          </svg>
-                        )}
-                      </div>
-                    </div>
+                    <strong>{day.module.numero}</strong>
+                    <span>{locked ? 'Bloqueado' : dayDone ? 'Hecho' : 'Abierto'}</span>
                   </button>
                 )
               })}
             </div>
+          </main>
+        )}
 
-            {/* ── Botón "Día completado" ── */}
-            {isDayFullyComplete(currentDay - 1) && currentDay < 30 && (
-              <div className="text-center mb-8 animate-reto30-in">
+        {view === 'resources' && (
+          <main className="r30-resources animate-reto30-in">
+            {allTasks
+              .filter((task) => task.day <= unlockedDay)
+              .map((task) => (
                 <button
-                  onClick={handleCompleteDay}
-                  className="inline-flex items-center gap-2 rounded-xl px-6 py-3 text-sm font-bold text-white transition-all hover:scale-105"
-                  style={{
-                    background: `linear-gradient(135deg, ${appBrandColor}, ${appBrandColor}dd)`,
-                    boxShadow: `0 8px 24px ${appBrandColor}40`,
+                  key={task.id}
+                  type="button"
+                  className="glass-card r30-resource"
+                  onClick={() => {
+                    setCurrentDay(task.day)
+                    setSelectedTaskId(task.id)
+                    setView('today')
                   }}
                 >
-                  ✨ Día completado — siguiente →
+                  <span style={{ color: task.color }}>
+                    <IconPath path={task.icon} />
+                  </span>
+                  <span>
+                    <small>Dia {task.day} · {task.areaName}</small>
+                    <strong>{task.title}</strong>
+                  </span>
                 </button>
-              </div>
-            )}
+              ))}
+          </main>
+        )}
 
-            {/* ── Día 30 completado → Día 31 ── */}
-            {isDayFullyComplete(currentDay - 1) && currentDay === 30 && (
-              <div className="text-center mb-8 animate-reto30-in">
-                <button
-                  onClick={handleCompleteDay}
-                  className="inline-flex items-center gap-2 rounded-xl px-6 py-3 text-sm font-bold text-white transition-all hover:scale-105"
-                  style={{
-                    background: `linear-gradient(135deg, ${appBrandColor}, ${appBrandColor}dd)`,
-                    boxShadow: `0 8px 24px ${appBrandColor}40`,
-                  }}
-                >
-                  🎉 Ver celebración →
-                </button>
-              </div>
-            )}
-
-            {/* ── Footer: reset ── */}
-            <div className="mt-8 pt-6 border-t border-white/5">
-              <div className="text-center">
-                <button
-                  onClick={resetProgress}
-                  className="text-[10px] text-[var(--r30-muted)]/30 hover:text-[var(--r30-muted)]/60 transition-colors"
-                >
-                  Reiniciar progreso
-                </button>
+        {view === 'journal' && (
+          <main className="glass-card r30-journal animate-reto30-in">
+            <div className="r30-section-head">
+              <div>
+                <span>Diario</span>
+                <h3>Como llegas hoy?</h3>
               </div>
             </div>
-          </>
+
+            <div className="r30-moods" role="group" aria-label="Estado de animo">
+              {['Sereno/a', 'Cansado/a', 'Inquieto/a', 'Motivado/a'].map((mood) => (
+                <button
+                  key={mood}
+                  type="button"
+                  className={currentMood === mood ? 'active' : ''}
+                  onClick={() => saveMood(currentDay, mood)}
+                >
+                  {mood}
+                </button>
+              ))}
+            </div>
+
+            <div className="r30-journal-list">
+              {tasks.map((task) => (
+                <label key={task.id}>
+                  <span>{task.areaName}: {task.title}</span>
+                  <textarea
+                    value={notes[task.id] || ''}
+                    onChange={(event) => saveNote(task.id, event.target.value)}
+                    placeholder="Escribe una nota breve sobre esta practica..."
+                  />
+                </label>
+              ))}
+            </div>
+          </main>
         )}
+
+        <footer className="r30-footer">
+          <span>Progreso guardado en este dispositivo.</span>
+          <button type="button" onClick={resetProgress}>Reiniciar progreso</button>
+        </footer>
       </div>
+
+      {selectedTaskId && selectedTask && view === 'today' && (
+        <div className="r30-task-sheet" role="dialog" aria-modal="true" aria-labelledby="reto30-task-title">
+          <button
+            type="button"
+            className="r30-sheet-backdrop"
+            aria-label="Cerrar detalle"
+            onClick={() => setSelectedTaskId(null)}
+          />
+          <div className="r30-sheet-panel animate-reto30-in">
+            <button
+              type="button"
+              className="r30-sheet-close"
+              aria-label="Cerrar detalle"
+              onClick={() => setSelectedTaskId(null)}
+            >
+              <IconPath path="M6 18 18 6M6 6l12 12" />
+            </button>
+            <TaskDetail
+              task={selectedTask}
+              isCompleted={!!completed[selectedTask.id]}
+              note={notes[selectedTask.id] || ''}
+              copied={copied}
+              breathingActive={breathingActive}
+              breathingTick={breathingTick}
+              titleId="reto30-task-title"
+              onToggle={() => toggleTask(selectedTask.id)}
+              onNoteChange={(value) => saveNote(selectedTask.id, value)}
+              onCopyScript={copyScript}
+              onToggleBreathing={() => setBreathingActive((value) => !value)}
+            />
+          </div>
+        </div>
+      )}
     </div>
+  )
+}
+
+function TaskDetail({
+  task,
+  isCompleted,
+  note,
+  copied,
+  breathingActive,
+  breathingTick,
+  onToggle,
+  onNoteChange,
+  onCopyScript,
+  onToggleBreathing,
+  titleId,
+}: {
+  task: TaskItem | null
+  isCompleted: boolean
+  note: string
+  copied: boolean
+  breathingActive: boolean
+  breathingTick: number
+  onToggle: () => void
+  onNoteChange: (value: string) => void
+  onCopyScript: (text: string) => void
+  onToggleBreathing: () => void
+  titleId?: string
+}) {
+  if (!task) {
+    return <aside className="glass-card r30-detail">Selecciona una practica para verla en detalle.</aside>
+  }
+
+  const phaseIndex = Math.floor(breathingTick / 4) % 3
+  const phase = ['Inhala', 'Mantente', 'Exhala'][phaseIndex] || 'Inhala'
+  const seconds = 4 - (breathingTick % 4)
+  const resource = task.resource
+  const resourceSteps = resource?.content.steps?.filter(Boolean)
+  const steps = resourceSteps?.length
+    ? resourceSteps
+    : splitIntoSteps(task.actionItem || task.body)
+  const script = resource?.content.script || `Hola, queria compartir contigo algo concreto: ${task.actionItem || task.body}`
+
+  return (
+    <aside className={`glass-card r30-detail ${AREA_META[task.area].className}`}>
+      <div className="r30-detail-head">
+        <span className="r30-task-icon" style={{ color: task.color }}>
+          <IconPath path={task.icon} />
+        </span>
+        <div>
+          <small>Dia {task.day} · {task.areaName}</small>
+          <h3 id={titleId}>{task.title}</h3>
+        </div>
+      </div>
+
+      <p className="r30-detail-body">{task.body}</p>
+
+      {task.actionItem && (
+        <div className="r30-action-item">
+          <span>Accion de hoy</span>
+          <p>{task.actionItem}</p>
+        </div>
+      )}
+
+      {resource?.type === 'cbt' && (
+        <div className="r30-script">
+          <span>{resource.title}</span>
+          {resource.content.prompt && <p>{resource.content.prompt}</p>}
+          {resource.content.guide && <small>{resource.content.guide}</small>}
+        </div>
+      )}
+
+      {task.area === 'activities' && (
+        <div className="r30-breathing">
+          <div className={breathingActive ? 'active' : ''}>
+            <strong>{phase}</strong>
+            <span>{seconds}</span>
+          </div>
+          <button type="button" onClick={onToggleBreathing}>
+            {breathingActive ? 'Pausar respiracion' : 'Iniciar respiracion'}
+          </button>
+        </div>
+      )}
+
+      {task.area === 'relationships' && (
+        <div className="r30-script">
+          <span>{resource?.title || 'Guion sugerido'}</span>
+          <p>{script}</p>
+          {resource?.content.advice && <small>{resource.content.advice}</small>}
+          <button type="button" onClick={() => onCopyScript(script)}>
+            {copied ? 'Copiado' : 'Copiar guion'}
+          </button>
+        </div>
+      )}
+
+      {resource?.type === 'tool' && resource.content.description && (
+        <div className="r30-script">
+          <span>{resource.title}</span>
+          <p>{resource.content.description}</p>
+        </div>
+      )}
+
+      <div className="r30-steps">
+        {steps.map((step, index) => (
+          <div key={`${task.id}-${index}`}>
+            <strong>{index + 1}</strong>
+            <span>{step}</span>
+          </div>
+        ))}
+      </div>
+
+      <label className="r30-note">
+        <span>Tu nota privada</span>
+        <textarea
+          value={note}
+          onChange={(event) => onNoteChange(event.target.value)}
+          placeholder="Que has observado? Que quieres recordar manana?"
+        />
+      </label>
+
+      <button type="button" className={isCompleted ? 'r30-done-button done' : 'r30-done-button'} onClick={onToggle}>
+        {isCompleted ? 'Tarea completada' : 'Marcar como hecha'}
+      </button>
+    </aside>
   )
 }

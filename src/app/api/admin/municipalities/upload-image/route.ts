@@ -18,6 +18,7 @@ import { createAdminClient } from '@/lib/supabase/server'
 import { verifyAdminAccess } from '@/lib/admin/auth'
 import { checkRateLimitAsync } from '@/lib/admin/rate-limit'
 import { NextResponse, type NextRequest } from 'next/server'
+import { randomUUID } from 'crypto'
 
 // ---------------------------------------------------------------------------
 // Constantes
@@ -184,7 +185,8 @@ export async function POST(request: NextRequest): Promise<Response> {
 
   // 7. Subir a Supabase Storage
   const ext = extForMime(file.type, file.name)
-  const bucketPath = `${slug}/${kind}.${ext}`
+  const uniqueSuffix = `${Date.now()}-${randomUUID().slice(0, 8)}`
+  const bucketPath = `${slug}/${kind}-${uniqueSuffix}.${ext}`
 
   try {
     const buffer = Buffer.from(await file.arrayBuffer())
@@ -193,7 +195,8 @@ export async function POST(request: NextRequest): Promise<Response> {
       .from('municipalities')
       .upload(bucketPath, buffer, {
         contentType: file.type,
-        upsert: true,
+        cacheControl: '31536000',
+        upsert: false,
       })
 
     if (uploadError) {
