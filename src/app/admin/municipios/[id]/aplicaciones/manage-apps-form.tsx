@@ -2,7 +2,7 @@
  * ManageAppsForm — Client Component para gestionar apps de un municipio
  *
  * Muestra todas las apps agrupadas por categoría con checkboxes
- * para activar/desactivar.
+ * para entregar o retirar del municipio.
  */
 
 'use client'
@@ -100,7 +100,7 @@ export default function ManageAppsForm({
         throw new Error(body.error || 'Error al guardar')
       }
 
-      setMessage({ type: 'ok', text: `Aplicaciones guardadas (${selected.size} activas).` })
+      setMessage({ type: 'ok', text: `Aplicaciones entregadas (${selected.size}).` })
     } catch (err) {
       setMessage({
         type: 'error',
@@ -121,13 +121,17 @@ export default function ManageAppsForm({
           <p className="text-sm font-medium text-gray-900">
             {selected.size} de {totalApps} aplicaciones seleccionadas
           </p>
+          <p className="mt-1 text-xs text-gray-500">
+            Las nuevas aplicaciones quedan pendientes hasta que el gestor
+            municipal las publique.
+          </p>
         </div>
         <button
           onClick={handleSave}
           disabled={loading}
           className="rounded-lg bg-indigo-600 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 disabled:opacity-50 transition-colors"
         >
-          {loading ? 'Guardando...' : 'Guardar cambios'}
+          {loading ? 'Guardando...' : 'Guardar entrega'}
         </button>
       </div>
 

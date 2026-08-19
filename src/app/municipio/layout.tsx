@@ -100,6 +100,14 @@ export default async function MunicipioLayout({
               </Link>
               {isMunicipioAdmin && (
                 <Link
+                  href="/municipio/aplicaciones"
+                  className="text-sm font-medium text-gray-600 hover:text-gray-900 transition-colors"
+                >
+                  Aplicaciones
+                </Link>
+              )}
+              {isMunicipioAdmin && (
+                <Link
                   href="/municipio/codigos"
                   className="text-sm font-medium text-gray-600 hover:text-gray-900 transition-colors"
                 >

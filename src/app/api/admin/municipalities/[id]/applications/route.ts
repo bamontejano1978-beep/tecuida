@@ -1,11 +1,13 @@
 /**
  * API Admin — Aplicaciones de un municipio
  *
- * GET /api/admin/municipalities/[id]/applications   → Listar apps activas
- * PUT /api/admin/municipalities/[id]/applications   → Sincronizar apps
+ * GET /api/admin/municipalities/[id]/applications   → Listar apps entregadas
+ * PUT /api/admin/municipalities/[id]/applications   → Sincronizar apps entregadas
  *
  * El PUT recibe { application_ids: UUID[], thumbnail_overrides?: Record<UUID, URL> }
- * y reemplaza completamente las aplicaciones del municipio por las de la lista.
+ * y reemplaza completamente las aplicaciones entregadas al municipio. Las apps
+ * nuevas quedan en estado editorial "disponible" hasta que el gestor municipal
+ * las publique.
  *
  * Seguridad: Usa createAdminClient() con service_role_key.
  *
@@ -60,6 +62,9 @@ export async function GET(
         application_id,
         activa,
         fecha_activacion,
+        publication_status,
+        published_at,
+        hidden_at,
         thumbnail_url_override,
         application:applications (
           id,
@@ -201,6 +206,36 @@ export async function PUT(
       }
     }
 
+    const { data: existingAssignments, error: existingError } = await supabase
+      .from('municipality_applications')
+      .select('application_id, publication_status, published_at, hidden_at, fecha_activacion')
+      .eq('municipality_id', params.id)
+
+    if (existingError) {
+      console.error(
+        '[PUT /api/admin/municipalities/:id/applications] existing:',
+        existingError.message,
+      )
+      return NextResponse.json(
+        { error: 'Error al consultar las aplicaciones actuales' },
+        { status: 500 },
+      )
+    }
+
+    type ExistingAssignment = {
+      application_id: string
+      publication_status: 'disponible' | 'publicada' | 'oculta' | null
+      published_at: string | null
+      hidden_at: string | null
+      fecha_activacion: string | null
+    }
+    const previousByApp = new Map(
+      ((existingAssignments || []) as unknown as ExistingAssignment[]).map((row) => [
+        row.application_id,
+        row,
+      ]),
+    )
+
     // Sincronizar: eliminar todas las asociaciones existentes e insertar las nuevas
     const { error: deleteError } = await supabase
       .from('municipality_applications')
@@ -225,6 +260,11 @@ export async function PUT(
         application_id: appId,
         activa: true,
         thumbnail_url_override: thumbnail_overrides[appId] || null,
+        publication_status:
+          previousByApp.get(appId)?.publication_status || 'disponible',
+        published_at: previousByApp.get(appId)?.published_at || null,
+        hidden_at: previousByApp.get(appId)?.hidden_at || null,
+        publication_updated_at: new Date().toISOString(),
       }))
 
       const { error: insertError } = await supabase
@@ -252,6 +292,9 @@ export async function PUT(
         application_id,
         activa,
         fecha_activacion,
+        publication_status,
+        published_at,
+        hidden_at,
         thumbnail_url_override,
         application:applications (
           id,

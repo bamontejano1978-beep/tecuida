@@ -1,8 +1,8 @@
 /**
  * Admin — Aplicaciones del municipio
  *
- * Muestra las aplicaciones del catálogo y permite activar/desactivar
- * cuáles están disponibles para un municipio concreto.
+ * Muestra las aplicaciones del catálogo y permite entregar o retirar
+ * aplicaciones a un municipio concreto.
  *
  * Requisitos: 10.1, 10.2, 13.1
  */
@@ -37,7 +37,7 @@ interface AppRow {
   thumbnail_url: string | null
 }
 
-interface ActiveAppRow {
+interface AssignedAppRow {
   application_id: string
   thumbnail_url_override: string | null
 }
@@ -88,17 +88,17 @@ export default async function ManageAppsPage({ params }: ManageAppsPageProps) {
     .select('id, nombre')
     .order('orden')
 
-  // Apps activas de este municipio
-  const { data: activeApps } = await supabase
+  // Apps entregadas a este municipio
+  const { data: assignedApps } = await supabase
     .from('municipality_applications')
     .select('application_id, thumbnail_url_override')
     .eq('municipality_id', params.id)
     .eq('activa', true)
 
-  const activeRows = (activeApps || []) as unknown as ActiveAppRow[]
-  const activeIds = new Set(activeRows.map((a) => a.application_id))
+  const assignedRows = (assignedApps || []) as unknown as AssignedAppRow[]
+  const activeIds = new Set(assignedRows.map((a) => a.application_id))
   const thumbnailOverrides = Object.fromEntries(
-    activeRows
+    assignedRows
       .filter((a) => a.thumbnail_url_override)
       .map((a) => [a.application_id, a.thumbnail_url_override as string]),
   )
@@ -130,11 +130,12 @@ export default async function ManageAppsPage({ params }: ManageAppsPageProps) {
           ← Volver a municipios
         </Link>
         <h1 className="mt-2 text-2xl font-bold text-gray-900">
-          Aplicaciones activas
+          Aplicaciones entregadas
         </h1>
         <p className="mt-1 text-sm text-gray-500">
           {mun.nombre_municipio} — Dominio: {mun.dominio} · ({mun.slug}).
-          Selecciona las aplicaciones disponibles para este municipio.
+          Selecciona qué aplicaciones recibe este municipio. Después, el gestor
+          municipal decide cuáles publica en su landing.
         </p>
         <div className="mt-4 flex items-center gap-3">
           <LandingPreviewButton

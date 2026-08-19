@@ -48,6 +48,8 @@ import { createAdminClient } from '@/lib/supabase/server'
 export interface MunicipalityAppRow {
   application_id: string
   thumbnail_url_override: string | null
+  publication_status: 'disponible' | 'publicada' | 'oculta'
+  published_at: string | null
   application: {
     id: string
     category_id: string
@@ -106,6 +108,8 @@ async function _fetchMunicipalityApps(
     .select(
       `application_id,
       thumbnail_url_override,
+      publication_status,
+      published_at,
       application:applications!inner (
         id,
         category_id,
@@ -121,6 +125,7 @@ async function _fetchMunicipalityApps(
     )
     .eq('municipality_id', municipalityId)
     .eq('activa', true)
+    .eq('publication_status', 'publicada')
 
   if (error) {
     // Defensivo: bugs anteriores engulleron el error como [] y el síntoma
@@ -146,7 +151,7 @@ async function _fetchMunicipalityApps(
  */
 export const getMunicipalityAppsForLanding = unstable_cache(
   _fetchMunicipalityApps,
-  ['municipality-apps'],
+  ['municipality-apps-v3'],
   {
     tags: [MUNICIPALITY_APPS_TAG],
     revalidate: 3600, // 1 hora (red de seguridad; el tag lo invalida antes)
