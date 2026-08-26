@@ -61,13 +61,6 @@ interface DashboardApp {
   thumbnailUrl: string | null
 }
 
-const appTypeLabel: Record<string, string> = {
-  programa: 'Programa',
-  herramienta: 'Herramienta',
-  encuesta: 'Encuesta',
-  recurso: 'Recurso',
-}
-
 const appTypeIcon: Record<string, string> = {
   programa: '🌿',
   herramienta: '✦',
@@ -168,60 +161,6 @@ function DashboardIcon({
   )
 }
 
-function ApplicationCard({
-  app,
-  actionLabel,
-  prominent = false,
-}: {
-  app: DashboardApp
-  actionLabel: string
-  prominent?: boolean
-}) {
-  const href = getApplicationEntryPath({ id: app.id, app_slug: app.appSlug })
-
-  return (
-    <TrackedApplicationLink
-      applicationId={app.id}
-      href={href}
-      className={`group overflow-hidden rounded-2xl border bg-white transition duration-200 hover:-translate-y-0.5 hover:shadow-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2 ${
-        prominent ? 'border-indigo-100 shadow-sm' : 'border-slate-200'
-      }`}
-    >
-      <div className={`relative overflow-hidden ${prominent ? 'aspect-[16/8]' : 'aspect-[16/9]'}`}>
-        {app.thumbnailUrl ? (
-          <Image
-            src={app.thumbnailUrl}
-            alt=""
-            fill
-            sizes={prominent ? '(max-width: 640px) 100vw, 50vw' : '(max-width: 640px) 100vw, 33vw'}
-            className="object-cover transition duration-300 group-hover:scale-[1.03]"
-          />
-        ) : (
-          <div className="absolute inset-0 bg-gradient-to-br from-indigo-100 via-sky-50 to-emerald-100">
-            <div className="flex h-full items-center justify-center text-4xl" aria-hidden="true">
-              {appTypeIcon[app.tipo] || '✦'}
-            </div>
-          </div>
-        )}
-        <div className="absolute inset-0 bg-gradient-to-t from-slate-950/45 via-transparent to-transparent" />
-        <span className="absolute left-3 top-3 rounded-full bg-white/90 px-2.5 py-1 text-[11px] font-semibold text-slate-700 shadow-sm backdrop-blur">
-          {appTypeLabel[app.tipo] || 'Aplicación'}
-        </span>
-      </div>
-      <div className="p-4">
-        <h3 className="text-base font-bold text-slate-900">{app.nombre}</h3>
-        <p className="mt-1 line-clamp-2 text-sm leading-5 text-slate-600">
-          {app.descripcion || 'Una herramienta de bienestar disponible para ti.'}
-        </p>
-        <span className="mt-4 inline-flex items-center gap-1.5 text-sm font-bold text-indigo-700">
-          {actionLabel}
-          <DashboardIcon name="arrow" className="h-4 w-4 transition group-hover:translate-x-0.5" />
-        </span>
-      </div>
-    </TrackedApplicationLink>
-  )
-}
-
 export default async function DashboardPage() {
   const supabase = createClient()
   const {
@@ -248,6 +187,7 @@ export default async function DashboardPage() {
       )
       .eq('municipality_id', tenant.id)
       .eq('activa', true)
+      .eq('publication_status', 'publicada')
 
     activeApps = (data || []) as unknown as ActiveAppRow[]
   }
@@ -415,8 +355,8 @@ export default async function DashboardPage() {
               <Link href="/dashboard" aria-current="page" className="rounded-full bg-white px-4 py-2 text-slate-900 shadow-sm">
                 Inicio
               </Link>
-              <Link href="/" className="rounded-full px-4 py-2 text-white/85 transition hover:bg-white/10 hover:text-white">
-                Explorar
+              <Link href="/dashboard/aplicaciones" className="rounded-full px-4 py-2 text-white/85 transition hover:bg-white/10 hover:text-white">
+                Mis apps
               </Link>
               <Link href="/actividades" className="rounded-full px-4 py-2 text-white/85 transition hover:bg-white/10 hover:text-white">
                 Actividades
@@ -506,10 +446,10 @@ export default async function DashboardPage() {
                   Tu ayuntamiento ha reunido programas y herramientas para acompañarte. Elige el que mejor encaje contigo.
                 </p>
                 <Link
-                  href="/"
+                  href="/dashboard/aplicaciones"
                   className="mt-6 inline-flex min-h-11 items-center gap-2 rounded-xl bg-slate-950 px-5 py-3 text-sm font-bold text-white transition hover:bg-indigo-700"
                 >
-                  Explorar recursos
+                  Abrir mis aplicaciones
                   <DashboardIcon name="arrow" className="h-4 w-4" />
                 </Link>
               </div>
@@ -580,63 +520,25 @@ export default async function DashboardPage() {
           </div>
         </section>
 
-        {usedApps.length > 0 && (
-          <section className="mt-12" aria-labelledby="my-apps-title">
-            <div className="mb-5 flex items-end justify-between gap-4">
-              <div>
-                <p className="text-xs font-bold uppercase tracking-[0.14em] text-indigo-700">Tu espacio</p>
-                <h2 id="my-apps-title" className="mt-1 text-2xl font-black tracking-tight text-slate-950">
-                  Mis programas y herramientas
-                </h2>
-              </div>
-              <Link href="/" className="hidden items-center gap-1 text-sm font-bold text-indigo-700 sm:inline-flex">
-                Ver todo
-                <DashboardIcon name="arrow" className="h-4 w-4" />
-              </Link>
-            </div>
-            <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
-              {usedApps.slice(0, 6).map((app) => (
-                <ApplicationCard key={app.id} app={app} actionLabel="Abrir de nuevo" />
-              ))}
-            </div>
-          </section>
-        )}
-
-        <section className="mt-12" aria-labelledby="discover-title">
-          <div className="mb-5 flex items-end justify-between gap-4">
+        <section className="mt-12 overflow-hidden rounded-3xl bg-slate-950 text-white" aria-labelledby="launcher-title">
+          <div className="grid items-center gap-8 p-6 sm:p-8 lg:grid-cols-[1fr_auto]">
             <div>
-              <p className="text-xs font-bold uppercase tracking-[0.14em] text-emerald-700">Descubre</p>
-              <h2 id="discover-title" className="mt-1 text-2xl font-black tracking-tight text-slate-950">
-                {discoveryApps.length > 0 ? 'Algo nuevo para ti' : 'Todos tus recursos'}
-              </h2>
-              <p className="mt-1 text-sm text-slate-500">
-                {discoveryApps.length > 0
-                  ? `${discoveryApps.length} ${discoveryApps.length === 1 ? 'recurso disponible' : 'recursos disponibles'} por explorar`
-                  : 'Accede rápidamente a las herramientas de tu municipio'}
+              <p className="text-xs font-bold uppercase tracking-[0.16em] text-sky-300">Tu lanzadera personal</p>
+              <h2 id="launcher-title" className="mt-2 text-2xl font-black tracking-tight sm:text-3xl">Todas tus aplicaciones, organizadas para ti</h2>
+              <p className="mt-3 max-w-2xl text-sm leading-6 text-slate-300">
+                Accede a tus programas y herramientas desde una pantalla propia, consulta tu progreso y encuentra rápidamente lo que necesitas.
               </p>
+              <div className="mt-5 flex flex-wrap gap-2 text-xs font-bold text-slate-300">
+                <span className="rounded-full bg-white/10 px-3 py-1.5">{apps.length} {apps.length === 1 ? 'aplicación' : 'aplicaciones'}</span>
+                {usedApps.length > 0 && <span className="rounded-full bg-white/10 px-3 py-1.5">{usedApps.length} en uso</span>}
+                {discoveryApps.length > 0 && <span className="rounded-full bg-white/10 px-3 py-1.5">{discoveryApps.length} por descubrir</span>}
+              </div>
             </div>
-            <Link href="/" className="hidden items-center gap-1 text-sm font-bold text-indigo-700 sm:inline-flex">
-              Catálogo completo
-              <DashboardIcon name="arrow" className="h-4 w-4" />
+            <Link href="/dashboard/aplicaciones" className="inline-flex min-h-12 items-center justify-center gap-2 rounded-2xl bg-white px-6 py-3.5 text-sm font-black text-slate-950 shadow-lg transition hover:bg-sky-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2 focus-visible:ring-offset-slate-950">
+              <DashboardIcon name="grid" className="h-5 w-5" />
+              Abrir mis aplicaciones
             </Link>
           </div>
-          {apps.length > 0 ? (
-            <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
-              {(discoveryApps.length > 0 ? discoveryApps : apps).slice(0, 3).map((app) => (
-                <ApplicationCard
-                  key={app.id}
-                  app={app}
-                  actionLabel={discoveryApps.length > 0 ? 'Descubrir' : 'Abrir'}
-                  prominent
-                />
-              ))}
-            </div>
-          ) : (
-            <div className="rounded-3xl border border-dashed border-slate-300 bg-white px-6 py-12 text-center">
-              <p className="text-lg font-bold text-slate-800">Estamos preparando nuevos recursos para ti</p>
-              <p className="mt-2 text-sm text-slate-500">Vuelve pronto para descubrir las novedades de tu municipio.</p>
-            </div>
-          )}
         </section>
 
         <section className="mt-12 grid gap-6 lg:grid-cols-[1.4fr_1fr]">
@@ -719,9 +621,9 @@ export default async function DashboardPage() {
           <DashboardIcon name="home" className="h-5 w-5" />
           Inicio
         </Link>
-        <Link href="/" className="flex min-h-14 flex-col items-center justify-center gap-1 rounded-xl text-[11px] font-semibold text-slate-500">
+        <Link href="/dashboard/aplicaciones" className="flex min-h-14 flex-col items-center justify-center gap-1 rounded-xl text-[11px] font-semibold text-slate-500">
           <DashboardIcon name="grid" className="h-5 w-5" />
-          Explorar
+          Mis apps
         </Link>
         <Link href="/actividades" className="flex min-h-14 flex-col items-center justify-center gap-1 rounded-xl text-[11px] font-semibold text-slate-500">
           <DashboardIcon name="calendar" className="h-5 w-5" />
