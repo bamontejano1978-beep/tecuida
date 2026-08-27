@@ -8,6 +8,7 @@
  */
 
 import { createAdminClient } from '@/lib/supabase/server'
+import { requireSuperadminPage } from '@/lib/admin/page-auth'
 import { notFound } from 'next/navigation'
 import Link from 'next/link'
 import { headers } from 'next/headers'
@@ -51,6 +52,7 @@ interface ManageAppsPageProps {
 }
 
 export default async function ManageAppsPage({ params }: ManageAppsPageProps) {
+  await requireSuperadminPage()
   const supabase = createAdminClient()
 
   // Municipio

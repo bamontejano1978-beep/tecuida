@@ -44,7 +44,9 @@ export type TenantCheckResult =
 /**
  * Lee auth + rol + tenant del usuario actual. Null si no autorizado.
  */
-export async function getAdminAccess(): Promise<AdminAccess | null> {
+export async function getAdminAccess(
+  options: { superadminOnly?: boolean } = {},
+): Promise<AdminAccess | null> {
   const serverClient = createClient()
   const { data: userResp } = await serverClient.auth.getUser()
   const user = userResp?.user
@@ -59,6 +61,7 @@ export async function getAdminAccess(): Promise<AdminAccess | null> {
 
   if (!row) return null
   if (row.rol !== 'superadmin' && row.rol !== 'admin_municipio') return null
+  if (options.superadminOnly && row.rol !== 'superadmin') return null
 
   return {
     is_superadmin: row.rol === 'superadmin',

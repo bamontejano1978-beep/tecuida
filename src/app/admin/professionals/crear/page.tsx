@@ -9,7 +9,7 @@ import { createAdminClient } from '@/lib/supabase/server'
 import CreateProfessionalForm from './create-form'
 
 export default async function CrearProfesionalPage() {
-  const access = await getAdminAccess()
+  const access = await getAdminAccess({ superadminOnly: true })
   if (!access) redirect('/login?error=unauthorized')
 
   let municipalities: Array<{ id: string; nombre_municipio: string }> = []

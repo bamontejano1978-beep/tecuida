@@ -8,6 +8,7 @@
  */
 
 import { createAdminClient } from '@/lib/supabase/server'
+import { requireSuperadminPage } from '@/lib/admin/page-auth'
 import { notFound } from 'next/navigation'
 import Link from 'next/link'
 import EditApplicationForm from './edit-form'
@@ -24,6 +25,7 @@ interface CategoryOption {
 export default async function EditApplicationPage({
   params,
 }: EditApplicationPageProps) {
+  await requireSuperadminPage()
   const supabase = createAdminClient()
 
   // Cargamos app + categorías en paralelo (la app es crítica;

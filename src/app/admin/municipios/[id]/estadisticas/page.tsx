@@ -7,6 +7,7 @@
  */
 
 import { createAdminClient } from '@/lib/supabase/server'
+import { requireSuperadminPage } from '@/lib/admin/page-auth'
 import { notFound } from 'next/navigation'
 import Link from 'next/link'
 import MunicipalityStats from '@/components/admin/municipality-stats'
@@ -26,6 +27,7 @@ interface MunicipioStatsPageProps {
 export default async function MunicipioStatsPage({
   params,
 }: MunicipioStatsPageProps) {
+  await requireSuperadminPage()
   // Verificar que el municipio existe
   const supabase = createAdminClient()
   const { data: municipio } = await supabase

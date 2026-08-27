@@ -1,6 +1,7 @@
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
 import { createAdminClient } from '@/lib/supabase/server'
+import { requireSuperadminPage } from '@/lib/admin/page-auth'
 import InviteCodesManager from './invite-codes-manager'
 import { isInviteCodesConfigured } from '@/lib/auth/municipal-invite-codes'
 
@@ -25,6 +26,7 @@ interface BatchRow {
 }
 
 export default async function InviteCodesPage({ params }: { params: { id: string } }) {
+  await requireSuperadminPage()
   const supabase = createAdminClient()
   const [{ data: municipality }, { data: batchData }] = await Promise.all([
     supabase

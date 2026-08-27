@@ -1,9 +1,9 @@
 /**
  * /api/admin/activities
  *
- * - GET  → Listado de actividades del admin (filtrado por tenant si no es superadmin)
+ * - GET  → Listado de actividades para el superadministrador
  * - POST → Crear actividad (estado inicial: 'pendiente_validacion' si lo crea
- *          un profesional externo, 'publicada' si lo crea el admin municipal).
+ *          un profesional externo, 'publicada' si lo crea el superadministrador).
  */
 
 import type { NextRequest } from 'next/server'
@@ -23,7 +23,7 @@ export async function GET(request: NextRequest) {
   const rate = await checkRateLimitAsync(request)
   if (rate) return rate
 
-  const access = await getAdminAccess()
+  const access = await getAdminAccess({ superadminOnly: true })
   if (!access) return unauthorized()
 
   const { searchParams } = new URL(request.url)
@@ -53,7 +53,7 @@ export async function POST(request: NextRequest) {
   const rate = await checkRateLimitAsync(request)
   if (rate) return rate
 
-  const access = await getAdminAccess()
+  const access = await getAdminAccess({ superadminOnly: true })
   if (!access) return unauthorized()
 
   let body: unknown

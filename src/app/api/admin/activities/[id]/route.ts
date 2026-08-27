@@ -23,7 +23,7 @@ import { createAdminClient } from '@/lib/supabase/server'
 interface Ctx { params: { id: string } }
 
 export async function GET(_request: NextRequest, { params }: Ctx) {
-  const access = await getAdminAccess()
+  const access = await getAdminAccess({ superadminOnly: true })
   if (!access) return unauthorized()
 
   const activity = await getActivityAdmin(params.id)
@@ -41,7 +41,7 @@ export async function PUT(request: NextRequest, { params }: Ctx) {
   const rate = await checkRateLimitAsync(request)
   if (rate) return rate
 
-  const access = await getAdminAccess()
+  const access = await getAdminAccess({ superadminOnly: true })
   if (!access) return unauthorized()
 
   const current = await getActivityAdmin(params.id)
@@ -118,7 +118,7 @@ export async function DELETE(request: NextRequest, { params }: Ctx) {
   const rate = await checkRateLimitAsync(request)
   if (rate) return rate
 
-  const access = await getAdminAccess()
+  const access = await getAdminAccess({ superadminOnly: true })
   if (!access) return unauthorized()
 
   const current = await getActivityAdmin(params.id)

@@ -10,6 +10,7 @@
  */
 
 import { createAdminClient } from '@/lib/supabase/server'
+import { requireSuperadminPage } from '@/lib/admin/page-auth'
 import Link from 'next/link'
 import DemographicStats from '@/components/admin/demographic-stats'
 import PurgeCacheButton from '@/components/admin/purge-cache-button'
@@ -196,6 +197,7 @@ export default async function AdminDashboardPage({
 }: {
   searchParams: Record<string, string | string[] | undefined>
 }) {
+  await requireSuperadminPage()
   const stats = await getDashboardStats()
   const tenants = await getTenantListForDiagnostics()
   const municipioId =

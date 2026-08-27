@@ -8,6 +8,7 @@
  */
 
 import { createAdminClient } from '@/lib/supabase/server'
+import { requireSuperadminPage } from '@/lib/admin/page-auth'
 import { notFound } from 'next/navigation'
 import Link from 'next/link'
 import { headers } from 'next/headers'
@@ -25,6 +26,7 @@ interface EditMunicipioPageProps {
 }
 
 export default async function EditMunicipioPage({ params }: EditMunicipioPageProps) {
+  await requireSuperadminPage()
   const supabase = createAdminClient()
 
   const { data, error } = await supabase

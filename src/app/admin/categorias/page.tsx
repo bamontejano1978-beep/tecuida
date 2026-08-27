@@ -8,6 +8,7 @@
  */
 
 import { createAdminClient } from '@/lib/supabase/server'
+import { requireSuperadminPage } from '@/lib/admin/page-auth'
 import Link from 'next/link'
 import CategoryManager from './category-manager'
 
@@ -20,6 +21,7 @@ export interface AdminCategory {
 }
 
 export default async function CategoriasPage() {
+  await requireSuperadminPage()
   const supabase = createAdminClient()
   const { data: categories } = await supabase
     .from('categories')

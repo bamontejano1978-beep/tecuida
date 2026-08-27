@@ -104,7 +104,7 @@ export default async function AdminLayout({
   const { data: { user } } = await supabase.auth.getUser()
 
   if (!user) {
-    redirect('/login')
+    redirect('/login?redirect=/admin')
   }
 
   // Verificar rol en public.users usando admin client
@@ -115,8 +115,12 @@ export default async function AdminLayout({
     .eq('id', user.id)
     .single()
 
+  if (userRow?.rol === 'admin_municipio') {
+    redirect('/municipio/estadisticas')
+  }
+
   if (!userRow || userRow.rol !== 'superadmin') {
-    redirect('/login?error=unauthorized')
+    redirect('/dashboard')
   }
 
   return (

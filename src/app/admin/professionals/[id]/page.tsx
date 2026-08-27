@@ -27,7 +27,7 @@ export default async function EditProfesionalPage({
 }: {
   params: { id: string }
 }) {
-  const access = await getAdminAccess()
+  const access = await getAdminAccess({ superadminOnly: true })
   if (!access) redirect('/login?error=unauthorized')
 
   const supabase = createAdminClient()

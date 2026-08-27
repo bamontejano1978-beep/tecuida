@@ -18,6 +18,8 @@ import { createAuthCookiesAdapter } from '@/lib/supabase/cookies'
 import { buildAuthCookies } from '@/lib/supabase/auth-cookies'
 import { checkRateLimitAsync } from '@/lib/admin/rate-limit'
 import { getTrustedOrigin } from '@/lib/request-origin'
+import { createAdminClient } from '@/lib/supabase/server'
+import { getRoleAwareRedirect, type LoginRole } from '@/lib/auth/login-redirect'
 import { z } from 'zod'
 
 // ---------------------------------------------------------------------------
@@ -32,13 +34,6 @@ const loginSchema = z.object({
 // ---------------------------------------------------------------------------
 // Helpers
 // ---------------------------------------------------------------------------
-
-function getValidRedirect(raw: string | null): string {
-  if (!raw || !raw.startsWith('/') || raw.includes('//') || raw.includes('\\\\') || raw.length > 500) {
-    return '/dashboard'
-  }
-  return raw
-}
 
 // ---------------------------------------------------------------------------
 // POST /api/auth/login
@@ -130,8 +125,25 @@ export async function POST(request: NextRequest) {
     })
 
     // 5. Redirigir con cookies copiadas del intermedio
-    const redirectTo = getValidRedirect(
+    let role: LoginRole = 'ciudadano'
+    try {
+      const admin = createAdminClient()
+      const { data: profile } = await admin
+        .from('users')
+        .select('rol')
+        .eq('id', signInData.user.id)
+        .maybeSingle()
+
+      if (profile?.rol === 'superadmin' || profile?.rol === 'admin_municipio') {
+        role = profile.rol
+      }
+    } catch (roleError) {
+      console.error('[api/auth/login] No se pudo resolver el rol:', roleError)
+    }
+
+    const redirectTo = getRoleAwareRedirect(
       typeof rawRedirect === 'string' ? rawRedirect : null,
+      role,
     )
     const finalResponse = NextResponse.redirect(`${origin}${redirectTo}`, 303)
 

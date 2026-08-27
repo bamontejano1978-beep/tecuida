@@ -2,7 +2,7 @@
  * /api/admin/professionals
  *
  * - GET  → Listado
- * - POST → Crear (asignado al tenant del admin o especificado por superadmin)
+ * - POST → Crear y asignar a un municipio (solo superadministrador)
  */
 
 import type { NextRequest } from 'next/server'
@@ -22,7 +22,7 @@ export async function GET(request: NextRequest) {
   const rate = await checkRateLimitAsync(request)
   if (rate) return rate
 
-  const access = await getAdminAccess()
+  const access = await getAdminAccess({ superadminOnly: true })
   if (!access) return unauthorized()
 
   try {
@@ -41,7 +41,7 @@ export async function POST(request: NextRequest) {
   const rate = await checkRateLimitAsync(request)
   if (rate) return rate
 
-  const access = await getAdminAccess()
+  const access = await getAdminAccess({ superadminOnly: true })
   if (!access) return unauthorized()
 
   let body: unknown

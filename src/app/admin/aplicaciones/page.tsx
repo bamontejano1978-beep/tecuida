@@ -9,6 +9,7 @@
  */
 
 import { createAdminClient } from '@/lib/supabase/server'
+import { requireSuperadminPage } from '@/lib/admin/page-auth'
 import Link from 'next/link'
 
 // ---------------------------------------------------------------------------
@@ -52,6 +53,7 @@ interface AplicacionesPageProps {
 export default async function AplicacionesPage({
   searchParams,
 }: AplicacionesPageProps) {
+  await requireSuperadminPage()
   const page = Math.max(
     1,
     parseInt(

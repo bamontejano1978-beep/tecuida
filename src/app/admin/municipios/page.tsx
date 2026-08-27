@@ -8,6 +8,7 @@
  */
 
 import { createAdminClient } from '@/lib/supabase/server'
+import { requireSuperadminPage } from '@/lib/admin/page-auth'
 import Link from 'next/link'
 import { headers } from 'next/headers'
 import { getMunicipioLandingUrl } from '@/lib/tenant/landing'
@@ -53,6 +54,7 @@ interface MunicipiosPageProps {
 }
 
 export default async function MunicipiosPage({ searchParams }: MunicipiosPageProps) {
+  await requireSuperadminPage()
   const page = Math.max(1, parseInt(
     typeof searchParams['page'] === 'string' ? searchParams['page'] : '1',
     10,

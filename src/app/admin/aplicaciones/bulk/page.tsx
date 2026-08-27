@@ -6,6 +6,7 @@
  */
 
 import { createAdminClient } from '@/lib/supabase/server'
+import { requireSuperadminPage } from '@/lib/admin/page-auth'
 import Link from 'next/link'
 import BulkAssignForm from './bulk-assign-form'
 
@@ -35,6 +36,7 @@ interface CurrentAssignment {
 // ---------------------------------------------------------------------------
 
 export default async function BulkAssignPage() {
+  await requireSuperadminPage()
   const supabase = createAdminClient()
 
   // Cargar todas las aplicaciones activas

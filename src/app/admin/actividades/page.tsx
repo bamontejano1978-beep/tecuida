@@ -2,8 +2,8 @@
  * Admin — Listado de actividades marketplace (Fase 1).
  *
  * Server Component que:
- *   1. Verifica que el usuario es superadmin o admin_municipio
- *   2. Lee actividades del tenant (o todos si es superadmin)
+ *   1. Verifica que el usuario es superadmin
+ *   2. Lee las actividades de todos los municipios
  *   3. Renderiza tabla con filtros por estado / búsqueda / categoría
  */
 
@@ -66,7 +66,7 @@ export default async function AdminActivitiesPage({
 }: {
   searchParams: SearchParams
 }) {
-  const access = await getAdminAccess()
+  const access = await getAdminAccess({ superadminOnly: true })
   if (!access) redirect('/login?error=unauthorized')
 
   const supabase = createAdminClient()
