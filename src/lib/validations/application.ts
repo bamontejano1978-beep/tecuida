@@ -1,15 +1,12 @@
 /**
- * Esquemas Zod para DTOs del catálogo de aplicaciones.
- *
- * El catálogo `applications` contiene todas las apps que el
- * superadmin puede asignar a los municipios vía
- * `municipality_applications` o vía planes de suscripción.
- *
- * Validación: Req 14.1
+ * Esquemas Zod para DTOs del catalogo de aplicaciones.
  */
 import { z } from 'zod'
+import {
+  APPLICATION_LAUNCH_MODES,
+  APPLICATION_PROVIDERS,
+} from '@/lib/application-runtime'
 
-// Tipos canónicos del enum de PostgreSQL (001_initial_schema.sql)
 export const APPLICATION_TYPES = [
   'programa',
   'herramienta',
@@ -17,27 +14,21 @@ export const APPLICATION_TYPES = [
   'recurso',
 ] as const
 
-/**
- * Esquema de validación para crear una nueva aplicación en el catálogo.
- */
 export const CreateApplicationSchema = z.object({
   nombre: z
     .string()
-    .min(1, 'El nombre de la aplicación no puede estar vacío')
+    .min(1, 'El nombre de la aplicacion no puede estar vacio')
     .max(120, 'El nombre no puede superar los 120 caracteres'),
   descripcion: z
     .string()
-    .min(1, 'La descripción no puede estar vacía')
-    .max(1000, 'La descripción no puede superar los 1000 caracteres'),
+    .min(1, 'La descripcion no puede estar vacia')
+    .max(1000, 'La descripcion no puede superar los 1000 caracteres'),
   category_id: z
     .string()
-    .uuid('La categoría debe ser un identificador válido'),
-  // thumbnail_url es opcional. Si llega cadena vacía desde el form, lo
-  // transformamos a undefined para que el API rule haga `?? null` y grabe
-  // NULL en la BD (NULL está documentado como "sin miniatura" en el form).
+    .uuid('La categoria debe ser un identificador valido'),
   thumbnail_url: z
     .string()
-    .url('La miniatura debe ser una URL válida')
+    .url('La miniatura debe ser una URL valida')
     .max(500, 'La URL no puede superar los 500 caracteres')
     .optional()
     .or(z.literal('').transform(() => undefined)),
@@ -57,7 +48,6 @@ export const CreateApplicationSchema = z.object({
     .max(500, 'La URL no puede superar los 500 caracteres')
     .refine(
       (val) => {
-        // Acepta URLs completas (https://...) o rutas relativas (/a/slug)
         if (val.startsWith('/')) return /^\/[a-zA-Z0-9_\-./]+$/.test(val)
         try {
           new URL(val)
@@ -66,31 +56,29 @@ export const CreateApplicationSchema = z.object({
           return false
         }
       },
-      'Debe ser una URL válida o una ruta relativa (ej. /a/mi-app)',
+      'Debe ser una URL valida o una ruta relativa (ej. /a/mi-app)',
     )
     .optional()
     .or(z.literal('').transform(() => undefined)),
   activa: z.boolean().default(true),
   app_slug: z
     .string()
-    .regex(/^[a-z0-9-]+$/, 'Solo minúsculas, números y guiones')
+    .regex(/^[a-z0-9-]+$/, 'Solo minusculas, numeros y guiones')
     .max(64, 'El slug no puede superar los 64 caracteres')
     .optional()
     .or(z.literal('').transform(() => undefined)),
   brand_color: z
     .string()
-    .regex(/^#[0-9a-fA-F]{6}$/, 'Debe ser un color hex válido (ej. #7c3aed)')
+    .regex(/^#[0-9a-fA-F]{6}$/, 'Debe ser un color hex valido (ej. #7c3aed)')
     .max(7)
     .optional()
     .or(z.literal('').transform(() => undefined)),
+  app_provider: z.enum(APPLICATION_PROVIDERS).default('tecuida').optional(),
+  launch_mode: z.enum(APPLICATION_LAUNCH_MODES).default('landing').optional(),
 })
 
 export type CreateApplicationDTO = z.infer<typeof CreateApplicationSchema>
 
-/**
- * Esquema de validación para actualizar una aplicación existente.
- * Todos los campos son opcionales (PUT parcial).
- */
 export const UpdateApplicationSchema = CreateApplicationSchema.partial()
 
 export type UpdateApplicationDTO = z.infer<typeof UpdateApplicationSchema>

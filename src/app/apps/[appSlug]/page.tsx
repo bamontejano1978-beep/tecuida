@@ -15,10 +15,19 @@
 import { notFound } from 'next/navigation'
 import { getAppProgramBundle } from '@/lib/tenant/app-program-cache'
 import { getPublicApplication } from '@/lib/applications/public-application'
+import {
+  getApplicationLaunchPath,
+  getApplicationProviderLabel,
+  shouldEmbedApplication,
+} from '@/lib/application-runtime'
 import GenericAppLanding from '@/components/landing/generic-app-landing'
 import type { Program, ProgramModule, Lesson } from '@/types'
 import AppProgramClient from './program-client'
 import Reto30ProgramClient from '../reto30-program-client'
+import FamilyGamificationClient from '../family-gamification-client'
+import { challenges as reto30Challenges } from '../reto30-data'
+import { resources as reto30Resources } from '../reto30-resources'
+import { challenges as caregiverChallenges } from '../mindful30-caregivers-data'
 
 // Forzar render dinámico en cada request. Sin esto, Next.js podría cachear
 // la respuesta del `fetch` interno de supabase-js en el Data Cache y servir
@@ -198,6 +207,48 @@ function AppHero({
   )
 }
 
+function EmbeddedApplicationFrame({
+  title,
+  src,
+  providerLabel,
+}: {
+  title: string
+  src: string
+  providerLabel: string
+}) {
+  return (
+    <section id="contenido" className="bg-[#fafafa]">
+      <div className="mx-auto max-w-6xl px-4 sm:px-6 lg:px-8 py-8 sm:py-10">
+        <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
+          <div>
+            <h2 className="text-lg font-bold text-gray-900">{title}</h2>
+            <p className="text-xs font-medium text-gray-500">
+              Ejecutada desde {providerLabel} dentro del gateway TE CUIDA.
+            </p>
+          </div>
+          <a
+            href={src}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-flex items-center rounded-lg border border-gray-300 bg-white px-3 py-2 text-xs font-semibold text-gray-700 hover:bg-gray-50"
+          >
+            Abrir en pestaña nueva
+          </a>
+        </div>
+        <div className="overflow-hidden rounded-lg border border-gray-200 bg-white shadow-sm">
+          <iframe
+            title={title}
+            src={src}
+            className="h-[calc(100vh-140px)] min-h-[620px] w-full"
+            sandbox="allow-downloads allow-forms allow-popups allow-popups-to-escape-sandbox allow-same-origin allow-scripts"
+            allow="camera; microphone; geolocation; clipboard-write; fullscreen"
+          />
+        </div>
+      </div>
+    </section>
+  )
+}
+
 // ---------------------------------------------------------------------------
 // Página principal
 // ---------------------------------------------------------------------------
@@ -213,6 +264,13 @@ export default async function ApplicationEntryPage({ params }: Props) {
   const descripcion = app.descripcion
   const thumbnailUrl = app.thumbnail_url
   const catNombre = app.categoria_nombre
+  const launchHref = app.url_acceso ? getApplicationLaunchPath(app) : '#contenido'
+  const embedApp = shouldEmbedApplication(app)
+  const canonicalSlug = app.app_slug || params.appSlug
+
+  if (canonicalSlug === 'family-gamification') {
+    return <FamilyGamificationClient />
+  }
 
   // ── No-programa: hero + landing genérica ──
   if (tipo !== 'programa') {
@@ -228,15 +286,22 @@ export default async function ApplicationEntryPage({ params }: Props) {
           thumbnailUrl={thumbnailUrl}
           categoriaNombre={catNombre}
           ctaLabel={cta.label}
-          ctaHref={app.url_acceso || '#contenido'}
+          ctaHref={embedApp ? '#contenido' : launchHref}
         />
-        <div id="contenido">
+        {embedApp && app.url_acceso && (
+          <EmbeddedApplicationFrame
+            title={nombre}
+            src={app.url_acceso}
+            providerLabel={getApplicationProviderLabel(app)}
+          />
+        )}
+        <div id={embedApp ? undefined : 'contenido'}>
           <GenericAppLanding
             nombre={nombre}
             descripcion={descripcion}
             tipo={tipo}
             instrucciones={app.instrucciones}
-            url_acceso={app.url_acceso}
+            url_acceso={embedApp ? null : app.url_acceso ? launchHref : null}
             categoria_nombre={catNombre}
           />
         </div>
@@ -245,7 +310,136 @@ export default async function ApplicationEntryPage({ params }: Props) {
   }
 
   // ── Programa: hero + datos completos (program, modules, lessons) ──
-  const isReto30 = (app.app_slug || params.appSlug) === 'reto30'
+  const isReto30 = canonicalSlug === 'reto30'
+  const isMindful30 = canonicalSlug === 'mindful30'
+  const isCaregivers = canonicalSlug === 'mindful30-cuidadores'
+  const isAdolescents = canonicalSlug === 'mindful30-adolescentes'
+
+  if (isReto30 || isMindful30) {
+    const reto30Modules: ProgramModule[] = reto30Challenges.map((challenge) => {
+      const moduleId = `${canonicalSlug}-dia-${challenge.day}`
+      const areaOrder = ['thoughts', 'activities', 'relationships'] as const
+      const lessons: Lesson[] = areaOrder.map((area, index) => {
+        const task = challenge.tasks[area]
+        const resource = task.resourceId ? reto30Resources[task.resourceId] : undefined
+        return {
+          id: `${canonicalSlug}-${area}-${challenge.day}`,
+          module_id: moduleId,
+          titulo: task.title,
+          tipo: 'ejercicio',
+          contenido_texto: task.description,
+          ejercicio: {
+            tipo: area === 'activities' ? 'respiracion' : 'reflexion',
+            instrucciones: task.actionItem,
+          },
+          duracion_minutos: 10,
+          orden: index + 1,
+          reto30Resource: resource,
+        } as Lesson & { reto30Resource?: unknown }
+      })
+
+      return {
+        id: moduleId,
+        program_id: appId,
+        numero: challenge.day,
+        nombre: `Dia ${challenge.day} - ${challenge.tasks.thoughts.title}`,
+        descripcion: challenge.tasks.thoughts.description,
+        lessons,
+      }
+    })
+
+    return (
+      <Reto30ProgramClient
+        modules={reto30Modules}
+        programId={appId}
+        appBrandColor={brandColor}
+        variant={isMindful30 ? 'mindful30' : 'reto30'}
+      />
+    )
+  }
+
+  if (isCaregivers) {
+    const caregiverModules: ProgramModule[] = caregiverChallenges.map((challenge) => {
+      const moduleId = `mindful30-cuidadores-dia-${challenge.day}`
+      const areaOrder = ['thoughts', 'activities', 'relationships'] as const
+      const lessons: Lesson[] = areaOrder.map((area, index) => {
+        const task = challenge.tasks[area]
+        return {
+          id: `mindful30-cuidadores-${area}-${challenge.day}`,
+          module_id: moduleId,
+          titulo: task.title,
+          tipo: 'ejercicio',
+          contenido_texto: task.description,
+          duracion_minutos: 10,
+          orden: index + 1,
+        }
+      })
+
+      return {
+        id: moduleId,
+        program_id: appId,
+        numero: challenge.day,
+        nombre: `Dia ${challenge.day} - ${challenge.tasks.thoughts.title}`,
+        descripcion: challenge.tasks.thoughts.description,
+        lessons,
+      }
+    })
+
+    return (
+      <Reto30ProgramClient
+        modules={caregiverModules}
+        programId={appId}
+        appBrandColor={brandColor}
+        variant="caregivers"
+      />
+    )
+  }
+
+  if (isAdolescents) {
+    const bundle = await getAppProgramBundle(appId)
+    const programData = bundle.program
+
+    if (programData && bundle.modules.length > 0) {
+      const lessonsByModule = new Map<string, Lesson[]>()
+      ;(bundle.lessons || []).forEach((l) => {
+        const lesson: Lesson = {
+          id: l.id,
+          module_id: l.module_id,
+          titulo: l.titulo,
+          tipo: l.tipo as Lesson['tipo'],
+          contenido_texto: l.contenido_texto || undefined,
+          audio_url: l.audio_url || undefined,
+          video_url: l.video_url || undefined,
+          ejercicio: l.ejercicio
+            ? (l.ejercicio as unknown as Lesson['ejercicio'])
+            : undefined,
+          duracion_minutos: l.duracion_minutos ?? 0,
+          orden: l.orden,
+        }
+        const arr = lessonsByModule.get(l.module_id) || []
+        arr.push(lesson)
+        lessonsByModule.set(l.module_id, arr)
+      })
+
+      const modules: ProgramModule[] = bundle.modules.map((m) => ({
+        id: m.id,
+        program_id: m.program_id,
+        numero: m.numero,
+        nombre: m.nombre,
+        descripcion: (m.descripcion as string) || '',
+        lessons: lessonsByModule.get(m.id) || [],
+      }))
+
+      return (
+        <Reto30ProgramClient
+          modules={modules}
+          programId={programData.id}
+          appBrandColor={brandColor}
+          variant="adolescents"
+        />
+      )
+    }
+  }
 
   // Bundle cacheado con tag `app-program-<appId>` (invalidación POR APP).
   // El helper `getAppProgramBundle` envuelve las 3 queries
@@ -277,15 +471,22 @@ export default async function ApplicationEntryPage({ params }: Props) {
           thumbnailUrl={thumbnailUrl}
           categoriaNombre={catNombre}
           ctaLabel={cta.label}
-          ctaHref={app.url_acceso || '#contenido'}
+          ctaHref={embedApp ? '#contenido' : launchHref}
         />
-        <div id="contenido">
+        {embedApp && app.url_acceso && (
+          <EmbeddedApplicationFrame
+            title={nombre}
+            src={app.url_acceso}
+            providerLabel={getApplicationProviderLabel(app)}
+          />
+        )}
+        <div id={embedApp ? undefined : 'contenido'}>
           <GenericAppLanding
             nombre={nombre}
             descripcion={descripcion}
             tipo={tipo}
             instrucciones={app.instrucciones}
-            url_acceso={app.url_acceso}
+            url_acceso={embedApp ? null : app.url_acceso ? launchHref : null}
             categoria_nombre={catNombre}
           />
         </div>
@@ -382,19 +583,11 @@ export default async function ApplicationEntryPage({ params }: Props) {
           </div>
 
           {/* Visor interactivo (Client Component) */}
-          {isReto30 ? (
-            <Reto30ProgramClient
-              modules={modules}
-              programId={program.id}
-              appBrandColor={brandColor}
-            />
-          ) : (
-            <AppProgramClient
-              modules={modules}
-              programId={program.id}
-              appBrandColor={brandColor}
-            />
-          )}
+          <AppProgramClient
+            modules={modules}
+            programId={program.id}
+            appBrandColor={brandColor}
+          />
         </div>
       </div>
     </>

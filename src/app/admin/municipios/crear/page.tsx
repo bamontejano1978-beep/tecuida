@@ -23,6 +23,7 @@ interface FormData {
   nombre_ayuntamiento: string
   slug: string
   provincia: string
+  estado_suscripcion: 'activa' | 'prueba' | 'suspendida' | 'cancelada'
   color_primary: string
   color_secondary: string
   color_accent: string
@@ -34,6 +35,13 @@ interface FormErrors {
   field: string
   message: string
 }
+
+const subscriptionStatusOptions = [
+  { value: 'activa', label: 'Activa' },
+  { value: 'prueba', label: 'En prueba' },
+  { value: 'suspendida', label: 'Suspendida' },
+  { value: 'cancelada', label: 'Cancelada' },
+] as const
 
 // ---------------------------------------------------------------------------
 // Componente
@@ -50,6 +58,7 @@ export default function CrearMunicipioPage() {
     nombre_ayuntamiento: '',
     slug: '',
     provincia: '',
+    estado_suscripcion: 'activa',
     color_primary: '#1e40af',
     color_secondary: '#3b82f6',
     color_accent: '#f59e0b',
@@ -61,7 +70,7 @@ export default function CrearMunicipioPage() {
   const [loading, setLoading] = useState(false)
   const [success, setSuccess] = useState(false)
 
-  function updateField(field: keyof FormData, value: string) {
+  function updateField<K extends keyof FormData>(field: K, value: FormData[K]) {
     setFormData((prev) => ({ ...prev, [field]: value }))
     // Auto-generar slug desde nombre_municipio
     if (field === 'nombre_municipio' && !formData.slug) {
@@ -130,6 +139,7 @@ export default function CrearMunicipioPage() {
         slug,
         provincia: formData.provincia.trim(),
         pais: 'España',
+        estado_suscripcion: formData.estado_suscripcion,
         colores_corporativos: {
           primary: formData.color_primary,
           secondary: formData.color_secondary,
@@ -288,6 +298,24 @@ export default function CrearMunicipioPage() {
                 <p className="mt-1 text-xs text-red-600">{getFieldError('provincia')}</p>
               )}
             </div>
+          </div>
+
+          <div>
+            <label htmlFor="estado_suscripcion" className="block text-sm font-medium text-gray-700">
+              Estado de suscripción
+            </label>
+            <select
+              id="estado_suscripcion"
+              value={formData.estado_suscripcion}
+              onChange={(e) => updateField('estado_suscripcion', e.target.value as FormData['estado_suscripcion'])}
+              className="mt-1 block w-full rounded-lg border border-gray-300 px-3 py-2 text-sm shadow-sm focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 outline-none"
+            >
+              {subscriptionStatusOptions.map((option) => (
+                <option key={option.value} value={option.value}>
+                  {option.label}
+                </option>
+              ))}
+            </select>
           </div>
 
           {/* ── Imagen principal (hero) ── */}

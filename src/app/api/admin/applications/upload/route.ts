@@ -297,6 +297,8 @@ export async function POST(request: NextRequest): Promise<Response> {
       instrucciones: metadata.instrucciones?.trim() || null,
       thumbnail_url: metadata.thumbnail_url || null,
       brand_color: metadata.brand_color || null,
+      app_provider: 'tecuida',
+      launch_mode: 'redirect',
       activa: metadata.activa ?? true,
     })
     .select()

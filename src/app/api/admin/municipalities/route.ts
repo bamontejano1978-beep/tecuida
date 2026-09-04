@@ -119,6 +119,7 @@ export async function POST(request: Request) {
       nombre_ayuntamiento: dto.nombre_ayuntamiento,
       dominio,
       colores_corporativos: dto.colores_corporativos,
+      estado_suscripcion: dto.estado_suscripcion,
       textos_institucionales: {
         bienvenida: `Bienvenido/a al portal de bienestar de ${dto.nombre_ayuntamiento}`,
         descripcion: `Portal de salud y bienestar del municipio de ${dto.nombre_municipio}`,

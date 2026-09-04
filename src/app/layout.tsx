@@ -55,6 +55,12 @@ export async function generateMetadata(): Promise<Metadata> {
         index: true,
         follow: true,
       },
+      manifest: "/manifest.json",
+      appleWebApp: {
+        capable: true,
+        title: tenantName,
+        statusBarStyle: "default",
+      },
     };
   }
 
@@ -88,6 +94,12 @@ export async function generateMetadata(): Promise<Metadata> {
     robots: {
       index: true,
       follow: true,
+    },
+    manifest: "/manifest.json",
+    appleWebApp: {
+      capable: true,
+      title: "TE CUIDA",
+      statusBarStyle: "default",
     },
   };
 }

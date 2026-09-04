@@ -3,11 +3,17 @@ src/__tests__
 src/**/__tests__
 
 # ── Dev & Docs ──
+node_modules/
+.env*
 .env.local
 .env.local.example
 scripts/
 README.md
 .eslintrc.json
+tmp/
+android-twa/
+web villafranca/
+prompt 2.0.txt
 
 # ── Config local ──
 jest.config.mjs

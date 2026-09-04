@@ -5,12 +5,14 @@ import TrackedApplicationLink from '@/components/analytics/tracked-application-l
 import SignOutButton from '@/components/ui/sign-out-button'
 import { getApplicationEntryPath } from '@/lib/application-links'
 import { createAdminClient, createClient } from '@/lib/supabase/server'
-import { getTenantConfigFromDB, getTenantFromHeaders } from '@/lib/tenant/headers'
+import { getCitizenTenantForUser } from '@/lib/tenant/citizen-context'
+import { getMunicipalityApplicationThumbnail } from '@/lib/tenant/municipality-app-thumbnail'
 
 export const dynamic = 'force-dynamic'
 
 interface ActiveAppRow {
   application_id: string
+  thumbnail_url_override: string | null
   application: {
     id: string
     nombre: string
@@ -169,10 +171,7 @@ export default async function DashboardPage() {
 
   if (!user) redirect('/login')
 
-  const tenantHeaders = getTenantFromHeaders()
-  const tenant = tenantHeaders?.slug
-    ? await getTenantConfigFromDB(tenantHeaders.slug)
-    : null
+  const tenant = await getCitizenTenantForUser(user.id)
   const adminClient = createAdminClient()
 
   let activeApps: ActiveAppRow[] = []
@@ -181,6 +180,7 @@ export default async function DashboardPage() {
       .from('municipality_applications')
       .select(
         `application_id,
+         thumbnail_url_override,
          application:applications!inner (
            id, nombre, descripcion, thumbnail_url, tipo, app_slug
          )`,
@@ -253,10 +253,10 @@ export default async function DashboardPage() {
       descripcion: row.application!.descripcion || '',
       tipo: row.application!.tipo,
       appSlug: row.application!.app_slug,
-      // La personalización municipal de iconos se limita, por decisión de
-      // producto, a la landing y al catálogo. El panel conserva la identidad
-      // global de cada aplicación.
-      thumbnailUrl: row.application!.thumbnail_url,
+      thumbnailUrl: getMunicipalityApplicationThumbnail(
+        row.thumbnail_url_override,
+        row.application!.thumbnail_url,
+      ),
     }))
 
   const progressRows = (progressData || []) as unknown as ProgressRow[]

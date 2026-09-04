@@ -33,6 +33,8 @@ interface FormData {
   activa: boolean
   app_slug: string
   brand_color: string
+  app_provider: 'tecuida' | 'firebase' | 'external'
+  launch_mode: 'native' | 'landing' | 'redirect' | 'embed'
 }
 
 interface FormError {
@@ -61,6 +63,8 @@ export default function CreateApplicationForm({
     activa: true,
     app_slug: '',
     brand_color: '',
+    app_provider: 'tecuida',
+    launch_mode: 'landing',
   })
   const [errors, setErrors] = useState<FormError[]>([])
   const [submitError, setSubmitError] = useState<string | null>(null)
@@ -158,6 +162,8 @@ export default function CreateApplicationForm({
             activa: formData.activa,
             app_slug: formData.app_slug.trim(),
             brand_color: formData.brand_color.trim() || undefined,
+            app_provider: 'tecuida',
+            launch_mode: 'redirect',
           }),
         )
 
@@ -181,6 +187,8 @@ export default function CreateApplicationForm({
             activa: formData.activa,
             app_slug: formData.app_slug.trim() || undefined,
             brand_color: formData.brand_color.trim() || undefined,
+            app_provider: formData.app_provider,
+            launch_mode: formData.launch_mode,
           }),
         })
       }
@@ -423,6 +431,55 @@ export default function CreateApplicationForm({
             {tipoAutoAdjustedNote}
           </p>
         )}
+      </div>
+
+      {/* Runtime / Gateway */}
+      <div className="rounded-lg bg-sky-50 border border-sky-100 p-4 space-y-4">
+        <div>
+          <p className="text-sm font-medium text-sky-800">
+            Servidor de aplicaciones
+          </p>
+          <p className="mt-1 text-xs text-sky-600">
+            La URL publica siempre sera /apps/slug; aqui solo defines donde vive la app real.
+          </p>
+        </div>
+        <div className="grid gap-3 sm:grid-cols-2">
+          <div>
+            <label htmlFor="app_provider" className="block text-sm font-medium text-gray-700">
+              Proveedor
+            </label>
+            <select
+              id="app_provider"
+              value={formData.app_provider}
+              onChange={(e) =>
+                updateField('app_provider', e.target.value as FormData['app_provider'])
+              }
+              className="mt-1 block w-full rounded-lg border border-gray-300 px-3 py-2 text-sm shadow-sm focus:border-sky-500 focus:ring-2 focus:ring-sky-200 outline-none"
+            >
+              <option value="tecuida">TE CUIDA</option>
+              <option value="firebase">Firebase</option>
+              <option value="external">Externo</option>
+            </select>
+          </div>
+          <div>
+            <label htmlFor="launch_mode" className="block text-sm font-medium text-gray-700">
+              Modo de apertura
+            </label>
+            <select
+              id="launch_mode"
+              value={formData.launch_mode}
+              onChange={(e) =>
+                updateField('launch_mode', e.target.value as FormData['launch_mode'])
+              }
+              className="mt-1 block w-full rounded-lg border border-gray-300 px-3 py-2 text-sm shadow-sm focus:border-sky-500 focus:ring-2 focus:ring-sky-200 outline-none"
+            >
+              <option value="landing">Landing con boton</option>
+              <option value="redirect">Lanzar por gateway</option>
+              <option value="embed">Contenedor embebido</option>
+              <option value="native">Nativa TE CUIDA</option>
+            </select>
+          </div>
+        </div>
       </div>
 
       {/* Thumbnail: subir archivo o URL */}

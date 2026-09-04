@@ -1,0 +1,51 @@
+{
+  "packageId": "group.tecuida.app",
+  "host": "tecuida.group",
+  "name": "TE CUIDA - Aplicaciones municipales",
+  "launcherName": "TE CUIDA",
+  "display": "standalone",
+  "themeColor": "#1E40AF",
+  "themeColorDark": "#000000",
+  "navigationColor": "#000000",
+  "navigationColorDark": "#000000",
+  "navigationDividerColor": "#000000",
+  "navigationDividerColorDark": "#000000",
+  "backgroundColor": "#F6F7FB",
+  "enableNotifications": false,
+  "startUrl": "/dashboard/aplicaciones",
+  "iconUrl": "https://tecuida.group/reto30-icon-512.png",
+  "maskableIconUrl": "https://tecuida.group/reto30-icon-maskable-512.png",
+  "splashScreenFadeOutDuration": 300,
+  "signingKey": {
+    "path": "C:\\Users\\borea\\OneDrive\\Escritorio\\ciudad te cuida 2.0\\te-cuida-app\\android-twa\\android.keystore",
+    "alias": "tecuida"
+  },
+  "appVersionName": "2",
+  "appVersionCode": 2,
+  "shortcuts": [],
+  "generatorApp": "bubblewrap-cli",
+  "webManifestUrl": "https://tecuida.group/manifest.json",
+  "fallbackType": "customtabs",
+  "features": {},
+  "alphaDependencies": {
+    "enabled": false
+  },
+  "enableSiteSettingsShortcut": true,
+  "isChromeOSOnly": false,
+  "isMetaQuest": false,
+  "fullScopeUrl": "https://tecuida.group/",
+  "minSdkVersion": 21,
+  "orientation": "portrait-primary",
+  "fingerprints": [],
+  "additionalTrustedOrigins": [],
+  "retainedBundles": [],
+  "protocolHandlers": [],
+  "fileHandlers": [],
+  "launchHandlerClientMode": "",
+  "displayOverride": [
+    "window-controls-overlay",
+    "standalone",
+    "browser"
+  ],
+  "appVersion": "2"
+}

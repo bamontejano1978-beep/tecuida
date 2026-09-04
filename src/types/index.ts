@@ -170,6 +170,8 @@ export interface AnalyticsEventRow {
 // ---------------------------------------------------------------------------
 
 export type ApplicationType = 'programa' | 'herramienta' | 'encuesta' | 'recurso'
+export type ApplicationProvider = 'tecuida' | 'firebase' | 'external'
+export type ApplicationLaunchMode = 'native' | 'landing' | 'redirect' | 'embed'
 
 export interface Application {
   id: UUID
@@ -183,6 +185,10 @@ export interface Application {
   app_slug?: string | null
   /** Color de marca en hex (#rrggbb). NULL = el PWA usa el color por defecto del tipo. */
   brand_color?: string | null
+  /** Proveedor tecnico donde vive la app real. */
+  app_provider?: ApplicationProvider | null
+  /** Como debe abrirse desde el gateway /apps/<slug-o-id>. */
+  launch_mode?: ApplicationLaunchMode | null
   /**
    * Alojamiento final de una app externa (modo "🔗 URL externa").
    * Las tarjetas pasan por `/apps/<slug-o-id>` y no publican este destino

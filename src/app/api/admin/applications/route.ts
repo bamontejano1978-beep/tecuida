@@ -149,6 +149,8 @@ export async function POST(request: Request) {
         activa: dto.activa ?? true,
         app_slug: dto.app_slug || null,
         brand_color: dto.brand_color || null,
+        app_provider: dto.app_provider || 'tecuida',
+        launch_mode: dto.launch_mode || 'landing',
       })
       .select()
       .single()

@@ -8,8 +8,14 @@ import { MUNICIPALITY_APPS_TAG } from '@/lib/tenant/municipality-apps-cache'
 
 const RequestSchema = z.object({
   application_id: z.string().uuid(),
-  status: z.enum(['publicada', 'oculta']),
-})
+  status: z.enum(['publicada', 'oculta']).optional(),
+  thumbnail_url_override: z.string().url().max(2048).nullable().optional(),
+}).refine(
+  (data) =>
+    data.status !== undefined ||
+    Object.prototype.hasOwnProperty.call(data, 'thumbnail_url_override'),
+  { message: 'No hay cambios para guardar.' },
+)
 
 export async function POST(request: Request) {
   const rateLimit = await checkRateLimitAsync(request, {
@@ -60,29 +66,31 @@ export async function POST(request: Request) {
   }
 
   const now = new Date().toISOString()
+  const updateData: Record<string, unknown> = {
+    publication_updated_at: now,
+    publication_updated_by: access.user_id,
+  }
+
   const nextStatus = parsed.data.status
-  const updateData =
-    nextStatus === 'publicada'
-      ? {
-          publication_status: nextStatus,
-          published_at: now,
-          hidden_at: null,
-          publication_updated_at: now,
-          publication_updated_by: access.user_id,
-        }
-      : {
-          publication_status: nextStatus,
-          hidden_at: now,
-          publication_updated_at: now,
-          publication_updated_by: access.user_id,
-        }
+  if (nextStatus === 'publicada') {
+    updateData.publication_status = nextStatus
+    updateData.published_at = now
+    updateData.hidden_at = null
+  } else if (nextStatus === 'oculta') {
+    updateData.publication_status = nextStatus
+    updateData.hidden_at = now
+  }
+
+  if (Object.prototype.hasOwnProperty.call(parsed.data, 'thumbnail_url_override')) {
+    updateData.thumbnail_url_override = parsed.data.thumbnail_url_override || null
+  }
 
   const { data, error } = await supabase
     .from('municipality_applications')
     .update(updateData)
     .eq('municipality_id', municipalityId)
     .eq('application_id', parsed.data.application_id)
-    .select('application_id, publication_status, published_at, hidden_at')
+    .select('application_id, publication_status, published_at, hidden_at, thumbnail_url_override')
     .single()
 
   if (error) {
@@ -96,6 +104,8 @@ export async function POST(request: Request) {
   revalidateTag(MUNICIPALITY_APPS_TAG)
   revalidatePath('/')
   revalidatePath('/municipio/aplicaciones')
+  revalidatePath('/dashboard')
+  revalidatePath('/dashboard/aplicaciones')
 
   return NextResponse.json({ data })
 }

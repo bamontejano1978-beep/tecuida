@@ -16,6 +16,7 @@ import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import AppThumbnailUploader from '@/components/ui/app-thumbnail-uploader'
+import { getApplicationPublicUrl } from '@/lib/application-links'
 
 // ---------------------------------------------------------------------------
 // Tipos
@@ -38,6 +39,8 @@ interface ApplicationData {
   activa: boolean
   app_slug: string | null
   brand_color: string | null
+  app_provider: 'tecuida' | 'firebase' | 'external'
+  launch_mode: 'native' | 'landing' | 'redirect' | 'embed'
 }
 
 // ---------------------------------------------------------------------------
@@ -63,18 +66,33 @@ export default function EditApplicationForm({
     activa: application.activa,
     app_slug: application.app_slug || '',
     brand_color: application.brand_color || '',
+    app_provider: application.app_provider || 'tecuida',
+    launch_mode: application.launch_mode || 'landing',
   })
   const [submitError, setSubmitError] = useState<string | null>(null)
   const [submitOk, setSubmitOk] = useState<string | null>(null)
   const [loading, setLoading] = useState(false)
   const [copied, setCopied] = useState(false)
 
-  const publicIdentifier = formData.app_slug.trim() || application.id
-  const canonicalUrl = `https://tecuida.group/apps/${encodeURIComponent(publicIdentifier)}`
+  const canonicalUrl = getApplicationPublicUrl({
+    id: application.id,
+    app_slug: formData.app_slug,
+  })
+  const providerLabels = {
+    tecuida: 'TE CUIDA',
+    firebase: 'Firebase',
+    external: 'Externo',
+  } as const
+  const launchLabels = {
+    native: 'nativa',
+    landing: 'landing',
+    redirect: 'gateway',
+    embed: 'embebida',
+  } as const
   const hostingType = formData.url_acceso.startsWith('/a/')
     ? 'Paquete alojado en TE CUIDA'
     : formData.url_acceso
-      ? 'Proveedor externo'
+      ? `${providerLabels[formData.app_provider]} (${launchLabels[formData.launch_mode]})`
       : formData.tipo === 'programa'
         ? 'Programa nativo'
         : 'Landing informativa'
@@ -113,6 +131,8 @@ export default function EditApplicationForm({
             activa: formData.activa,
             app_slug: formData.app_slug.trim() || undefined,
             brand_color: formData.brand_color.trim() || undefined,
+            app_provider: formData.app_provider,
+            launch_mode: formData.launch_mode,
           }),
         },
       )
@@ -395,6 +415,55 @@ export default function EditApplicationForm({
           <option value="encuesta">Encuesta</option>
           <option value="recurso">Recurso</option>
         </select>
+      </div>
+
+      {/* Runtime / Gateway */}
+      <div className="rounded-lg bg-sky-50 border border-sky-100 p-4 space-y-4">
+        <div>
+          <p className="text-sm font-medium text-sky-800">
+            Servidor de aplicaciones
+          </p>
+          <p className="mt-1 text-xs text-sky-600">
+            La URL publica se mantiene estable; estos campos definen donde vive y como se abre la app real.
+          </p>
+        </div>
+        <div className="grid gap-3 sm:grid-cols-2">
+          <div>
+            <label htmlFor="app_provider" className="block text-sm font-medium text-gray-700">
+              Proveedor
+            </label>
+            <select
+              id="app_provider"
+              value={formData.app_provider}
+              onChange={(e) =>
+                updateField('app_provider', e.target.value as typeof formData.app_provider)
+              }
+              className="mt-1 block w-full rounded-lg border border-gray-300 px-3 py-2 text-sm shadow-sm focus:border-sky-500 focus:ring-2 focus:ring-sky-200 outline-none"
+            >
+              <option value="tecuida">TE CUIDA</option>
+              <option value="firebase">Firebase</option>
+              <option value="external">Externo</option>
+            </select>
+          </div>
+          <div>
+            <label htmlFor="launch_mode" className="block text-sm font-medium text-gray-700">
+              Modo de apertura
+            </label>
+            <select
+              id="launch_mode"
+              value={formData.launch_mode}
+              onChange={(e) =>
+                updateField('launch_mode', e.target.value as typeof formData.launch_mode)
+              }
+              className="mt-1 block w-full rounded-lg border border-gray-300 px-3 py-2 text-sm shadow-sm focus:border-sky-500 focus:ring-2 focus:ring-sky-200 outline-none"
+            >
+              <option value="landing">Landing con boton</option>
+              <option value="redirect">Lanzar por gateway</option>
+              <option value="embed">Contenedor embebido</option>
+              <option value="native">Nativa TE CUIDA</option>
+            </select>
+          </div>
+        </div>
       </div>
 
       {/* Landing: instrucciones + enlace */}

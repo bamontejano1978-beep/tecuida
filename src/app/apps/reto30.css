@@ -1137,6 +1137,26 @@
   color: var(--r30-primary);
 }
 
+/* Mindful30 Adolescentes: mismo motor de reto, con tono visual propio. */
+.reto30.adolescents30 {
+  --r30-bg: #111827;
+  --r30-surface: rgba(31, 41, 55, 0.72);
+  --r30-primary: #7c3aed;
+  --r30-secondary: #06b6d4;
+  --r30-accent: #f59e0b;
+  --r30-text: #f9fafb;
+  --r30-muted: #a7b0c0;
+  --r30-border: rgba(255, 255, 255, 0.1);
+  --r30-glow: rgba(6, 182, 212, 0.16);
+}
+
+.reto30.adolescents30.r30-shell {
+  background:
+    radial-gradient(circle at 20% 12%, rgba(124, 58, 237, 0.28), transparent 30%),
+    radial-gradient(circle at 80% 4%, rgba(6, 182, 212, 0.18), transparent 28%),
+    linear-gradient(180deg, #111827 0%, #0f172a 55%, #111827 100%);
+}
+
 @media (max-width: 640px) {
   .reto30.caregivers30 .r30-appbar,
   .reto30.caregivers30 .r30-tabs {

@@ -17,6 +17,8 @@ import { ImageUploadField, type ImageUploadFieldHandle } from '@/components/ui/i
 // Tipos
 // ---------------------------------------------------------------------------
 
+type SubscriptionStatus = 'activa' | 'prueba' | 'suspendida' | 'cancelada'
+
 interface MunicipioData {
   id: string
   slug: string
@@ -28,7 +30,7 @@ interface MunicipioData {
     secondary: string
     accent: string
   }
-  estado_suscripcion: string
+  estado_suscripcion: SubscriptionStatus
   hero_image_url: string | null
   escudo_url: string | null
   logo_url: string | null
@@ -58,6 +60,13 @@ interface MunicipioData {
   }
 }
 
+const subscriptionStatusOptions = [
+  { value: 'activa', label: 'Activa' },
+  { value: 'prueba', label: 'En prueba' },
+  { value: 'suspendida', label: 'Suspendida' },
+  { value: 'cancelada', label: 'Cancelada' },
+] as const
+
 // ---------------------------------------------------------------------------
 // Componente
 // ---------------------------------------------------------------------------
@@ -75,6 +84,7 @@ export default function EditMunicipioForm({ municipio }: { municipio: MunicipioD
     color_primary: municipio.colores_corporativos.primary,
     color_secondary: municipio.colores_corporativos.secondary,
     color_accent: municipio.colores_corporativos.accent,
+    estado_suscripcion: municipio.estado_suscripcion,
     email_contacto: municipio.email_contacto || '',
     telefono_contacto: municipio.telefono_contacto || '',
     layout_variant: municipio.layout_variant || 'classic',
@@ -102,7 +112,7 @@ export default function EditMunicipioForm({ municipio }: { municipio: MunicipioD
   const [submitOk, setSubmitOk] = useState<string | null>(null)
   const [loading, setLoading] = useState(false)
 
-  function updateField(field: keyof typeof formData, value: string | boolean) {
+  function updateField<K extends keyof typeof formData>(field: K, value: (typeof formData)[K]) {
     setFormData((prev) => ({ ...prev, [field]: value }))
   }
 
@@ -143,6 +153,7 @@ export default function EditMunicipioForm({ municipio }: { municipio: MunicipioD
         logo_url: logoUrl || null,
         email_contacto: formData.email_contacto.trim() || null,
         telefono_contacto: formData.telefono_contacto.trim() || null,
+        estado_suscripcion: formData.estado_suscripcion,
         layout_variant: formData.layout_variant,
         textos_institucionales: {
           bienvenida: formData.texto_bienvenida.trim() || undefined,
@@ -234,9 +245,22 @@ export default function EditMunicipioForm({ municipio }: { municipio: MunicipioD
 
       {/* Estado actual */}
       <div className="rounded-lg bg-gray-50 border border-gray-200 px-4 py-3 flex items-center justify-between">
-        <div>
-          <p className="text-xs text-gray-500 uppercase tracking-wide">Estado de suscripción</p>
-          <p className="text-sm font-semibold text-gray-900 capitalize">{municipio.estado_suscripcion}</p>
+        <div className="min-w-0 flex-1 pr-4">
+          <label htmlFor="estado_suscripcion" className="block text-xs text-gray-500 uppercase tracking-wide">
+            Estado de suscripción
+          </label>
+          <select
+            id="estado_suscripcion"
+            value={formData.estado_suscripcion}
+            onChange={(e) => updateField('estado_suscripcion', e.target.value as SubscriptionStatus)}
+            className="mt-1 block w-full max-w-xs rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm font-semibold text-gray-900 shadow-sm focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 outline-none"
+          >
+            {subscriptionStatusOptions.map((option) => (
+              <option key={option.value} value={option.value}>
+                {option.label}
+              </option>
+            ))}
+          </select>
         </div>
         <span className="text-xs text-gray-400">ID: {municipio.id.slice(0, 8)}...</span>
       </div>
@@ -296,7 +320,7 @@ export default function EditMunicipioForm({ municipio }: { municipio: MunicipioD
             <select
               id="layout_variant"
               value={formData.layout_variant}
-              onChange={(e) => updateField('layout_variant', e.target.value)}
+              onChange={(e) => updateField('layout_variant', e.target.value as 'classic' | 'editorial')}
               className="mt-1 block w-full rounded-lg border border-indigo-200 bg-white px-3 py-2 text-sm"
             >
               <option value="classic">Clásico institucional</option>

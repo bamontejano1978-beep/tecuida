@@ -22,6 +22,8 @@ const corporateColorsSchema = z.object({
   text: hexColorSchema,
 })
 
+const subscriptionStatusSchema = z.enum(['activa', 'suspendida', 'cancelada', 'prueba'])
+
 // Sub-esquema de textos institucionales
 const institutionalTextsSchema = z.object({
   bienvenida: z.string().optional(),
@@ -69,6 +71,7 @@ export const CreateMunicipalitySchema = z.object({
   logo_url: z.string().url('La URL del logo debe ser una URL válida').nullable().optional(),
   email_contacto: z.string().email('Debe ser un email válido').nullable().optional(),
   telefono_contacto: z.string().max(30, 'El teléfono no puede superar los 30 caracteres').nullable().optional(),
+  estado_suscripcion: subscriptionStatusSchema.default('activa'),
   layout_variant: z.enum(['classic', 'editorial']).optional(),
   textos_institucionales: institutionalTextsSchema.optional(),
 })

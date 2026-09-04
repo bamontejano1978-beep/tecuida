@@ -47,7 +47,7 @@ interface Reto30ProgramClientProps {
   modules: ProgramModule[]
   programId: string
   appBrandColor: string
-  variant?: 'reto30' | 'caregivers'
+  variant?: 'reto30' | 'mindful30' | 'caregivers' | 'adolescents'
 }
 
 interface BeforeInstallPromptEvent extends Event {
@@ -265,9 +265,27 @@ export default function Reto30ProgramClient({
   variant = 'reto30',
 }: Reto30ProgramClientProps) {
   const isCaregivers = variant === 'caregivers'
-  const appName = isCaregivers ? 'Mindful30 Cuidadores' : 'Reto30'
-  const appShortName = isCaregivers ? 'Cuidadores' : 'Reto30'
-  const appIcon = isCaregivers ? '/mindful30-caregivers-icon-192.png' : '/reto30-icon-192.png'
+  const isAdolescents = variant === 'adolescents'
+  const isMindful30 = variant === 'mindful30'
+  const appName = isCaregivers
+    ? 'Mindful30 Cuidadores'
+    : isAdolescents
+      ? 'Mindful30 Adolescentes'
+      : isMindful30
+        ? 'Mindful30'
+        : 'Reto30'
+  const appShortName = isCaregivers
+    ? 'Cuidadores'
+    : isAdolescents
+      ? 'Adolescentes'
+      : isMindful30
+        ? 'Mindful30'
+        : 'Reto30'
+  const appIcon = isCaregivers
+    ? '/mindful30-caregivers-icon-192.png'
+    : isMindful30 || isAdolescents
+      ? '/mindful30-icon-192.png'
+      : '/reto30-icon-192.png'
   const startKey = getStorageKey(programId, 'start-date')
   const completedKey = getStorageKey(programId, 'completed')
   const notesKey = getStorageKey(programId, 'notes')
@@ -561,7 +579,7 @@ export default function Reto30ProgramClient({
   ]
 
   return (
-    <div className={`reto30 ${isCaregivers ? 'caregivers30' : ''} r30-shell min-h-screen text-[var(--r30-text)]`}>
+    <div className={`reto30 ${isCaregivers ? 'caregivers30' : ''} ${isAdolescents ? 'adolescents30' : ''} r30-shell min-h-screen text-[var(--r30-text)]`}>
       <canvas ref={confettiRef} className="confetti-canvas" aria-hidden="true" />
 
       {showWelcome && (
@@ -572,7 +590,11 @@ export default function Reto30ProgramClient({
             <p>
               {isCaregivers
                 ? 'Una pausa diaria para cuidarte mientras cuidas. Acceso completo, sin codigo de activacion, dentro de TE CUIDA.'
-                : 'Una practica breve para mente, cuerpo y relaciones. Sin codigo de activacion, sin pagos, dentro de TE CUIDA.'}
+                : isAdolescents
+                  ? 'Un espacio diario para entrenar calma, autoestima y relacion sana con pantallas. Acceso completo dentro de TE CUIDA.'
+                : isMindful30
+                  ? 'Tu programa de bienestar diario. Acceso completo, sin codigo de activacion, dentro de TE CUIDA.'
+                  : 'Una practica breve para mente, cuerpo y relaciones. Sin codigo de activacion, sin pagos, dentro de TE CUIDA.'}
             </p>
             <blockquote>{quote}</blockquote>
             <button className="r30-primary" onClick={closeWelcome} style={{ background: appBrandColor }}>
@@ -607,7 +629,7 @@ export default function Reto30ProgramClient({
             <Image src={appIcon} alt="" width={40} height={40} priority />
             <div>
               <strong>{appName}</strong>
-              <span>{isCaregivers ? 'AUTOCUIDADO PROFESIONAL' : 'TE CUIDA'}</span>
+              <span>{isCaregivers ? 'AUTOCUIDADO PROFESIONAL' : isAdolescents ? 'BIENESTAR ADOLESCENTE' : isMindful30 ? 'BIENESTAR DIARIO' : 'TE CUIDA'}</span>
             </div>
           </div>
           {!isStandalone && (

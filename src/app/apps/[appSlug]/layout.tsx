@@ -63,10 +63,43 @@ export async function generateMetadata({
   params: { appSlug: string }
 }): Promise<Metadata> {
   const app = await getPublicApplication(params.appSlug)
+  const slug = app?.app_slug || params.appSlug
+  const isReto30 = slug === 'reto30'
+  const isMindful30 = slug === 'mindful30'
+  const isCaregivers = slug === 'mindful30-cuidadores'
+  const isAdolescents = slug === 'mindful30-adolescentes'
+  const isInfancia = slug === 'mindful30-infancia'
+  const isFamilyGamification = slug === 'family-gamification'
+  const isOrganizatron = slug === 'organizatron'
+  const isSaludAdolescentes = slug === 'salud-adolescentes'
+  const iconName = isReto30
+    ? 'reto30-icon'
+    : isMindful30 || isAdolescents
+      ? 'mindful30-icon'
+      : isCaregivers
+        ? 'mindful30-caregivers-icon'
+        : isInfancia
+          ? 'mindful30-infancia-icon'
+          : isFamilyGamification
+            ? 'family-gamification-icon'
+            : isOrganizatron
+              ? 'organizatron-icon'
+              : isSaludAdolescentes
+                ? 'salud-adolescentes-icon'
+                : null
   return {
     title: app?.nombre || 'Aplicación — TE CUIDA',
     description: app?.descripcion || 'Aplicación de bienestar ciudadano de TE CUIDA',
     manifest: `/apps/${params.appSlug}/manifest.json`,
+    icons: iconName
+      ? {
+          icon: [
+            { url: `/${iconName}-192.png`, sizes: '192x192', type: 'image/png' },
+            { url: `/${iconName}-512.png`, sizes: '512x512', type: 'image/png' },
+          ],
+          apple: [{ url: `/${iconName}-192.png`, sizes: '192x192', type: 'image/png' }],
+        }
+      : undefined,
     appleWebApp: {
       capable: true,
       title: app?.nombre || 'TE CUIDA',
@@ -90,17 +123,19 @@ export default async function AppLayout({
   const appName = app?.nombre || 'Aplicación'
   const appType = app?.tipo || 'programa'
   const brandColor = app?.brand_color || null
-  const isReto30 = (app?.app_slug || params.appSlug) === 'reto30'
+  const slug = app?.app_slug || params.appSlug
+  const isReto30 = slug === 'reto30'
+  const isMindful30 = slug === 'mindful30'
+  const isCaregivers = slug === 'mindful30-cuidadores'
+  const isAdolescents = slug === 'mindful30-adolescentes'
+  const isFamilyGamification = slug === 'family-gamification'
 
-  // Reto30 tiene su propio tema oscuro + glassmorphism
-  if (isReto30) {
+  if (isReto30 || isMindful30 || isCaregivers || isAdolescents || isFamilyGamification) {
     return (
-      <html lang="es" className="reto30">
-        <body className="min-h-screen antialiased bg-[#0f172a] text-[#f8fafc]">
-          {children}
-          <PwaRegister />
-        </body>
-      </html>
+      <div className={`reto30 min-h-screen antialiased ${isCaregivers ? 'bg-[#faf7ff] text-[#241233]' : 'bg-[#0f172a] text-[#f8fafc]'}`}>
+        {children}
+        <PwaRegister />
+      </div>
     )
   }
 
@@ -114,8 +149,7 @@ export default async function AppLayout({
   }
 
   return (
-    <html lang="es" style={colors}>
-      <body className="min-h-screen antialiased bg-[#fafafa] text-gray-900">
+    <div style={colors} className="min-h-screen antialiased bg-[#fafafa] text-gray-900">
         {/* ── Topbar con identidad de app ── */}
         <header
           className="sticky top-0 z-50 backdrop-blur-xl border-b shadow-sm"
@@ -166,8 +200,7 @@ export default async function AppLayout({
 
         {children}
 
-        <PwaRegister />
-      </body>
-    </html>
+      <PwaRegister />
+    </div>
   )
 }

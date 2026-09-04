@@ -88,6 +88,15 @@ export default async function EditApplicationPage({
           activa: app.activa as boolean,
           app_slug: (app.app_slug as string) || null,
           brand_color: (app.brand_color as string) || null,
+          app_provider: ((app.app_provider as string) || 'tecuida') as
+            | 'tecuida'
+            | 'firebase'
+            | 'external',
+          launch_mode: ((app.launch_mode as string) || 'landing') as
+            | 'native'
+            | 'landing'
+            | 'redirect'
+            | 'embed',
         }}
         categories={categoriesList}
       />

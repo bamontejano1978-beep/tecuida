@@ -4,6 +4,13 @@ export interface ApplicationEntryRef {
   app_slug?: string | null
 }
 
+const DEFAULT_PUBLIC_ORIGIN = 'https://tecuida.group'
+
+/** Devuelve el identificador publico estable de una aplicacion. */
+export function getApplicationEntryIdentifier(app: ApplicationEntryRef): string {
+  return app.app_slug?.trim() || app.id.trim()
+}
+
 /**
  * Devuelve la URL pública canónica de una aplicación dentro de Te Cuida.
  *
@@ -12,8 +19,16 @@ export interface ApplicationEntryRef {
  * o abrir la aplicación, aunque su proveedor o URL cambien más adelante.
  */
 export function getApplicationEntryPath(app: ApplicationEntryRef): string {
-  const identifier = app.app_slug?.trim() || app.id.trim()
-  return `/apps/${encodeURIComponent(identifier)}`
+  return `/apps/${encodeURIComponent(getApplicationEntryIdentifier(app))}`
+}
+
+/** Devuelve la URL publica absoluta que se puede compartir fuera del panel. */
+export function getApplicationPublicUrl(
+  app: ApplicationEntryRef,
+  origin = DEFAULT_PUBLIC_ORIGIN,
+): string {
+  const cleanOrigin = origin.replace(/\/+$/, '')
+  return `${cleanOrigin}${getApplicationEntryPath(app)}`
 }
 
 /** Permite que la ruta canónica use el UUID como respaldo cuando no hay slug. */

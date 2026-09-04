@@ -24,7 +24,7 @@ function RegisterForm() {
         <h1 className="text-3xl font-bold tracking-tight text-gray-900">TE CUIDA</h1>
         <p className="mt-2 text-sm text-gray-600">Portal de bienestar ciudadano</p>
         <h2 className="mt-6 text-xl font-semibold text-gray-900">Crear cuenta</h2>
-        <p className="mt-1 text-sm text-gray-500">Únete a tu municipio y comienza tu viaje de bienestar</p>
+        <p className="mt-1 text-sm text-gray-500">Conecta con tu municipio y abre tu lanzadera personal</p>
       </div>
 
       <form
@@ -77,7 +77,7 @@ function RegisterForm() {
               placeholder="Ej. VF-7KQ9-M4XT-P2DN-8RWC"
             />
             <p className="mt-1 text-xs text-gray-400">
-              Introdúcelo si tu ayuntamiento exige validación de residencia. Cada código es personal y de un solo uso.
+              Si entras desde la app general, este código conecta tu cuenta con tu municipio. Cada código es personal y de un solo uso.
             </p>
           </div>
           <div>
@@ -99,18 +99,26 @@ function RegisterForm() {
           </div>
 
           {/* ── Datos estadísticos anónimos (RGPD) ── */}
-          <div className="rounded-lg bg-amber-50 border border-amber-200 p-4 space-y-3">
-            <p className="text-sm font-medium text-amber-800 flex items-center gap-2">
+          <details className="group rounded-lg border border-gray-200 bg-gray-50 p-4">
+            <summary className="flex cursor-pointer list-none items-center justify-between gap-3 text-sm font-semibold text-gray-800">
+              <span className="flex items-center gap-2">
               <svg className="w-4 h-4 shrink-0" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" aria-hidden="true">
                 <path strokeLinecap="round" strokeLinejoin="round" d="M9 12.75 11.25 15 15 9.75m-3-7.036A11.959 11.959 0 0 1 3.598 6 11.99 11.99 0 0 0 3 9.749c0 5.592 3.824 10.29 9 11.623 5.176-1.332 9-6.03 9-11.622 0-1.31-.21-2.571-.598-3.751h-.152c-3.196 0-6.1-1.248-8.25-3.285Z" />
               </svg>
-              Datos estadísticos anónimos
-            </p>
+                Datos estadísticos anónimos opcionales
+              </span>
+              <span className="text-xs font-bold text-indigo-600 group-open:hidden">
+                Añadir
+              </span>
+              <span className="hidden text-xs font-bold text-indigo-600 group-open:inline">
+                Ocultar
+              </span>
+            </summary>
 
             {/* ── Aviso RGPD ── */}
-            <div className="rounded-md bg-white/60 border border-amber-300 p-3 text-xs text-amber-800 leading-relaxed space-y-2">
+            <div className="mt-4 rounded-md border border-amber-200 bg-white p-3 text-xs text-amber-800 leading-relaxed space-y-2">
               <p>
-                <strong>🔒 Tu privacidad es nuestra prioridad.</strong> Estos datos se rigen por el Reglamento General de Protección de Datos (RGPD):
+                <strong>Tu privacidad es nuestra prioridad.</strong> Estos datos se rigen por el Reglamento General de Protección de Datos (RGPD):
               </p>
               <ul className="list-disc pl-4 space-y-1 text-amber-700">
                 <li><strong>Totalmente opcionales.</strong> Puedes crear tu cuenta sin responder a estas preguntas.</li>
@@ -132,7 +140,7 @@ function RegisterForm() {
             </div>
 
             {/* Género */}
-            <div>
+            <div className="mt-4">
               <label htmlFor="genero" className="block text-sm font-medium text-gray-700">
                 Género{' '}
                 <span className="text-gray-400 font-normal">(opcional)</span>
@@ -151,7 +159,7 @@ function RegisterForm() {
             </div>
 
             {/* Año de nacimiento */}
-            <div>
+            <div className="mt-3">
               <label htmlFor="anio_nacimiento" className="block text-sm font-medium text-gray-700">
                 Año de nacimiento{' '}
                 <span className="text-gray-400 font-normal">(opcional)</span>
@@ -171,7 +179,7 @@ function RegisterForm() {
                 Solo guardamos el año, no la fecha completa. Lo usamos para calcular franjas etarias en nuestras estadísticas de impacto.
               </p>
             </div>
-          </div>
+          </details>
         </div>
 
         {error && (

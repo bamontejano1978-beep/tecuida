@@ -49,6 +49,8 @@ Variables principales:
 - `UPSTASH_REDIS_REST_URL`
 - `UPSTASH_REDIS_REST_TOKEN`
 - `REGISTER_APP_API_KEY`
+- `RESEND_API_KEY` (opcional; si no existe, las invitaciones muestran enlace manual)
+- `RESEND_FROM_EMAIL` (opcional, remitente; por defecto `TE CUIDA <no-reply@tecuida.group>`)
 - `DEMO_MODE`
 - `HEALTH_ALERT_WEBHOOK_URL` (opcional, para avisos operativos)
 
@@ -89,6 +91,11 @@ al municipio con el rol `admin_municipio` y no consume un codigo ciudadano. La
 misma pantalla muestra las invitaciones pendientes y permite reenviarlas o
 cancelarlas. Los ciudadanos ya registrados pueden seguir promocionandose con la
 accion **Hacer gestor**.
+
+Los gestores disponen de `/municipio/codigos` para generar, descargar y revocar
+lotes de codigos, consultar su consumo y activar o desactivar el registro
+restringido. La API obtiene el municipio desde la sesion autenticada y no acepta
+un tenant indicado por el navegador, evitando operaciones cruzadas.
 
 ## Calidad y pruebas
 

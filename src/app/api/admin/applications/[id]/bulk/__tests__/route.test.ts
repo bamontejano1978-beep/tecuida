@@ -56,16 +56,24 @@ const cacheMock = jest.requireMock('next/cache') as {
 function buildSupabaseMock(responses: Array<{ data?: unknown; error?: unknown | null }>) {
   let idx = 0
   const consume = () => responses[idx++] ?? { data: null, error: null }
+  const calls: Array<{ method: string; args: unknown[] }> = []
   const supabase = new Proxy(function noop() {} as any, {
     get(_target, prop) {
+      if (prop === '__calls') return calls
       if (prop === 'then') {
         return (onFulfilled: any, onRejected: any) =>
           Promise.resolve(consume()).then(onFulfilled, onRejected)
       }
       if (prop === 'single' || prop === 'maybeSingle') {
-        return () => Promise.resolve(consume())
+        return (...args: unknown[]) => {
+          calls.push({ method: String(prop), args })
+          return Promise.resolve(consume())
+        }
       }
-      return () => supabase
+      return (...args: unknown[]) => {
+        calls.push({ method: String(prop), args })
+        return supabase
+      }
     },
   })
   return supabase as any
@@ -106,13 +114,15 @@ describe('PUT /api/admin/applications/[id]/bulk — invalidación de cache', () 
   it('llama revalidateTag(MUNICIPALITY_APPS_TAG) + revalidatePath("/") tras éxito', async () => {
     // 1. .select('id').eq('id').single() → app existe
     // 2. .select('id').in('id', municipality_ids) → municipios válidos
-    // 3. .delete().eq('application_id', id) → ok
-    // 4. .insert(rows) → ok
-    // 5. .select(...).eq('application_id', id) → lista actualizada
+    // 3. consulta de asignaciones existentes → ok
+    // 4. .delete().eq('application_id', id) → ok
+    // 5. .insert(rows) → ok
+    // 6. .select(...).eq('application_id', id) → lista actualizada
     ;(createAdminClient as jest.Mock).mockReturnValue(
       buildSupabaseMock([
         { data: { id: APP_ID }, error: null },
         { data: [{ id: MUN_ID_1 }, { id: MUN_ID_2 }], error: null },
+        { data: [], error: null },
         { error: null },
         { error: null },
         { data: [{ municipality_id: MUN_ID_1 }], error: null },
@@ -133,10 +143,12 @@ describe('PUT /api/admin/applications/[id]/bulk — invalidación de cache', () 
 
   it('llama revalidate incluso con municipality_ids vacío (clear-all)', async () => {
     // 1. .select('id').eq('id').single() → app existe
-    // 2. delete + final select (no insert porque array vacío)
+    // 2. consulta asignaciones existentes
+    // 3. delete + final select (no insert porque array vacío)
     ;(createAdminClient as jest.Mock).mockReturnValue(
       buildSupabaseMock([
         { data: { id: APP_ID }, error: null },
+        { data: [], error: null },
         { error: null },
         { data: [], error: null },
       ]),
@@ -169,6 +181,7 @@ describe('PUT /api/admin/applications/[id]/bulk — invalidación de cache', () 
       buildSupabaseMock([
         { data: { id: APP_ID }, error: null },
         { data: [{ id: MUN_ID_1 }], error: null },
+        { data: [], error: null },
         { error: { message: 'fk violation' } },
       ]),
     )
@@ -184,6 +197,7 @@ describe('PUT /api/admin/applications/[id]/bulk — invalidación de cache', () 
       buildSupabaseMock([
         { data: { id: APP_ID }, error: null },
         { data: [{ id: MUN_ID_1 }], error: null },
+        { data: [], error: null },
         { error: null },
         { error: { message: 'duplicate key' } },
       ]),
@@ -203,5 +217,35 @@ describe('PUT /api/admin/applications/[id]/bulk — invalidación de cache', () 
 
     expect(cacheMock.revalidateTag).not.toHaveBeenCalled()
     expect(cacheMock.revalidatePath).not.toHaveBeenCalled()
+  })
+
+  it('deja las nuevas asignaciones como pendientes para el gestor municipal', async () => {
+    const supabase = buildSupabaseMock([
+      { data: { id: APP_ID }, error: null },
+      { data: [{ id: MUN_ID_1 }], error: null },
+      { data: [], error: null },
+      { error: null },
+      { error: null },
+      { data: [{ municipality_id: MUN_ID_1 }], error: null },
+    ])
+    ;(createAdminClient as jest.Mock).mockReturnValue(supabase)
+
+    await PUT(makePutRequest({ municipality_ids: [MUN_ID_1] }), {
+      params: { id: APP_ID },
+    })
+
+    const insertCall = supabase.__calls.find(
+      (call: { method: string }) => call.method === 'insert',
+    )
+    expect(insertCall?.args[0]).toEqual([
+      expect.objectContaining({
+        municipality_id: MUN_ID_1,
+        application_id: APP_ID,
+        activa: true,
+        publication_status: 'disponible',
+        published_at: null,
+        hidden_at: null,
+      }),
+    ])
   })
 })

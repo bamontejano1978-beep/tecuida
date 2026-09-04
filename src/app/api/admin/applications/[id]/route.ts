@@ -153,6 +153,8 @@ export async function PUT(
     if (updates.activa !== undefined) updateData.activa = updates.activa
     if (updates.app_slug !== undefined) updateData.app_slug = updates.app_slug || null
     if (updates.brand_color !== undefined) updateData.brand_color = updates.brand_color || null
+    if (updates.app_provider !== undefined) updateData.app_provider = updates.app_provider || 'tecuida'
+    if (updates.launch_mode !== undefined) updateData.launch_mode = updates.launch_mode || 'landing'
 
     if (Object.keys(updateData).length === 0) {
       return NextResponse.json(

@@ -5,7 +5,8 @@
  * PUT  /api/admin/applications/[id]/bulk   → Sincronizar municipios para esta app
  *
  * El PUT recibe { municipality_ids: UUID[] } y reemplaza
- * completamente los municipios que tienen esta aplicación.
+ * completamente los municipios que tienen esta aplicación. Las entregas nuevas
+ * quedan pendientes para que el gestor municipal decida cuándo publicarlas.
  *
  * Seguridad: Usa createAdminClient() con service_role_key.
  */
@@ -182,6 +183,35 @@ export async function PUT(
       }
     }
 
+    const { data: existingAssignments, error: existingError } = await supabase
+      .from('municipality_applications')
+      .select('municipality_id, publication_status, published_at, hidden_at')
+      .eq('application_id', params.id)
+
+    if (existingError) {
+      console.error(
+        '[PUT /api/admin/applications/:id/bulk] existing:',
+        existingError.message,
+      )
+      return NextResponse.json(
+        { error: 'Error al consultar los municipios actuales' },
+        { status: 500 },
+      )
+    }
+
+    type ExistingAssignment = {
+      municipality_id: string
+      publication_status: 'disponible' | 'publicada' | 'oculta' | null
+      published_at: string | null
+      hidden_at: string | null
+    }
+    const previousByMunicipality = new Map(
+      ((existingAssignments || []) as unknown as ExistingAssignment[]).map((row) => [
+        row.municipality_id,
+        row,
+      ]),
+    )
+
     // Sincronizar: eliminar todas las asociaciones existentes para esta app
     const { error: deleteError } = await supabase
       .from('municipality_applications')
@@ -205,6 +235,11 @@ export async function PUT(
         municipality_id: munId,
         application_id: params.id,
         activa: true,
+        publication_status:
+          previousByMunicipality.get(munId)?.publication_status || 'disponible',
+        published_at: previousByMunicipality.get(munId)?.published_at || null,
+        hidden_at: previousByMunicipality.get(munId)?.hidden_at || null,
+        publication_updated_at: new Date().toISOString(),
       }))
 
       const { error: insertError } = await supabase
@@ -232,6 +267,9 @@ export async function PUT(
         application_id,
         activa,
         fecha_activacion,
+        publication_status,
+        published_at,
+        hidden_at,
         municipality:municipalities (
           id,
           nombre_municipio,

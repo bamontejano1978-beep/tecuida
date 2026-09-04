@@ -11,11 +11,11 @@
  *
  * Respuesta 200: { publicUrl: string }
  *
- * Seguridad: verifyAdminAccess() — solo superadmins autenticados.
+ * Seguridad: superadmin o gestor municipal de su propio municipio.
  */
 
 import { createAdminClient } from '@/lib/supabase/server'
-import { verifyAdminAccess } from '@/lib/admin/auth'
+import { getAdminAccess } from '@/lib/admin/activities'
 import { checkRateLimitAsync } from '@/lib/admin/rate-limit'
 import { NextResponse, type NextRequest } from 'next/server'
 import { randomUUID } from 'crypto'
@@ -109,9 +109,14 @@ export async function POST(request: NextRequest): Promise<Response> {
   })
   if (rateLimit) return rateLimit
 
-  // 1. Verificar acceso de superadmin
-  const adminUser = await verifyAdminAccess()
-  if (adminUser instanceof NextResponse) return adminUser
+  // 1. Verificar acceso administrativo
+  const access = await getAdminAccess()
+  if (!access) {
+    return NextResponse.json(
+      { error: 'No autorizado. Inicia sesión para acceder.' },
+      { status: 401 },
+    )
+  }
 
   // 2. Parsear FormData
   let formData: FormData
@@ -152,6 +157,29 @@ export async function POST(request: NextRequest): Promise<Response> {
 
   const slug = slugRaw.trim().toLowerCase()
   const kind = kindRaw as ImageKind
+  const adminClient = createAdminClient()
+
+  if (!access.is_superadmin) {
+    if (!access.municipality_id) {
+      return NextResponse.json(
+        { error: 'Gestor municipal sin municipio asignado.' },
+        { status: 403 },
+      )
+    }
+
+    const { data: municipality } = await adminClient
+      .from('municipalities')
+      .select('slug')
+      .eq('id', access.municipality_id)
+      .single()
+
+    if (!municipality || municipality.slug !== slug) {
+      return NextResponse.json(
+        { error: 'Solo puedes subir imágenes para tu municipio.' },
+        { status: 403 },
+      )
+    }
+  }
 
   // 4. Validar tipo de archivo
   if (!ALLOWED_MIME_TYPES.includes(file.type as (typeof ALLOWED_MIME_TYPES)[number])) {
@@ -172,8 +200,6 @@ export async function POST(request: NextRequest): Promise<Response> {
   }
 
   // 6. Asegurar que el bucket existe (idempotente)
-  const adminClient = createAdminClient()
-
   try {
     await ensureMunicipalitiesBucket(adminClient)
   } catch (err) {

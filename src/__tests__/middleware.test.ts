@@ -276,16 +276,14 @@ beforeAll(() => {
 describe('Protección de rutas autenticadas', () => {
   // ----- Rutas protegidas sin sesión -----
 
-  it('redirige /app/123 a /login con tenant y redirect cuando no hay sesión', async () => {
+  it('permite /app/123 sin sesión para que redirija al acceso canónico', async () => {
+    ;(tenantCache.get as jest.Mock).mockResolvedValue(mockConfig())
     const req = makeRequest('https://calamonte.tecuida.group/app/123')
 
-    await middleware(req)
+    const res = await middleware(req)
 
-    expect(NextResponse.redirect).toHaveBeenCalledTimes(1)
-    const redirectUrl = (NextResponse.redirect as jest.Mock).mock.calls[0][0] as URL
-    expect(redirectUrl.pathname).toBe('/login')
-    expect(redirectUrl.searchParams.get('tenant')).toBe('calamonte')
-    expect(redirectUrl.searchParams.get('redirect')).toBe('/app/123')
+    expect(NextResponse.redirect).not.toHaveBeenCalled()
+    expect(res.headers.get('x-tenant-slug')).toBe('calamonte')
   })
 
   it('redirige /perfil a /login con tenant y redirect cuando no hay sesión', async () => {
@@ -498,7 +496,7 @@ describe('Suscripción suspendida o cancelada', () => {
 describe('Query params en redirect', () => {
   it('preserva query params existentes en el redirect URL', async () => {
     const req = makeRequest(
-      'https://calamonte.tecuida.group/app/123?foo=bar&baz=qux',
+      'https://calamonte.tecuida.group/dashboard?foo=bar&baz=qux',
     )
 
     await middleware(req)
@@ -506,7 +504,7 @@ describe('Query params en redirect', () => {
     expect(NextResponse.redirect).toHaveBeenCalledTimes(1)
     const redirectUrl = (NextResponse.redirect as jest.Mock).mock.calls[0][0] as URL
     expect(redirectUrl.searchParams.get('redirect')).toBe(
-      '/app/123?foo=bar&baz=qux',
+      '/dashboard?foo=bar&baz=qux',
     )
   })
 
@@ -537,7 +535,7 @@ describe('Desarrollo local — tenant por query param', () => {
   })
 
   it('redirige a /login con tenant desde ?tenant= en localhost', async () => {
-    const req = makeRequest('http://localhost:3000/app/123?tenant=calamonte')
+    const req = makeRequest('http://localhost:3000/dashboard?tenant=calamonte')
 
     await middleware(req)
 
@@ -545,7 +543,7 @@ describe('Desarrollo local — tenant por query param', () => {
     const redirectUrl = (NextResponse.redirect as jest.Mock).mock.calls[0][0] as URL
     expect(redirectUrl.searchParams.get('tenant')).toBe('calamonte')
     expect(redirectUrl.searchParams.get('redirect')).toBe(
-      '/app/123?tenant=calamonte',
+      '/dashboard?tenant=calamonte',
     )
   })
 })

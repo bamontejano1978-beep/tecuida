@@ -51,7 +51,7 @@ export default async function EditMunicipioPage({ params }: EditMunicipioPagePro
       secondary: string
       accent: string
     },
-    estado_suscripcion: data.estado_suscripcion as string,
+    estado_suscripcion: data.estado_suscripcion as 'activa' | 'prueba' | 'suspendida' | 'cancelada',
     hero_image_url: (data.hero_image_url as string) || null,
     escudo_url: (data.escudo_url as string) || null,
     logo_url: (data.logo_url as string) || null,

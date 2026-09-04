@@ -3,12 +3,14 @@ import Link from 'next/link'
 import { redirect } from 'next/navigation'
 import ApplicationLauncher, { type LauncherApplication } from '@/components/dashboard/application-launcher'
 import { createAdminClient, createClient } from '@/lib/supabase/server'
-import { getTenantConfigFromDB, getTenantFromHeaders } from '@/lib/tenant/headers'
+import { getCitizenTenantForUser } from '@/lib/tenant/citizen-context'
+import { getMunicipalityApplicationThumbnail } from '@/lib/tenant/municipality-app-thumbnail'
 
 export const dynamic = 'force-dynamic'
 
 interface PublishedAppRow {
   application_id: string
+  thumbnail_url_override: string | null
   application: {
     id: string
     nombre: string
@@ -48,15 +50,14 @@ export default async function CitizenApplicationsPage() {
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) redirect('/login')
 
-  const tenantHeaders = getTenantFromHeaders()
-  const tenant = tenantHeaders?.slug ? await getTenantConfigFromDB(tenantHeaders.slug) : null
+  const tenant = await getCitizenTenantForUser(user.id)
   if (!tenant) redirect('/dashboard')
 
   const adminClient = createAdminClient()
   const [{ data: appsData }, { data: progressData }, { data: surveyData }] = await Promise.all([
     adminClient
       .from('municipality_applications')
-      .select(`application_id, application:applications!inner (id, nombre, descripcion, thumbnail_url, tipo, app_slug)`)
+      .select(`application_id, thumbnail_url_override, application:applications!inner (id, nombre, descripcion, thumbnail_url, tipo, app_slug)`)
       .eq('municipality_id', tenant.id)
       .eq('activa', true)
       .eq('publication_status', 'publicada'),
@@ -100,7 +101,10 @@ export default async function CitizenApplicationsPage() {
         descripcion: app.descripcion || '',
         tipo: app.tipo,
         appSlug: app.app_slug,
-        thumbnailUrl: app.thumbnail_url,
+        thumbnailUrl: getMunicipalityApplicationThumbnail(
+          row.thumbnail_url_override,
+          app.thumbnail_url,
+        ),
         opened: openedAppIds.has(app.id),
         progressPercent: progress
           ? Math.min(100, Math.round((progress.completed / progress.total) * 100))
@@ -113,11 +117,9 @@ export default async function CitizenApplicationsPage() {
   const secondary = tenant.colores_corporativos.secondary || '#2563eb'
 
   return (
-    <div className="min-h-screen bg-[#f6f7fb] pb-24 text-slate-900 md:pb-10">
-      <header className="relative overflow-hidden text-white" style={{ background: `linear-gradient(125deg, ${primary} 0%, ${secondary} 100%)` }}>
-        <div className="absolute -right-20 -top-28 h-80 w-80 rounded-full bg-white/10 blur-2xl" />
-        <div className="absolute -bottom-28 left-1/4 h-64 w-64 rounded-full bg-sky-300/10 blur-3xl" />
-        <div className="relative mx-auto max-w-7xl px-4 pb-20 pt-5 sm:px-6 lg:px-8">
+    <div className="min-h-screen bg-[#f7f8fa] pb-24 font-[family-name:var(--font-geist-sans)] text-slate-900 md:pb-12">
+      <header className="relative overflow-hidden border-b border-white/10 text-white" style={{ background: `linear-gradient(118deg, ${primary} 0%, ${secondary} 72%, #172033 145%)` }}>
+        <div className="relative mx-auto max-w-7xl px-4 pb-16 pt-5 sm:px-6 sm:pb-20 lg:px-8">
           <nav className="flex items-center justify-between" aria-label="Navegación principal">
             <Link href="/dashboard" className="flex min-w-0 items-center gap-3 rounded-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white">
               {tenant.escudo_url ? (
@@ -132,24 +134,35 @@ export default async function CitizenApplicationsPage() {
                 <span className="block truncate text-sm font-bold">Mi espacio de bienestar</span>
               </span>
             </Link>
-            <div className="hidden items-center gap-1 rounded-full bg-white/10 p-1 text-sm font-semibold backdrop-blur md:flex">
-              <Link href="/dashboard" className="rounded-full px-4 py-2 text-white/85 transition hover:bg-white/10 hover:text-white">Inicio</Link>
-              <Link href="/dashboard/aplicaciones" aria-current="page" className="rounded-full bg-white px-4 py-2 text-slate-900 shadow-sm">Mis apps</Link>
-              <Link href="/actividades" className="rounded-full px-4 py-2 text-white/85 transition hover:bg-white/10 hover:text-white">Actividades</Link>
-              <Link href="/perfil" className="rounded-full px-4 py-2 text-white/85 transition hover:bg-white/10 hover:text-white">Perfil</Link>
+            <div className="hidden items-center gap-1 rounded-lg border border-white/15 bg-black/10 p-1 text-sm font-semibold backdrop-blur md:flex">
+              <Link href="/dashboard" className="rounded-md px-4 py-2 text-white/85 transition hover:bg-white/10 hover:text-white">Inicio</Link>
+              <Link href="/dashboard/aplicaciones" aria-current="page" className="rounded-md bg-white px-4 py-2 text-slate-900 shadow-sm">Mis apps</Link>
+              <Link href="/actividades" className="rounded-md px-4 py-2 text-white/85 transition hover:bg-white/10 hover:text-white">Actividades</Link>
+              <Link href="/perfil" className="rounded-md px-4 py-2 text-white/85 transition hover:bg-white/10 hover:text-white">Perfil</Link>
             </div>
           </nav>
 
-          <div className="mt-11 max-w-2xl">
-            <p className="text-sm font-semibold text-white/75">Tu lanzadera personal</p>
-            <h1 className="mt-2 text-3xl font-black tracking-tight sm:text-4xl">Todas tus aplicaciones, en un solo lugar</h1>
-            <p className="mt-3 max-w-xl text-sm leading-6 text-white/80 sm:text-base">Abre tus herramientas, retoma tus programas y descubre los recursos publicados por {tenant.nombre_municipio}.</p>
+          <div className="mt-10 grid items-end gap-6 lg:grid-cols-[minmax(0,1fr)_auto]">
+            <div className="max-w-2xl">
+              <p className="text-sm font-semibold text-white/75">Tu espacio de bienestar en {tenant.nombre_municipio}</p>
+              <h1 className="mt-2 text-3xl font-bold sm:text-4xl">Mis aplicaciones</h1>
+              <p className="mt-3 max-w-xl text-sm leading-6 text-white/80 sm:text-base">Retoma tus programas, consulta tu progreso y encuentra los recursos que tienes disponibles.</p>
+            </div>
+            <div className="hidden items-center gap-3 border-l border-white/20 pl-5 text-sm text-white/75 lg:flex">
+              <span className="text-3xl font-bold text-white">{applications.length}</span>
+              <span className="max-w-24 leading-5">recursos disponibles</span>
+            </div>
           </div>
         </div>
       </header>
 
-      <main className="relative mx-auto -mt-12 max-w-7xl px-4 sm:px-6 lg:px-8">
-        <ApplicationLauncher applications={applications} municipalityId={tenant.id} />
+      <main className="relative mx-auto -mt-7 max-w-7xl px-4 sm:-mt-9 sm:px-6 lg:px-8">
+        <ApplicationLauncher
+          applications={applications}
+          municipalityId={tenant.id}
+          municipalityName={tenant.nombre_municipio}
+          primaryColor={primary}
+        />
       </main>
 
       <nav className="fixed inset-x-3 bottom-3 z-50 grid grid-cols-4 rounded-2xl border border-white/70 bg-white/95 p-1.5 shadow-2xl shadow-slate-900/15 backdrop-blur md:hidden" aria-label="Navegación móvil">

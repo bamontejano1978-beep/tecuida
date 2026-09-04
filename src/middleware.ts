@@ -49,8 +49,18 @@ const ERROR_PATHS = ['/404', '/suspendido']
 /** Caché en memoria de apps resueltas por slug (evita query en cada request) */
 const appSlugCache = new Map<string, { id: string; nombre: string; tipo: string; url_acceso?: string | null; brand_color?: string | null; thumbnail_url?: string | null; descripcion?: string | null; categoria_nombre?: string | null } | null>()
 
+const LEGACY_APPLICATION_SLUG_ALIASES: Record<string, string> = {
+  mindful30: 'reto30',
+  'mindful30-adultos': 'reto30',
+}
+
+const TENANT_SLUG_ALIASES: Record<string, string[]> = {
+  'villafranca-de-los-barros': ['villafrancadelosbarros'],
+  villafrancadelosbarros: ['villafranca-de-los-barros'],
+}
+
 /** Rutas que requieren que el usuario esté autenticado */
-const PROTECTED_PREFIXES = ['/app/', '/perfil', '/dashboard']
+const PROTECTED_PREFIXES = ['/perfil', '/dashboard']
 
 // ---------------------------------------------------------------------------
 // Helpers
@@ -154,12 +164,22 @@ async function resolveAppBySlug(
       },
     )
 
-    const { data } = await supabase
-      .from('applications')
-      .select('id, nombre, tipo, url_acceso, brand_color, thumbnail_url, descripcion, categoria:categories(nombre)')
-      .eq('app_slug', slug)
-      .eq('activa', true)
-      .maybeSingle()
+    const fetchBySlug = (lookupSlug: string) =>
+      supabase
+        .from('applications')
+        .select('id, nombre, tipo, url_acceso, brand_color, thumbnail_url, descripcion, categoria:categories(nombre)')
+        .eq('app_slug', lookupSlug)
+        .eq('activa', true)
+        .maybeSingle()
+
+    let { data } = await fetchBySlug(slug)
+
+    if (!data) {
+      const canonicalSlug = LEGACY_APPLICATION_SLUG_ALIASES[slug.trim().toLowerCase()]
+      if (canonicalSlug) {
+        ;({ data } = await fetchBySlug(canonicalSlug))
+      }
+    }
 
     const result = data
       ? {
@@ -212,11 +232,15 @@ async function resolveTenant(
       },
     )
 
+    const lookupSlugs = [slug, ...(TENANT_SLUG_ALIASES[slug] || [])]
+
     const { data, error } = await supabase
       .from('municipalities')
       .select('*')
-      .eq('slug', slug)
-      .single()
+      .in('slug', lookupSlugs)
+      .order('slug', { ascending: true })
+      .limit(1)
+      .maybeSingle()
 
     if (error || !data) return null
 

@@ -64,7 +64,7 @@ export default async function AplicacionesPage({
   const limit = 20
   const offset = (page - 1) * limit
   const filterActiva =
-    typeof searchParams['activa'] === 'string' ? searchParams['activa'] : ''
+    typeof searchParams['activa'] === 'string' ? searchParams['activa'] : 'true'
   const search =
     typeof searchParams['q'] === 'string' ? searchParams['q'] : ''
 

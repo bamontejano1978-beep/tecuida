@@ -302,3 +302,11 @@ VALUES
   )
 
 ON CONFLICT (id) DO NOTHING;
+
+-- Estas 26 fichas son ejemplos de catálogo del seed inicial. No deben aparecer
+-- como aplicaciones activas hasta que exista una implementación real o una URL
+-- externa configurada desde el panel.
+UPDATE public.applications
+SET activa = false
+WHERE left(id::text, 24) = '22222222-0000-0000-0000-'
+  AND right(id::text, 12)::bigint BETWEEN 1 AND 26;
