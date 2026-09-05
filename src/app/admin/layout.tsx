@@ -162,14 +162,14 @@ export default async function AdminLayout({
       </aside>
 
       {/* Mobile header */}
-      <div className="lg:hidden fixed top-0 inset-x-0 z-40 bg-white border-b border-gray-200 px-4 py-3 flex items-center justify-between">
-        <div className="flex items-center gap-2">
+      <div className="lg:hidden fixed top-0 inset-x-0 z-40 bg-white border-b border-gray-200 px-4 py-3 flex items-center justify-between gap-4">
+        <div className="flex shrink-0 items-center gap-2">
           <div className="flex items-center justify-center h-7 w-7 rounded bg-indigo-600 text-white font-bold text-xs">
             TC
           </div>
           <span className="text-sm font-semibold">Admin</span>
         </div>
-        <div className="flex items-center gap-3">
+        <div className="flex min-w-0 flex-1 items-center gap-3 overflow-x-auto whitespace-nowrap [&>a]:shrink-0 [&>button]:shrink-0">
           <Link
             href="/admin"
             className="text-xs font-medium text-gray-600 hover:text-gray-900"
@@ -217,7 +217,7 @@ export default async function AdminLayout({
       </div>
 
       {/* Main content */}
-      <main className="flex-1 lg:pl-64 pt-14 lg:pt-0">
+      <main className="min-w-0 flex-1 lg:pl-64 pt-20 lg:pt-0">
         {children}
       </main>
     </div>

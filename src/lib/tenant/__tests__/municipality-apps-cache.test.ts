@@ -55,7 +55,7 @@ jest.mock('@/lib/supabase/server', () => ({
     from: () => ({
       select: () => ({
         eq: () => ({
-          eq: () => Promise.resolve(mockBuilderResult),
+          eq: () => ({ eq: () => Promise.resolve(mockBuilderResult) }),
         }),
       }),
     }),

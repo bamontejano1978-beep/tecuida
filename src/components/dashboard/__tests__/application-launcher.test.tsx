@@ -2,6 +2,8 @@ import { render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import ApplicationLauncher, { type LauncherApplication } from '../application-launcher'
 
+jest.mock('next/navigation', () => ({ useRouter: () => ({ refresh: jest.fn() }) }))
+
 function createApp(overrides: Partial<LauncherApplication> = {}): LauncherApplication {
   return {
     id: 'app-1',
@@ -17,6 +19,17 @@ function createApp(overrides: Partial<LauncherApplication> = {}): LauncherApplic
 }
 
 describe('ApplicationLauncher', () => {
+  it('muestra solo las favoritas y explica el guardado local', async () => {
+    const user = userEvent.setup()
+    render(<ApplicationLauncher applications={[
+      createApp({ id: 'one', nombre: 'Reto30', appSlug: 'reto30', favorite: true }),
+      createApp({ id: 'two', nombre: 'Otra app' }),
+    ]} municipalityId="municipio-1" municipalityName="Tu municipio" primaryColor="#047857" />)
+    await user.click(screen.getByRole('button', { name: /Favoritas/ }))
+    expect(screen.getByRole('heading', { name: 'Reto30' })).toBeInTheDocument()
+    expect(screen.queryByRole('heading', { name: 'Otra app' })).not.toBeInTheDocument()
+    expect(screen.getByText('Avances y notas en este navegador')).toBeInTheDocument()
+  })
   it('filtra por estado, busca sin acentos y permite limpiar los filtros', async () => {
     const user = userEvent.setup()
     const applications = [

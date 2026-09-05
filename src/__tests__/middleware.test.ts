@@ -136,15 +136,7 @@ jest.mock('next/server', () => {
     NextRequest: jest.fn().mockImplementation((url: URL | string) => {
       const parsedUrl = typeof url === 'string' ? new URL(url) : url
       // headers debe ser iterable (para new Headers()) Y tener .get()
-      const headerEntries: [string, string][] = [['host', parsedUrl.host]]
-      const headers = Object.assign(headerEntries, {
-        get: (name: string) => {
-          const found = headerEntries.find(
-            ([k]) => k.toLowerCase() === name.toLowerCase(),
-          )
-          return found ? found[1] : null
-        },
-      })
+      const headers = new Headers({ host: parsedUrl.host })
       return {
         nextUrl: parsedUrl,
         url: parsedUrl.toString(),

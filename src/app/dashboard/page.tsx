@@ -6,6 +6,7 @@ import SignOutButton from '@/components/ui/sign-out-button'
 import { getApplicationEntryPath } from '@/lib/application-links'
 import { createAdminClient, createClient } from '@/lib/supabase/server'
 import { getCitizenTenantForUser } from '@/lib/tenant/citizen-context'
+import QuickApplications from '@/components/dashboard/quick-applications'
 import { getMunicipalityApplicationThumbnail } from '@/lib/tenant/municipality-app-thumbnail'
 
 export const dynamic = 'force-dynamic'
@@ -199,6 +200,7 @@ export default async function DashboardPage() {
     { count: achievementCount },
     { data: userProfile },
     { data: inscriptionData },
+    { data: launcherState },
   ] = await Promise.all([
     adminClient
       .from('user_progress')
@@ -243,6 +245,7 @@ export default async function DashboardPage() {
       .gte('activity.fecha_inicio', new Date().toISOString().slice(0, 10))
       .order('created_at', { ascending: false })
       .limit(20),
+    supabase.from('user_application_state').select('application_id, favorite, last_opened_at').eq('user_id', user.id),
   ])
 
   const apps: DashboardApp[] = activeApps
@@ -288,11 +291,16 @@ export default async function DashboardPage() {
     if (row.survey?.application_id) openedAppIds.add(row.survey.application_id)
   })
 
+  const stateByApp = new Map((launcherState || []).map((row) => [row.application_id, row]))
+  for (const row of launcherState || []) if (row.last_opened_at) openedAppIds.add(row.application_id)
+  const quickApps = apps.map((app) => ({ ...app, favorite: stateByApp.get(app.id)?.favorite || false }))
+    .sort((a, b) => Number(b.favorite) - Number(a.favorite)
+      || (stateByApp.get(b.id)?.last_opened_at || '').localeCompare(stateByApp.get(a.id)?.last_opened_at || ''))
+    .slice(0, 6)
   const usedApps = apps.filter((app) => openedAppIds.has(app.id))
-  const discoveryApps = apps.filter((app) => !openedAppIds.has(app.id))
   const continueApp = [...usedApps].sort((a, b) => {
-    const dateA = progressByApp.get(a.id)?.latestDate || ''
-    const dateB = progressByApp.get(b.id)?.latestDate || ''
+    const dateA = stateByApp.get(a.id)?.last_opened_at || progressByApp.get(a.id)?.latestDate || ''
+    const dateB = stateByApp.get(b.id)?.last_opened_at || progressByApp.get(b.id)?.latestDate || ''
     return dateB.localeCompare(dateA)
   })[0]
   const continueProgress = continueApp ? progressByApp.get(continueApp.id) : null
@@ -324,9 +332,7 @@ export default async function DashboardPage() {
           background: `linear-gradient(125deg, ${primary} 0%, ${secondary} 100%)`,
         }}
       >
-        <div className="absolute -right-16 -top-24 h-72 w-72 rounded-full bg-white/10 blur-2xl" />
-        <div className="absolute -bottom-32 left-1/4 h-64 w-64 rounded-full bg-sky-300/10 blur-3xl" />
-        <div className="relative mx-auto max-w-7xl px-4 pb-20 pt-5 sm:px-6 lg:px-8">
+        <div className="relative mx-auto max-w-7xl px-4 pb-8 pt-5 sm:px-6 lg:px-8">
           <nav className="flex items-center justify-between" aria-label="Navegación principal">
             <Link href="/" className="flex min-w-0 items-center gap-3 rounded-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white">
               {tenant?.escudo_url ? (
@@ -367,19 +373,17 @@ export default async function DashboardPage() {
             </div>
           </nav>
 
-          <div className="mt-12 max-w-2xl">
+          <div className="mt-6 max-w-2xl">
             <p className="text-sm font-semibold text-white/75">Tu espacio en {municipalityName}</p>
-            <h1 className="mt-2 text-3xl font-black tracking-tight sm:text-4xl">
-              Hola{displayName ? `, ${displayName}` : ''}. ¿Qué te apetece hacer hoy?
+            <h1 className="mt-2 break-words text-2xl font-bold">
+              Hola{displayName ? `, ${displayName}` : ''}
             </h1>
-            <p className="mt-3 max-w-xl text-sm leading-6 text-white/80 sm:text-base">
-              Continúa cuidándote, descubre recursos útiles y participa en las actividades de tu municipio.
-            </p>
           </div>
         </div>
       </header>
 
-      <main className="relative mx-auto -mt-12 max-w-7xl px-4 sm:px-6 lg:px-8">
+      <main className="relative mx-auto mt-6 max-w-7xl px-4 sm:px-6 lg:px-8">
+        <QuickApplications applications={quickApps} municipalityId={tenant?.id || null} />
         <section aria-labelledby="today-title" className="grid gap-5 lg:grid-cols-[1.55fr_1fr]">
           <div className="overflow-hidden rounded-3xl border border-white/70 bg-white p-5 shadow-xl shadow-slate-900/5 sm:p-7">
             <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-[0.14em] text-indigo-700">
@@ -520,26 +524,6 @@ export default async function DashboardPage() {
           </div>
         </section>
 
-        <section className="mt-12 overflow-hidden rounded-3xl bg-slate-950 text-white" aria-labelledby="launcher-title">
-          <div className="grid items-center gap-8 p-6 sm:p-8 lg:grid-cols-[1fr_auto]">
-            <div>
-              <p className="text-xs font-bold uppercase tracking-[0.16em] text-sky-300">Tu lanzadera personal</p>
-              <h2 id="launcher-title" className="mt-2 text-2xl font-black tracking-tight sm:text-3xl">Todas tus aplicaciones, organizadas para ti</h2>
-              <p className="mt-3 max-w-2xl text-sm leading-6 text-slate-300">
-                Accede a tus programas y herramientas desde una pantalla propia, consulta tu progreso y encuentra rápidamente lo que necesitas.
-              </p>
-              <div className="mt-5 flex flex-wrap gap-2 text-xs font-bold text-slate-300">
-                <span className="rounded-full bg-white/10 px-3 py-1.5">{apps.length} {apps.length === 1 ? 'aplicación' : 'aplicaciones'}</span>
-                {usedApps.length > 0 && <span className="rounded-full bg-white/10 px-3 py-1.5">{usedApps.length} en uso</span>}
-                {discoveryApps.length > 0 && <span className="rounded-full bg-white/10 px-3 py-1.5">{discoveryApps.length} por descubrir</span>}
-              </div>
-            </div>
-            <Link href="/dashboard/aplicaciones" className="inline-flex min-h-12 items-center justify-center gap-2 rounded-2xl bg-white px-6 py-3.5 text-sm font-black text-slate-950 shadow-lg transition hover:bg-sky-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2 focus-visible:ring-offset-slate-950">
-              <DashboardIcon name="grid" className="h-5 w-5" />
-              Abrir mis aplicaciones
-            </Link>
-          </div>
-        </section>
 
         <section className="mt-12 grid gap-6 lg:grid-cols-[1.4fr_1fr]">
           <div className="rounded-3xl border border-slate-200 bg-white p-6 sm:p-7">

@@ -1,6 +1,7 @@
 import { NextResponse, type NextRequest } from 'next/server'
 import { getPublicApplication } from '@/lib/applications/public-application'
 import { getApplicationEntryPath } from '@/lib/application-links'
+import { safeLaunchTarget, isIntegratedExternalApp } from '@/lib/applications/launch-target'
 
 export async function GET(
   request: NextRequest,
@@ -16,12 +17,11 @@ export async function GET(
     return NextResponse.redirect(new URL(getApplicationEntryPath(app), request.url))
   }
 
-  const target = app.url_acceso.startsWith('/')
-    ? new URL(app.url_acceso, request.url)
-    : new URL(app.url_acceso)
-  request.nextUrl.searchParams.forEach((value, key) => {
-    target.searchParams.append(key, value)
-  })
-
+  const target = safeLaunchTarget(app.url_acceso, request.nextUrl.origin)
+  if (!target) return NextResponse.json({ error: 'El enlace de esta aplicación no está disponible.' }, { status: 422 })
+  // Preserve the municipal shell for reviewed integrations; never forward query credentials.
+  if (isIntegratedExternalApp(target.href)) {
+    return NextResponse.redirect(new URL(`${getApplicationEntryPath(app)}/run`, request.url))
+  }
   return NextResponse.redirect(target)
 }

@@ -2,7 +2,6 @@
 
 import Link from 'next/link'
 import type { ComponentProps } from 'react'
-import { useAnalytics } from '@/lib/analytics/tracker'
 
 interface Props extends Omit<ComponentProps<typeof Link>, 'onClick'> {
   applicationId: string
@@ -15,15 +14,12 @@ export default function TrackedApplicationLink({
   children,
   ...props
 }: Props) {
-  const { track, flushNow } = useAnalytics(null, municipalityId)
+  void applicationId
+  void municipalityId
 
   return (
     <Link
       {...props}
-      onClick={() => {
-        track('app_view', { application_id: applicationId })
-        void flushNow()
-      }}
     >
       {children}
     </Link>

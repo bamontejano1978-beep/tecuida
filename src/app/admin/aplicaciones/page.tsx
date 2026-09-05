@@ -141,6 +141,7 @@ export default async function AplicacionesPage({
           </p>
         </div>
         <div className="flex flex-wrap items-center gap-3">
+          <Link href="/admin/aplicaciones/calidad" className="rounded-lg border border-gray-300 px-4 py-2.5 text-sm font-semibold text-gray-700">Calidad de la biblioteca</Link>
           <Link
             href="/admin/aplicaciones/bulk"
             className="inline-flex items-center gap-2 rounded-lg border border-gray-300 bg-white px-4 py-2.5 text-sm font-semibold text-gray-700 shadow-sm hover:bg-gray-50 transition-colors"

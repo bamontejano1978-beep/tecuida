@@ -13,6 +13,7 @@ import type { ApplicationType } from '@/types'
 import { getApplicationEntryPath } from '@/lib/application-links'
 import TrackedApplicationLink from '@/components/analytics/tracked-application-link'
 import styles from './editorial.module.css'
+import CitizenAppFacts from '@/components/catalog/citizen-app-facts'
 
 const ICON_BY_TYPE: Record<ApplicationType, string> = {
   programa: '🌿',
@@ -100,6 +101,7 @@ export default function EditorialProgramsGrid({
             <div className={styles.programIcon}>{icon}</div>
             <h3>{app.nombre}</h3>
             <p>{app.descripcion || 'Sin descripción disponible.'}</p>
+            <CitizenAppFacts slug={app.app_slug} />
           </TrackedApplicationLink>
         )
       })}

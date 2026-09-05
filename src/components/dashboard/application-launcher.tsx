@@ -5,6 +5,8 @@ import { type CSSProperties, useMemo, useState } from 'react'
 import TrackedApplicationLink from '@/components/analytics/tracked-application-link'
 import PwaInstallLauncher from '@/components/ui/pwa-install-launcher'
 import { getApplicationEntryPath } from '@/lib/application-links'
+import FavoriteButton from './favorite-button'
+import CitizenAppFacts from '@/components/catalog/citizen-app-facts'
 
 export interface LauncherApplication {
   id: string
@@ -15,6 +17,8 @@ export interface LauncherApplication {
   thumbnailUrl: string | null
   opened: boolean
   progressPercent: number | null
+  favorite?: boolean
+  lastOpenedAt?: string | null
 }
 
 const typeLabels: Record<string, string> = {
@@ -42,6 +46,7 @@ const tileBackgrounds = [
 
 const statusFilters = [
   { id: 'todas', label: 'Todas' },
+  { id: 'favoritas', label: 'Favoritas' },
   { id: 'en-uso', label: 'En uso' },
   { id: 'progreso', label: 'Con progreso' },
   { id: 'nuevas', label: 'Por descubrir' },
@@ -79,11 +84,11 @@ function LauncherIcon({ name, className = 'h-5 w-5' }: { name: IconName; classNa
 
 function SummaryItem({ icon, label, value, detail }: { icon: IconName; label: string; value: number; detail: string }) {
   return (
-    <div className="flex min-w-0 items-center gap-3 px-4 py-4 sm:px-5">
-      <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-slate-100 text-slate-700"><LauncherIcon name={icon} /></span>
+    <div className="flex min-w-0 items-center gap-3 px-3 py-3 sm:px-5">
+      <span className="hidden h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-slate-100 text-slate-700 sm:flex"><LauncherIcon name={icon} /></span>
       <div className="min-w-0">
-        <div className="flex items-baseline gap-2"><span className="text-2xl font-bold text-slate-950">{value}</span><span className="truncate text-sm font-semibold text-slate-800">{label}</span></div>
-        <p className="truncate text-xs text-slate-500">{detail}</p>
+        <div className="flex flex-col gap-1 sm:flex-row sm:items-baseline sm:gap-2"><span className="text-2xl font-bold text-slate-950">{value}</span><span className="text-xs font-semibold text-slate-800 sm:text-sm">{label}</span></div>
+        <p className="hidden text-xs text-slate-500 sm:block">{detail}</p>
       </div>
     </div>
   )
@@ -114,14 +119,14 @@ export default function ApplicationLauncher({
   const statusCounts = useMemo(() => {
     const enUso = applications.filter((app) => app.opened).length
     const progreso = applications.filter((app) => app.progressPercent !== null).length
-    return { todas: applications.length, 'en-uso': enUso, progreso, nuevas: applications.length - enUso } satisfies Record<StatusFilter, number>
+    return { todas: applications.length, favoritas: applications.filter((app) => app.favorite).length, 'en-uso': enUso, progreso, nuevas: applications.length - enUso } satisfies Record<StatusFilter, number>
   }, [applications])
 
   const filteredApps = useMemo(() => {
     const normalizedQuery = normalizeSearch(query)
     return applications.filter((app) => {
       const matchesType = activeType === 'todas' || app.tipo === activeType
-      const matchesStatus = activeStatus === 'todas' || (activeStatus === 'en-uso' && app.opened) || (activeStatus === 'progreso' && app.progressPercent !== null) || (activeStatus === 'nuevas' && !app.opened)
+      const matchesStatus = activeStatus === 'todas' || (activeStatus === 'favoritas' && app.favorite) || (activeStatus === 'en-uso' && app.opened) || (activeStatus === 'progreso' && app.progressPercent !== null) || (activeStatus === 'nuevas' && !app.opened)
       const matchesQuery = !normalizedQuery || normalizeSearch(app.nombre).includes(normalizedQuery) || normalizeSearch(app.descripcion).includes(normalizedQuery)
       return matchesType && matchesStatus && matchesQuery
     })
@@ -148,14 +153,14 @@ export default function ApplicationLauncher({
     <div style={launcherStyle}>
       <PwaInstallLauncher municipalityName={municipalityName} primaryColor={primaryColor} />
 
-      <section aria-label="Resumen de tus aplicaciones" className="grid overflow-hidden rounded-lg border border-slate-200 bg-white shadow-[0_10px_35px_rgba(15,23,42,0.06)] sm:grid-cols-3 sm:divide-x sm:divide-slate-200">
+      <section aria-label="Resumen de tus aplicaciones" className="grid grid-cols-3 divide-x divide-slate-200 overflow-hidden rounded-lg border border-slate-200 bg-white">
         <SummaryItem icon="clock" label="En uso" value={statusCounts['en-uso']} detail="Listas para retomar" />
-        <div className="border-t border-slate-200 sm:border-t-0"><SummaryItem icon="check" label="Con progreso" value={statusCounts.progreso} detail="Con avance guardado" /></div>
-        <div className="border-t border-slate-200 sm:border-t-0"><SummaryItem icon="compass" label="Por descubrir" value={statusCounts.nuevas} detail="Nuevas para ti" /></div>
+        <SummaryItem icon="check" label="Con progreso" value={statusCounts.progreso} detail="Con avance guardado" />
+        <SummaryItem icon="compass" label="Por descubrir" value={statusCounts.nuevas} detail="Nuevas para ti" />
       </section>
 
       <section aria-label="Buscar y filtrar aplicaciones" className="mt-5 rounded-lg border border-slate-200 bg-white p-4 shadow-sm sm:p-5">
-        <div className="grid gap-5 lg:grid-cols-[minmax(260px,0.85fr)_1.15fr] lg:items-end">
+        <div className="grid min-w-0 grid-cols-1 gap-5 lg:grid-cols-[minmax(260px,0.85fr)_minmax(0,1.15fr)] lg:items-end">
           <label className="block">
             <span className="mb-2 block text-xs font-bold uppercase text-slate-500">Buscar</span>
             <span className="relative block">
@@ -208,22 +213,23 @@ export default function ApplicationLauncher({
           {filteredApps.map((app, index) => {
             const typeStyle = typeStyles[app.tipo] || { background: '#f1f5f9', foreground: '#334155' }
             return (
-              <TrackedApplicationLink key={app.id} applicationId={app.id} municipalityId={municipalityId} href={getApplicationEntryPath({ id: app.id, app_slug: app.appSlug })} className="group flex min-h-[318px] flex-col overflow-hidden rounded-lg border border-slate-200 bg-white shadow-[0_4px_18px_rgba(15,23,42,0.05)] transition duration-200 hover:-translate-y-0.5 hover:border-slate-300 hover:shadow-[0_14px_32px_rgba(15,23,42,0.11)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--launcher-accent)] focus-visible:ring-offset-2">
-                <div className={`relative aspect-[16/9] overflow-hidden ${tileBackgrounds[index % tileBackgrounds.length]}`}>
+              <article key={app.id} className="flex min-w-0 flex-col overflow-hidden rounded-lg border border-slate-200 bg-white">
+              <TrackedApplicationLink applicationId={app.id} municipalityId={municipalityId} href={getApplicationEntryPath({ id: app.id, app_slug: app.appSlug })} className="group flex flex-1 flex-col focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-[color:var(--launcher-accent)]">
+                <div className={`relative h-36 overflow-hidden ${app.thumbnailUrl ? 'bg-gray-50' : tileBackgrounds[index % tileBackgrounds.length]}`}>
                   {app.thumbnailUrl ? (
-                    <Image src={app.thumbnailUrl} alt="" fill sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 25vw" className="object-cover transition duration-300 group-hover:scale-[1.025]" />
+                    <Image src={app.thumbnailUrl} alt="" fill sizes="160px" className="object-contain p-5" />
                   ) : (
                     <div className="flex h-full items-center justify-center text-white/90" aria-hidden="true"><LauncherIcon name="apps" className="h-11 w-11" /></div>
                   )}
-                  <div className="absolute inset-0 bg-gradient-to-t from-slate-950/50 via-transparent to-slate-950/5" />
                   <span className="absolute left-3 top-3 rounded-md bg-white/95 px-2.5 py-1 text-[10px] font-bold uppercase text-slate-700 shadow-sm backdrop-blur">{app.opened ? 'En uso' : 'Por descubrir'}</span>
                   {app.progressPercent !== null && <span className="absolute bottom-3 right-3 rounded-md bg-slate-950/85 px-2.5 py-1 text-[10px] font-bold text-white backdrop-blur">{app.progressPercent}% completado</span>}
                 </div>
 
                 <div className="flex flex-1 flex-col p-4">
                   <span className="w-fit rounded px-2 py-1 text-[10px] font-bold uppercase" style={{ backgroundColor: typeStyle.background, color: typeStyle.foreground }}>{typeLabels[app.tipo]?.replace(/s$/, '') || 'Aplicación'}</span>
-                  <h3 className="mt-3 line-clamp-1 text-lg font-bold text-slate-950">{app.nombre}</h3>
+                  <h3 className="mt-3 break-words text-lg font-bold text-slate-950">{app.nombre}</h3>
                   <p className="mt-1.5 line-clamp-2 text-sm leading-5 text-slate-500">{app.descripcion || 'Un recurso de bienestar disponible para ti.'}</p>
+                  <CitizenAppFacts slug={app.appSlug} />
                   {app.progressPercent !== null && (
                     <div className="mt-4" aria-label={`Progreso: ${app.progressPercent}%`}>
                       <div className="mb-1.5 flex justify-between text-[11px] font-semibold text-slate-500"><span>Tu progreso</span><span>{app.progressPercent}%</span></div>
@@ -233,6 +239,8 @@ export default function ApplicationLauncher({
                   <span className="mt-auto flex items-center justify-between border-t border-slate-100 pt-3 text-sm font-bold text-slate-900">{app.opened ? 'Continuar' : 'Abrir aplicación'}<LauncherIcon name="arrow" className="h-4 w-4 transition group-hover:translate-x-0.5" /></span>
                 </div>
               </TrackedApplicationLink>
+              <FavoriteButton applicationId={app.id} name={app.nombre} initial={app.favorite} />
+              </article>
             )
           })}
         </div>

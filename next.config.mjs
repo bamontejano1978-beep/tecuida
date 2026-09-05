@@ -28,7 +28,7 @@ const nextConfig = {
       "font-src 'self' data:",
       "connect-src 'self' https://*.supabase.co wss://*.supabase.co",
       "media-src 'self' blob: https:",
-      "frame-src https://www.youtube.com https://www.youtube-nocookie.com https://player.vimeo.com",
+      "frame-src https://www.youtube.com https://www.youtube-nocookie.com https://player.vimeo.com https://organizatron-nine.vercel.app https://salud-adolescentes.vercel.app",
       "object-src 'none'",
       "base-uri 'self'",
       "form-action 'self'",

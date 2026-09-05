@@ -28,6 +28,7 @@ export type AnalyticsEventName =
   | 'catalog_search'
   | 'category_filter'
   | 'app_view'
+  | 'app_launch'
   | 'lesson_started'
   | 'lesson_completed'
   | 'program_enrolled'
@@ -42,6 +43,15 @@ export type AnalyticsEventName =
 /** Payload flexible para cada evento */
 export interface AnalyticsPayload {
   [key: string]: unknown
+}
+
+function getJourneyId(): string | undefined {
+  try {
+    const key = 'tecuida-analytics-journey'
+    let id = sessionStorage.getItem(key)
+    if (!id) { id = crypto.randomUUID(); sessionStorage.setItem(key, id) }
+    return id
+  } catch { return undefined }
 }
 
 // ---------------------------------------------------------------------------
@@ -99,6 +109,7 @@ export function useAnalytics(
         evento,
         payload: {
           ...payload,
+          journey_id: getJourneyId(),
           url: typeof window !== 'undefined' ? window.location.pathname : '',
           timestamp: new Date().toISOString(),
         },

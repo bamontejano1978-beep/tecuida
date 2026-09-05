@@ -38,6 +38,40 @@ exports[`ApplicationCard coincide con el snapshot (estructura estable) 1`] = `
   >
     Programa de 30 días de mindfulness.
   </p>
+  <dl
+    class="my-3 space-y-2 text-xs leading-5 text-gray-600"
+  >
+    <div>
+      <dt
+        class="font-semibold text-gray-800"
+      >
+        Para quién
+      </dt>
+      <dd>
+        Ciudadanía
+      </dd>
+    </div>
+    <div>
+      <dt
+        class="font-semibold text-gray-800"
+      >
+        Dedicación
+      </dt>
+      <dd>
+        Consultar en la aplicación
+      </dd>
+    </div>
+    <div>
+      <dt
+        class="font-semibold text-gray-800"
+      >
+        Qué guarda
+      </dt>
+      <dd>
+        Consulta el guardado al iniciar la actividad
+      </dd>
+    </div>
+  </dl>
   <div
     class="mt-4 flex items-center justify-between pt-3 border-t border-gray-100"
   >
@@ -49,7 +83,7 @@ exports[`ApplicationCard coincide con el snapshot (estructura estable) 1`] = `
     <span
       class="text-xs font-medium text-indigo-600 group-hover:translate-x-0.5 transition-transform"
     >
-      Abrir →
+      Ver aplicación →
     </span>
   </div>
 </a>

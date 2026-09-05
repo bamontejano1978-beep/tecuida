@@ -12,27 +12,33 @@
 import Link from 'next/link'
 import { useSearchParams } from 'next/navigation'
 import { Suspense, useState } from 'react'
+import MunicipalityEntry from '@/components/ui/municipality-entry'
 
 function RegisterForm() {
   const searchParams = useSearchParams()
   const error = searchParams.get('error')
   const [submitting, setSubmitting] = useState(false)
+  const [codeRequired, setCodeRequired] = useState(true)
+  const tenant = searchParams.get('tenant')
+  const redirectTo = searchParams.get('redirect') || '/dashboard'
 
   return (
-    <>
+    <main className="mx-auto w-full max-w-lg px-4 py-10 sm:px-6">
       <div className="text-center">
         <h1 className="text-3xl font-bold tracking-tight text-gray-900">TE CUIDA</h1>
         <p className="mt-2 text-sm text-gray-600">Portal de bienestar ciudadano</p>
         <h2 className="mt-6 text-xl font-semibold text-gray-900">Crear cuenta</h2>
         <p className="mt-1 text-sm text-gray-500">Conecta con tu municipio y abre tu lanzadera personal</p>
       </div>
+      <MunicipalityEntry tenant={tenant} onResolved={setCodeRequired} />
 
       <form
-        action="/api/auth/register"
+        action={`/api/auth/register${tenant ? `?tenant=${encodeURIComponent(tenant)}` : ''}`}
         method="POST"
         className="mt-8 space-y-6"
         onSubmit={() => setSubmitting(true)}
       >
+        <input type="hidden" name="redirect" value={redirectTo} />
         <div className="space-y-4">
           <div>
             <label htmlFor="email" className="block text-sm font-medium text-gray-700">
@@ -63,7 +69,7 @@ function RegisterForm() {
               placeholder="Mínimo 6 caracteres"
             />
           </div>
-          <div>
+          <div hidden={!codeRequired}>
             <label htmlFor="access_code" className="block text-sm font-medium text-gray-700">
               Código municipal de acceso
             </label>
@@ -199,14 +205,14 @@ function RegisterForm() {
         <p className="text-center text-sm text-gray-500">
           ¿Ya tienes cuenta?{' '}
           <Link
-            href="/login"
+              href={`/login?${new URLSearchParams({ redirect: redirectTo, ...(tenant ? { tenant } : {}) })}`}
             className="font-semibold text-indigo-600 hover:text-indigo-500"
           >
             Inicia sesión aquí
           </Link>
         </p>
       </form>
-    </>
+    </main>
   )
 }
 

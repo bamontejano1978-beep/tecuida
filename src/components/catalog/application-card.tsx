@@ -18,6 +18,7 @@ import Image from 'next/image'
 import { getApplicationEntryPath } from '@/lib/application-links'
 import TrackedApplicationLink from '@/components/analytics/tracked-application-link'
 import type { Application, ApplicationType } from '@/types'
+import CitizenAppFacts from './citizen-app-facts'
 
 // ---------------------------------------------------------------------------
 // Iconos por tipo de aplicación (SVG inline)
@@ -147,14 +148,13 @@ export default function ApplicationCard({
       </p>
 
       {/* Categoría y CTA */}
+      <CitizenAppFacts slug={application.app_slug} />
       <div className="mt-4 flex items-center justify-between pt-3 border-t border-gray-100">
         {categoryName && (
           <span className="text-xs text-gray-400">{categoryName}</span>
         )}
         <span className="text-xs font-medium text-indigo-600 group-hover:translate-x-0.5 transition-transform">
-          {application.tipo === 'herramienta' || application.tipo === 'recurso'
-            ? 'Instalar →'
-            : 'Abrir →'}
+          Ver aplicación →
         </span>
       </div>
     </TrackedApplicationLink>

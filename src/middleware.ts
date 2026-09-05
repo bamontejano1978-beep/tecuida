@@ -19,6 +19,7 @@ import { getDemoTenant } from '@/lib/demo-data'
 import { createServerClient } from '@supabase/ssr'
 import { NextResponse, type NextRequest } from 'next/server'
 import { createReadOnlyCookiesAdapter } from '@/lib/supabase/cookies'
+import { MUNICIPALITY_COOKIE, municipalitySlugFromHost, validMunicipalitySlug } from '@/lib/tenant/entry-context'
 import type {
   MunicipalityConfig,
   MunicipalityLayoutVariant,
@@ -38,6 +39,7 @@ const PUBLIC_ASSET_PREFIXES = [
   '/api/admin',
   '/auth',
   '/login',
+  '/municipios',
   // '/register' NO está aquí: el registro necesita que el middleware
   // resuelva el tenant e inyecte x-tenant-slug para que signUp()
   // sepa a qué municipio asociar al nuevo ciudadano.
@@ -75,26 +77,10 @@ const PROTECTED_PREFIXES = ['/perfil', '/dashboard']
  * Devuelve null si no se puede determinar el tenant.
  */
 function extractTenantSlug(request: NextRequest): string | null {
-  const hostname = request.headers.get('host') || ''
-
-  // Desarrollo local: permitir ?tenant=slug como query param
-  if (hostname.startsWith('localhost') || hostname.startsWith('127.0.0.1')) {
-    return request.nextUrl.searchParams.get('tenant') || null
-  }
-
-  // Producción: extraer subdominio
-  const parts = hostname.split('.')
-  if (parts.length >= 3) {
-    const slug = parts[0].toLowerCase()
-    // Ignorar www explícito
-    if (slug === 'www' && parts.length >= 4) {
-      return parts[1].toLowerCase()
-    }
-    return slug
-  }
-
-  // Si solo hay 2 partes (ej. tecuida.es), es el dominio raíz sin tenant
-  return null
+  return municipalitySlugFromHost(request.headers.get('host') || '')
+    || validMunicipalitySlug(request.nextUrl.searchParams.get('tenant'))
+    || (!request.nextUrl.pathname.startsWith('/dashboard') && !request.nextUrl.pathname.startsWith('/api/')
+      ? validMunicipalitySlug(request.cookies.get(MUNICIPALITY_COOKIE)?.value) : null)
 }
 
 /**
@@ -262,6 +248,10 @@ async function resolveTenant(
 // ---------------------------------------------------------------------------
 
 export async function middleware(request: NextRequest) {
+  // Only middleware may establish tenant headers, including on public/API paths.
+  for (const name of Array.from(request.headers.keys())) {
+    if (name.startsWith('x-tenant-')) request.headers.delete(name)
+  }
   const { pathname } = request.nextUrl
   const requestId =
     request.headers.get('x-request-id') ||
@@ -404,6 +394,10 @@ export async function middleware(request: NextRequest) {
     response.cookies.set(cookie.name, cookie.value, cookie)
   })
   response.headers.set('x-request-id', requestId)
+  response.cookies.set(MUNICIPALITY_COOKIE, config.slug, {
+    httpOnly: true, sameSite: 'lax', secure: request.nextUrl.protocol === 'https:',
+    path: '/', maxAge: 60 * 60 * 24 * 180,
+  })
 
   return response
 }

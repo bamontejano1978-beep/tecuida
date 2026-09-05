@@ -14,6 +14,7 @@ import { redirect } from 'next/navigation'
 import { createClient, createAdminClient } from '@/lib/supabase/server'
 import Link from 'next/link'
 import MunicipalityStats from '@/components/admin/municipality-stats'
+import ApplicationJourneyStats from '@/components/admin/application-journey-stats'
 
 // ---------------------------------------------------------------------------
 // Props
@@ -169,6 +170,7 @@ export default async function MunicipioStatsPage({
 
       {/* Contenido */}
       <MunicipalityStats municipioId={municipioId} />
+      <ApplicationJourneyStats municipalityId={municipioId} />
     </div>
   )
 }

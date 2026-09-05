@@ -20,6 +20,8 @@ import {
   reserveMunicipalInviteCode,
 } from '@/lib/auth/municipal-invite-codes'
 import { z } from 'zod'
+import { MUNICIPALITY_COOKIE, municipalitySlugFromHost, validMunicipalitySlug } from '@/lib/tenant/entry-context'
+import { getRoleAwareRedirect } from '@/lib/auth/login-redirect'
 
 // ---------------------------------------------------------------------------
 // Schemas & Helpers
@@ -52,24 +54,13 @@ const registerSchema = z.object({
 })
 
 function getTenantSlug(request: NextRequest): string | null {
-  const hostname = request.headers.get('host') || ''
-  if (hostname.startsWith('localhost') || hostname.startsWith('127.0.0.1')) {
-    return request.nextUrl.searchParams.get('tenant') || null
-  }
-  const parts = hostname.split('.')
-  if (parts.length >= 3) {
-    const slug = parts[0].toLowerCase()
-    if (slug === 'www' && parts.length >= 4) return parts[1].toLowerCase()
-    return slug
-  }
-  return null
+  return municipalitySlugFromHost(request.headers.get('host') || '')
+    || validMunicipalitySlug(request.nextUrl.searchParams.get('tenant'))
+    || validMunicipalitySlug(request.cookies.get(MUNICIPALITY_COOKIE)?.value)
 }
 
 function getValidRedirect(raw: string | null): string {
-  if (!raw || !raw.startsWith('/') || raw.includes('//') || raw.includes('\\\\') || raw.length > 500) {
-    return '/dashboard'
-  }
-  return raw
+  return getRoleAwareRedirect(raw, 'ciudadano')
 }
 
 type RegistrationMunicipality = {
@@ -92,6 +83,7 @@ async function getMunicipalityFromSlug(
     .from('municipalities')
     .select('id, slug, invite_codes_required')
     .eq('slug', slug)
+    .not('estado_suscripcion', 'in', '(suspendida,cancelada)')
     .single()
 
   if (error || !data) return null
@@ -294,7 +286,7 @@ export async function POST(request: NextRequest) {
     }
 
     if (!inviteReservation) {
-      const callbackUrl = `${origin}/auth/callback`
+      const callbackUrl = `${origin}/auth/callback?next=${encodeURIComponent(getValidRedirect(formData.get('redirect') as string | null))}`
       const { data: signUpData, error: signUpError } = await supabase.auth.signUp({
         email: parsed.data.email,
         password: parsed.data.password,

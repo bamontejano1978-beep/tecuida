@@ -16,6 +16,7 @@
 import { createServerClient } from '@supabase/ssr'
 import { type NextRequest, NextResponse } from 'next/server'
 import { createAuthCookiesAdapter, createReadOnlyCookiesAdapter } from '@/lib/supabase/cookies'
+import { getRoleAwareRedirect } from '@/lib/auth/login-redirect'
 import {
   finalizeMunicipalInviteRegistration,
   releaseMunicipalInviteCode,
@@ -210,11 +211,12 @@ export async function GET(request: NextRequest) {
   }
 
   // 5. Redirigir al dashboard con el tenant slug
+  const destination = getRoleAwareRedirect(searchParams.get('next'), 'ciudadano')
   const finalRedirect = isManagerInvitation
     ? `${origin}/auth/accept-invite`
     : tenantSlug
-      ? `${origin}/dashboard?tenant=${tenantSlug}`
-      : `${origin}/dashboard`
+      ? `${origin}${destination}${destination.includes('?') ? '&' : '?'}tenant=${encodeURIComponent(tenantSlug)}`
+      : `${origin}${destination}`
 
   // Reconstruir la respuesta de redirección preservando las cookies de sesión
   const finalResponse = NextResponse.redirect(finalRedirect)

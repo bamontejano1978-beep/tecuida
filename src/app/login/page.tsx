@@ -12,6 +12,7 @@
 import Link from 'next/link'
 import { useSearchParams } from 'next/navigation'
 import { Suspense, useState } from 'react'
+import MunicipalityEntry from '@/components/ui/municipality-entry'
 
 function LoginForm() {
   const searchParams = useSearchParams()
@@ -21,13 +22,14 @@ function LoginForm() {
   const [submitting, setSubmitting] = useState(false)
 
   return (
-    <>
+    <main className="mx-auto w-full max-w-lg px-4 py-10 sm:px-6">
       <div className="text-center">
         <h1 className="text-3xl font-bold tracking-tight text-gray-900">TE CUIDA</h1>
         <p className="mt-2 text-sm text-gray-600">Portal de bienestar ciudadano</p>
         <h2 className="mt-6 text-xl font-semibold text-gray-900">Iniciar sesión</h2>
         <p className="mt-1 text-sm text-gray-500">Accede a tu espacio personal de bienestar</p>
       </div>
+      <MunicipalityEntry tenant={searchParams.get('tenant')} />
 
       <form
         action="/api/auth/login"
@@ -93,7 +95,7 @@ function LoginForm() {
           <p className="text-center text-sm text-gray-500">
             ¿No tienes cuenta?{' '}
             <Link
-              href="/register"
+              href={`/register?${new URLSearchParams({ redirect: redirectTo || '/dashboard', ...(searchParams.get('tenant') ? { tenant: searchParams.get('tenant')! } : {}) })}`}
               className="font-semibold text-indigo-600 hover:text-indigo-500"
             >
               Regístrate aquí
@@ -109,7 +111,7 @@ function LoginForm() {
           </p>
         </div>
       </form>
-    </>
+    </main>
   )
 }
 

@@ -1,11 +1,13 @@
 import { NextResponse } from 'next/server'
+import { cookies } from 'next/headers'
 import { z } from 'zod'
 import { createAdminClient, createClient } from '@/lib/supabase/server'
 import { checkRateLimitAsync } from '@/lib/admin/rate-limit'
+import { MUNICIPALITY_COOKIE, validMunicipalitySlug } from '@/lib/tenant/entry-context'
 
 const EventSchema = z.object({
   evento: z.enum([
-    'page_view', 'catalog_search', 'category_filter', 'app_view',
+    'page_view', 'catalog_search', 'category_filter', 'app_view', 'app_launch',
     'lesson_started', 'lesson_completed', 'program_enrolled',
     'program_completed', 'achievement_unlocked', 'login', 'register', 'logout',
     'activity_registered', 'activity_cancelled',
@@ -47,6 +49,14 @@ export async function POST(request: Request) {
     municipalityId = (profile?.municipality_id as string | undefined) || municipalityId
   }
 
+  if (!municipalityId && !user) {
+    const slug = validMunicipalitySlug(cookies().get(MUNICIPALITY_COOKIE)?.value)
+    if (slug) {
+      const { data: municipality } = await adminClient.from('municipalities').select('id')
+        .eq('slug', slug).not('estado_suscripcion', 'in', '(suspendida,cancelada)').maybeSingle()
+      municipalityId = municipality?.id || null
+    }
+  }
   if (!municipalityId) return new NextResponse(null, { status: 204 })
 
   const { error } = await adminClient.from('analytics_events').insert({

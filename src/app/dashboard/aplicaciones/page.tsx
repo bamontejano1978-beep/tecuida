@@ -54,7 +54,7 @@ export default async function CitizenApplicationsPage() {
   if (!tenant) redirect('/dashboard')
 
   const adminClient = createAdminClient()
-  const [{ data: appsData }, { data: progressData }, { data: surveyData }] = await Promise.all([
+  const [{ data: appsData }, { data: progressData }, { data: surveyData }, { data: stateData, error: stateError }] = await Promise.all([
     adminClient
       .from('municipality_applications')
       .select(`application_id, thumbnail_url_override, application:applications!inner (id, nombre, descripcion, thumbnail_url, tipo, app_slug)`)
@@ -71,7 +71,9 @@ export default async function CitizenApplicationsPage() {
       .select('survey:surveys(application_id)')
       .eq('user_id', user.id)
       .limit(200),
+    supabase.from('user_application_state').select('application_id, favorite, last_opened_at').eq('user_id', user.id),
   ])
+  const states = new Map((stateData || []).map((row) => [row.application_id, row]))
 
   const progressByApp = new Map<string, { completed: number; total: number }>()
   ;((progressData || []) as unknown as ProgressRow[]).forEach((row) => {
@@ -105,13 +107,15 @@ export default async function CitizenApplicationsPage() {
           row.thumbnail_url_override,
           app.thumbnail_url,
         ),
-        opened: openedAppIds.has(app.id),
+        opened: openedAppIds.has(app.id) || Boolean(states.get(app.id)?.last_opened_at),
+        favorite: states.get(app.id)?.favorite || false,
+        lastOpenedAt: states.get(app.id)?.last_opened_at || null,
         progressPercent: progress
           ? Math.min(100, Math.round((progress.completed / progress.total) * 100))
           : null,
       }
     })
-    .sort((a, b) => Number(b.opened) - Number(a.opened) || a.nombre.localeCompare(b.nombre, 'es'))
+    .sort((a, b) => Number(b.favorite) - Number(a.favorite) || (b.lastOpenedAt || '').localeCompare(a.lastOpenedAt || '') || Number(b.opened) - Number(a.opened) || a.nombre.localeCompare(b.nombre, 'es'))
 
   const primary = tenant.colores_corporativos.primary || '#4338ca'
   const secondary = tenant.colores_corporativos.secondary || '#2563eb'
@@ -157,6 +161,7 @@ export default async function CitizenApplicationsPage() {
       </header>
 
       <main className="relative mx-auto -mt-7 max-w-7xl px-4 sm:-mt-9 sm:px-6 lg:px-8">
+        {stateError && <p role="status" className="mb-4 bg-amber-50 p-3 text-sm text-amber-900">No se han podido cargar tus favoritos y aperturas recientes.</p>}
         <ApplicationLauncher
           applications={applications}
           municipalityId={tenant.id}

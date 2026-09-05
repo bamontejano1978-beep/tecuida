@@ -16,6 +16,8 @@ import type { Metadata } from 'next'
 import PwaRegister from './pwa-register'
 import Link from 'next/link'
 import { getPublicApplication } from '@/lib/applications/public-application'
+import MunicipalAppNavigation from '@/components/landing/municipal-app-navigation'
+import ApplicationVisit from '@/components/dashboard/application-visit'
 
 // ---------------------------------------------------------------------------
 // Helpers: derivar colores del brand_color
@@ -133,6 +135,8 @@ export default async function AppLayout({
   if (isReto30 || isMindful30 || isCaregivers || isAdolescents || isFamilyGamification) {
     return (
       <div className={`reto30 min-h-screen antialiased ${isCaregivers ? 'bg-[#faf7ff] text-[#241233]' : 'bg-[#0f172a] text-[#f8fafc]'}`}>
+        <MunicipalAppNavigation />
+        {app && <ApplicationVisit applicationId={app.id} launch />}
         {children}
         <PwaRegister />
       </div>
@@ -150,6 +154,8 @@ export default async function AppLayout({
 
   return (
     <div style={colors} className="min-h-screen antialiased bg-[#fafafa] text-gray-900">
+        <MunicipalAppNavigation />
+        {app && <ApplicationVisit applicationId={app.id} launch={!app.url_acceso} />}
         {/* ── Topbar con identidad de app ── */}
         <header
           className="sticky top-0 z-50 backdrop-blur-xl border-b shadow-sm"
@@ -179,7 +185,7 @@ export default async function AppLayout({
             </div>
 
             <Link
-              href="/"
+              href="/dashboard/aplicaciones"
               className="inline-flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-medium transition-colors hover:bg-black/5 text-gray-500 hover:text-gray-700"
             >
               <svg
@@ -193,7 +199,7 @@ export default async function AppLayout({
               >
                 <path strokeLinecap="round" strokeLinejoin="round" d="M10.5 19.5 3 12m0 0 7.5-7.5M3 12h18" />
               </svg>
-              Volver
+              Mis aplicaciones
             </Link>
           </div>
         </header>

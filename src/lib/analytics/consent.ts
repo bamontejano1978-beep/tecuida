@@ -32,8 +32,10 @@ export type ConsentState = 'accepted' | 'rejected'
 /** Lee el consentimiento directamente de localStorage (sin React). Devuelve null si no se ha decidido aún. */
 export function getConsentSync(): ConsentState | null {
   if (typeof window === 'undefined') return null
-  const value = window.localStorage.getItem(STORAGE_KEY)
-  if (value === 'accepted' || value === 'rejected') return value
+  try {
+    const value = window.localStorage.getItem(STORAGE_KEY)
+    if (value === 'accepted' || value === 'rejected') return value
+  } catch { return null }
   return null
 }
 
@@ -44,7 +46,7 @@ export function getConsentSync(): ConsentState | null {
 /** Guarda "accepted" en localStorage */
 export function persistConsent(consent: ConsentState): void {
   if (typeof window === 'undefined') return
-  window.localStorage.setItem(STORAGE_KEY, consent)
+  try { window.localStorage.setItem(STORAGE_KEY, consent) } catch { /* Storage may be blocked by the browser. */ }
 }
 
 // ---------------------------------------------------------------------------

@@ -1,5 +1,5 @@
 import { createAdminClient } from '@/lib/supabase/server'
-import { getTenantConfigFromDB, getTenantFromHeaders } from '@/lib/tenant/headers'
+import { getTenantConfigFromDB } from '@/lib/tenant/headers'
 import type { MunicipalityConfig } from '@/types'
 
 type UserMunicipalityRow = {
@@ -21,19 +21,11 @@ function getJoinedMunicipalitySlug(
 /**
  * Resuelve el municipio del ciudadano para la app instalada.
  *
- * Prioridad:
- * 1. Tenant de la URL actual, si viene de un subdominio municipal o ?tenant=.
- * 2. Perfil public.users del usuario autenticado, útil cuando la PWA se abre
- *    desde el dominio raíz o desde un acceso directo instalado.
+ * La pertenencia del perfil prevalece sobre enlaces y preferencias de navegación.
  */
 export async function getCitizenTenantForUser(
   userId: string,
 ): Promise<MunicipalityConfig | null> {
-  const tenantFromRequest = getTenantFromHeaders()
-  if (tenantFromRequest?.slug) {
-    return (await getTenantConfigFromDB(tenantFromRequest.slug)) || tenantFromRequest
-  }
-
   const adminClient = createAdminClient()
   const { data, error } = await adminClient
     .from('users')
@@ -47,5 +39,6 @@ export async function getCitizenTenantForUser(
   const slug = getJoinedMunicipalitySlug(row.municipality)
   if (!slug) return null
 
-  return getTenantConfigFromDB(slug)
+  const tenant = await getTenantConfigFromDB(slug)
+  return tenant && !['suspendida', 'cancelada'].includes(tenant.estado_suscripcion) ? tenant : null
 }

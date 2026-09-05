@@ -13,6 +13,7 @@ import { useState, useCallback, useRef, useLayoutEffect } from 'react'
 import Image from 'next/image'
 import { getApplicationEntryPath } from '@/lib/application-links'
 import TrackedApplicationLink from '@/components/analytics/tracked-application-link'
+import CitizenAppFacts from '@/components/catalog/citizen-app-facts'
 
 // ---------------------------------------------------------------------------
 // Tipos
@@ -414,6 +415,7 @@ function CategoryBannerItem({
                     <p className="mt-1 text-sm text-[#52604e] line-clamp-2">
                       {app.descripcion || 'Sin descripción'}
                     </p>
+                    <CitizenAppFacts slug={app.app_slug} />
                   </div>
 
                   {/* Flecha */}

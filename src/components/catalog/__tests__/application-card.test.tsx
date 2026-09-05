@@ -147,28 +147,28 @@ describe('ApplicationCard', () => {
 
   // ─── CTA ──────────────────────────────────────────────────────
 
-  it('muestra "Abrir →" para tipo programa', () => {
+  it('muestra "Ver aplicación →" para tipo programa', () => {
     const app = createApp({ tipo: 'programa' })
     render(<ApplicationCard application={app} />)
-    expect(screen.getByText('Abrir →')).toBeInTheDocument()
+    expect(screen.getByText('Ver aplicación →')).toBeInTheDocument()
   })
 
-  it('muestra "Instalar →" para tipo herramienta', () => {
+  it('muestra "Ver aplicación →" para tipo herramienta', () => {
     const app = createApp({ tipo: 'herramienta' })
     render(<ApplicationCard application={app} />)
-    expect(screen.getByText('Instalar →')).toBeInTheDocument()
+    expect(screen.getByText('Ver aplicación →')).toBeInTheDocument()
   })
 
-  it('muestra "Abrir →" para tipo encuesta', () => {
+  it('muestra "Ver aplicación →" para tipo encuesta', () => {
     const app = createApp({ tipo: 'encuesta' })
     render(<ApplicationCard application={app} />)
-    expect(screen.getByText('Abrir →')).toBeInTheDocument()
+    expect(screen.getByText('Ver aplicación →')).toBeInTheDocument()
   })
 
-  it('muestra "Instalar →" para tipo recurso', () => {
+  it('muestra "Ver aplicación →" para tipo recurso', () => {
     const app = createApp({ tipo: 'recurso' })
     render(<ApplicationCard application={app} />)
-    expect(screen.getByText('Instalar →')).toBeInTheDocument()
+    expect(screen.getByText('Ver aplicación →')).toBeInTheDocument()
   })
 
   // ─── Varios elementos en la misma card ────────────────────────
@@ -186,7 +186,7 @@ describe('ApplicationCard', () => {
     expect(screen.getByText('Planes de alimentación y recetas saludables.')).toBeInTheDocument()
     expect(screen.getAllByText('Herramienta')).toHaveLength(2)
     expect(screen.getByText('Salud comunitaria')).toBeInTheDocument()
-    expect(screen.getByText('Instalar →')).toBeInTheDocument()
+    expect(screen.getByText('Ver aplicación →')).toBeInTheDocument()
 
     const link = screen.getByRole('link')
     expect(link).toHaveAttribute('href', '/apps/cccccccc-0000-0000-0000-000000000003')
