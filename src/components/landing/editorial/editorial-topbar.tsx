@@ -5,8 +5,7 @@
  *   - Logo apaisado (375 px) inyectado desde tenant.logo_url.
  *     Si no existe imagen → fallback a wordmark Georgia con la inicial.
  *   - Nav central con serif Georgia (links de scroll interno).
- *   - Escudo del ayuntamiento y hamburger derecho (sin menú desplegado:
- *     el scope del rediseño editorial sólo cubre la landing pública).
+ *   - Escudo del ayuntamiento y acceso al área ciudadana.
  *
  * Server Component. Estilos: editorial.module.css (skin aislado).
  */
@@ -71,22 +70,6 @@ export default function EditorialTopbar({ tenant }: EditorialTopbarProps) {
         <Link href="/login" className={`${styles.navLink} ${styles.sansBtn}`}>
           Área ciudadana
         </Link>
-        {/*
-          El hamburger del mockup es puramente decorativo en este scope:
-          el rediseño editorial sólo cubre la landing pública, sin
-          drawer lateral. Lo renderizamos como elemento decorativo en
-          lugar de un <button> no-op (que sería confuso para usuarios
-          de TTS y un anti-patrón de a11y).
-        */}
-        <span
-          className={styles.hamb}
-          aria-hidden="true"
-          role="presentation"
-        >
-          <span />
-          <span />
-          <span />
-        </span>
       </div>
     </header>
   )

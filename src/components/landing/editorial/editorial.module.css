@@ -104,22 +104,6 @@
   gap: 28px;
 }
 
-.hamb {
-  display: grid;
-  gap: 9px;
-  width: 42px;
-  cursor: pointer;
-  background: none;
-  border: 0;
-  padding: 0;
-}
-
-.hamb span {
-  height: 3px;
-  background: var(--green);
-  border-radius: 10px;
-}
-
 /* ── Hero split 35/65 ───────────────────────────────────────── */
 .hero {
   display: grid;
@@ -458,9 +442,6 @@
   }
   .nav {
     display: none;
-  }
-  .rightMenu .hamb {
-    width: 36px;
   }
   .panelsGrid {
     grid-template-columns: 1fr;
