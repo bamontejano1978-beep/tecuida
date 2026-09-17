@@ -13,6 +13,7 @@ import { type NextRequest, NextResponse } from 'next/server'
 import { createAuthCookiesAdapter } from '@/lib/supabase/cookies'
 import { checkRateLimitAsync } from '@/lib/admin/rate-limit'
 import { getTrustedOrigin } from '@/lib/request-origin'
+import { describeEmailSendFailure } from '@/lib/auth/auth-error-messages'
 import { z } from 'zod'
 
 // ---------------------------------------------------------------------------
@@ -69,7 +70,16 @@ export async function POST(request: NextRequest) {
 
     if (error) {
       console.error('[api/auth/forgot-password] Error:', error.message)
-      // No revelamos si el email existe — siempre mostramos éxito
+      // No revelamos si el email existe — siempre mostramos éxito. Pero un
+      // fallo de ENVÍO (cuota de correos agotada) sí se comunica: callarlo
+      // deja al ciudadano esperando un enlace que no va a llegar nunca.
+      const sendFailure = describeEmailSendFailure(error.message)
+      if (sendFailure) {
+        return NextResponse.redirect(
+          `${origin}/recuperar?error=${encodeURIComponent(sendFailure)}`,
+          303,
+        )
+      }
     }
 
     return NextResponse.redirect(`${origin}/recuperar?sent=1`, 303)

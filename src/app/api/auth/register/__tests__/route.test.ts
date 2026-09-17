@@ -370,6 +370,70 @@ describe('aliases de subdominio', () => {
 })
 
 // ---------------------------------------------------------------------------
+// Errores técnicos de Supabase Auth → mensaje en español
+// ---------------------------------------------------------------------------
+
+describe('errores de Supabase traducidos al ciudadano', () => {
+  function failWith(message: string) {
+    createServerClient.mockReturnValue({
+      auth: {
+        signUp: signUpMock({
+          data: { user: null, session: null },
+          error: { message },
+        }),
+      },
+    })
+  }
+
+  it('explica el límite de envío de correos en vez de mostrar «email rate limit exceeded»', async () => {
+    failWith('email rate limit exceeded')
+    createAdminClient.mockReturnValue(makeAdminClient())
+    const consoleError = jest.spyOn(console, 'error').mockImplementation(() => {})
+
+    await POST(makeRequest({
+      host: 'villafrancadelosbarros.tecuida.group',
+      fields: { email: 'vecina@example.com', password: 'contrasena-segura' },
+    }))
+
+    const error = redirectedTo().searchParams.get('error') ?? ''
+    expect(error).toContain('límite de envíos')
+    expect(error).toContain('avisa a tu ayuntamiento')
+    expect(error).not.toContain('rate limit')
+    consoleError.mockRestore()
+  })
+
+  it('dice cuántos segundos hay que esperar tras intentos seguidos', async () => {
+    failWith('For security purposes, you can only request this after 58 seconds.')
+    createAdminClient.mockReturnValue(makeAdminClient())
+    const consoleError = jest.spyOn(console, 'error').mockImplementation(() => {})
+
+    await POST(makeRequest({
+      host: 'villafrancadelosbarros.tecuida.group',
+      fields: { email: 'vecina@example.com', password: 'contrasena-segura' },
+    }))
+
+    expect(redirectedTo().searchParams.get('error')).toContain('58 segundos')
+    consoleError.mockRestore()
+  })
+
+  it('no filtra el texto técnico en inglés ante un fallo desconocido', async () => {
+    failWith('some unexpected internal failure')
+    createAdminClient.mockReturnValue(makeAdminClient())
+    const consoleError = jest.spyOn(console, 'error').mockImplementation(() => {})
+
+    await POST(makeRequest({
+      host: 'villafrancadelosbarros.tecuida.group',
+      fields: { email: 'vecina@example.com', password: 'contrasena-segura' },
+    }))
+
+    const error = redirectedTo().searchParams.get('error') ?? ''
+    expect(error).toContain('No se pudo crear la cuenta en este momento')
+    expect(error).not.toContain('internal failure')
+    consoleError.mockRestore()
+  })
+})
+
+// ---------------------------------------------------------------------------
 // Municipios con código obligatorio
 // ---------------------------------------------------------------------------
 

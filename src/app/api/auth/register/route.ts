@@ -22,6 +22,7 @@ import {
 import { z } from 'zod'
 import { MUNICIPALITY_COOKIE, municipalitySlugCandidates, municipalitySlugFromHost, validMunicipalitySlug } from '@/lib/tenant/entry-context'
 import { getRoleAwareRedirect } from '@/lib/auth/login-redirect'
+import { describeCitizenAuthError } from '@/lib/auth/auth-error-messages'
 
 // ---------------------------------------------------------------------------
 // Schemas & Helpers
@@ -351,8 +352,12 @@ export async function POST(request: NextRequest) {
             303,
           )
         }
+        // El mensaje de Supabase es técnico y en inglés («email rate limit
+        // exceeded»): se registra para diagnóstico y al ciudadano se le
+        // explica en español con una salida concreta.
+        console.error('[api/auth/register] Error de signUp:', signUpError.message)
         return NextResponse.redirect(
-          `${origin}/register?error=${encodeURIComponent(signUpError.message)}`,
+          `${origin}/register?error=${encodeURIComponent(describeCitizenAuthError(signUpError.message))}`,
           303,
         )
       }
