@@ -347,8 +347,14 @@ export async function POST(request: NextRequest) {
 
       if (signUpError) {
         if (signUpError.message.includes('already registered')) {
+          // Sin confirmación por email, Supabase devuelve el error «User
+          // already registered» en lugar de ofuscar al usuario: este pasa a
+          // ser el camino habitual del correo duplicado y merece la misma
+          // salida accionable (iniciar sesión / recuperar contraseña).
           return NextResponse.redirect(
-            `${origin}/register?error=${encodeURIComponent('Ya existe una cuenta con este correo')}`,
+            `${origin}/register?error=${encodeURIComponent(
+              await describeExistingAccount(adminClient, parsed.data.email),
+            )}&error_code=existing_account`,
             303,
           )
         }

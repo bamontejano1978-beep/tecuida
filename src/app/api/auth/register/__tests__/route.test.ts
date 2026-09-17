@@ -278,6 +278,33 @@ describe('correo que ya tiene cuenta', () => {
     expect(admin.inserts).toHaveLength(0)
   })
 
+  it('da la misma salida cuando Supabase responde «already registered» (sin confirmación por email)', async () => {
+    createServerClient.mockReturnValue({
+      auth: {
+        signUp: signUpMock({
+          data: { user: null, session: null },
+          error: { message: 'User already registered' },
+        }),
+      },
+    })
+    createAdminClient.mockReturnValue(makeAdminClient({
+      authUsers: [{
+        id: USER_ID,
+        email: 'vecina@example.com',
+        email_confirmed_at: '2026-07-22T05:49:21Z',
+      }],
+    }))
+
+    await POST(makeRequest({
+      host: 'villafrancadelosbarros.tecuida.group',
+      fields: { email: 'vecina@example.com', password: 'contrasena-segura' },
+    }))
+
+    const url = redirectedTo()
+    expect(url.searchParams.get('error')).toContain('Ya existe una cuenta con este correo')
+    expect(url.searchParams.get('error_code')).toBe('existing_account')
+  })
+
   it('avisa de que la cuenta está pendiente de confirmar si nunca se confirmó', async () => {
     createServerClient.mockReturnValue({ auth: { signUp: signUpMock(duplicateResponse) } })
     createAdminClient.mockReturnValue(makeAdminClient({
