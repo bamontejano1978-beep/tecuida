@@ -19,7 +19,7 @@ import { getDemoTenant } from '@/lib/demo-data'
 import { createServerClient } from '@supabase/ssr'
 import { NextResponse, type NextRequest } from 'next/server'
 import { createReadOnlyCookiesAdapter } from '@/lib/supabase/cookies'
-import { MUNICIPALITY_COOKIE, municipalitySlugFromHost, validMunicipalitySlug } from '@/lib/tenant/entry-context'
+import { MUNICIPALITY_COOKIE, municipalitySlugCandidates, municipalitySlugFromHost, validMunicipalitySlug } from '@/lib/tenant/entry-context'
 import type {
   MunicipalityConfig,
   MunicipalityLayoutVariant,
@@ -56,10 +56,12 @@ const LEGACY_APPLICATION_SLUG_ALIASES: Record<string, string> = {
   'mindful30-adultos': 'reto30',
 }
 
-const TENANT_SLUG_ALIASES: Record<string, string[]> = {
-  'villafranca-de-los-barros': ['villafrancadelosbarros'],
-  villafrancadelosbarros: ['villafranca-de-los-barros'],
-}
+// Los alias de subdominio viven en `@/lib/tenant/entry-context` porque los
+// route handlers de auth (`/api/auth/register`, `/api/municipality-context`)
+// resuelven el municipio sin pasar por el middleware y necesitan la misma
+// equivalencia: Villafranca de los Barros es `villafrancadelosbarros` en la
+// base de datos, pero `villafranca-de-los-barros.tecuida.group` también está
+// publicado y responde en el frontend con normalidad.
 
 /** Rutas que requieren que el usuario esté autenticado */
 const PROTECTED_PREFIXES = ['/perfil', '/dashboard']
@@ -218,7 +220,7 @@ async function resolveTenant(
       },
     )
 
-    const lookupSlugs = [slug, ...(TENANT_SLUG_ALIASES[slug] || [])]
+    const lookupSlugs = municipalitySlugCandidates(slug)
 
     const { data, error } = await supabase
       .from('municipalities')

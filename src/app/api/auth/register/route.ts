@@ -20,7 +20,7 @@ import {
   reserveMunicipalInviteCode,
 } from '@/lib/auth/municipal-invite-codes'
 import { z } from 'zod'
-import { MUNICIPALITY_COOKIE, municipalitySlugFromHost, validMunicipalitySlug } from '@/lib/tenant/entry-context'
+import { MUNICIPALITY_COOKIE, municipalitySlugCandidates, municipalitySlugFromHost, validMunicipalitySlug } from '@/lib/tenant/entry-context'
 import { getRoleAwareRedirect } from '@/lib/auth/login-redirect'
 
 // ---------------------------------------------------------------------------
@@ -75,7 +75,26 @@ type InviteReservation = {
   recovered?: boolean
 }
 
+/**
+ * Resuelve el municipio del tenant que ha llegado por subdominio o `?tenant=`.
+ *
+ * Prueba primero el slug literal y después sus alias publicados (ver
+ * `municipalitySlugCandidates`). Sin este fallback, entrar por
+ * `villafranca-de-los-barros.tecuida.group` —una URL que sí responde en el
+ * frontend— hacía que el alta se rechazase con "Municipio no encontrado."
+ */
 async function getMunicipalityFromSlug(
+  adminClient: ReturnType<typeof createAdminClient>,
+  slug: string,
+): Promise<RegistrationMunicipality | null> {
+  for (const candidate of municipalitySlugCandidates(slug)) {
+    const municipality = await fetchMunicipalityBySlug(adminClient, candidate)
+    if (municipality) return municipality
+  }
+  return null
+}
+
+async function fetchMunicipalityBySlug(
   adminClient: ReturnType<typeof createAdminClient>,
   slug: string,
 ): Promise<RegistrationMunicipality | null> {
@@ -172,6 +191,35 @@ async function findAuthUserByEmail(
   }
 
   return null
+}
+
+/**
+ * Mensaje para el ciudadano cuando su correo ya tiene una cuenta.
+ *
+ * Supabase no reporta un error en este caso: `signUp` responde con un usuario
+ * cuyo array `identities` viene vacío, tanto si la cuenta existe como si
+ * existe pero nunca se confirmó por email. Antes respondíamos siempre "No se
+ * pudo crear la cuenta con esos datos.", que ni explica el motivo ni permite
+ * continuar. Consultamos el estado real con la service_role para decirle qué
+ * hacer en cada caso.
+ */
+async function describeExistingAccount(
+  adminClient: ReturnType<typeof createAdminClient>,
+  email: string,
+): Promise<string> {
+  const alreadyExists =
+    'Ya existe una cuenta con este correo. Inicia sesión con tu contraseña o recupérala si no la recuerdas.'
+
+  try {
+    const existing = await findAuthUserByEmail(adminClient, email)
+    if (existing && !existing.email_confirmed_at) {
+      return 'Ya existe una cuenta con este correo pendiente de confirmar. Abre el email de confirmación que te enviamos (revisa también el spam) para activarla.'
+    }
+  } catch (error) {
+    console.error('[api/auth/register] Error consultando la cuenta existente:', error)
+  }
+
+  return alreadyExists
 }
 
 // ---------------------------------------------------------------------------
@@ -310,15 +358,19 @@ export async function POST(request: NextRequest) {
       }
 
       if (signUpData.user && signUpData.user.identities?.length === 0) {
+        // `error_code` permite al formulario ofrecer la salida correcta
+        // (iniciar sesión / recuperar contraseña) sin acoplarse al texto.
         return NextResponse.redirect(
-          `${origin}/register?error=${encodeURIComponent('No se pudo crear la cuenta con esos datos.')}`,
+          `${origin}/register?error=${encodeURIComponent(
+            await describeExistingAccount(adminClient, parsed.data.email),
+          )}&error_code=existing_account`,
           303,
         )
       }
 
       if (!signUpData.user) {
         return NextResponse.redirect(
-          `${origin}/register?error=${encodeURIComponent('No se pudo crear la cuenta con esos datos.')}`,
+          `${origin}/register?error=${encodeURIComponent('No se pudo crear la cuenta en este momento. Vuelve a intentarlo en unos minutos.')}`,
           303,
         )
       }
@@ -479,7 +531,7 @@ export async function POST(request: NextRequest) {
         )
       }
       return NextResponse.redirect(
-        `${origin}/register?error=${encodeURIComponent('No se pudo crear la cuenta con esos datos.')}`,
+        `${origin}/register?error=${encodeURIComponent('No se pudo crear la cuenta en este momento. Vuelve a intentarlo en unos minutos.')}`,
         303,
       )
     }

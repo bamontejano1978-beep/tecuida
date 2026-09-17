@@ -17,6 +17,8 @@ import MunicipalityEntry from '@/components/ui/municipality-entry'
 function RegisterForm() {
   const searchParams = useSearchParams()
   const error = searchParams.get('error')
+  // Código del error, para las salidas que dependen de él (no del texto).
+  const errorCode = searchParams.get('error_code')
   const [submitting, setSubmitting] = useState(false)
   const [codeRequired, setCodeRequired] = useState(true)
   const tenant = searchParams.get('tenant')
@@ -191,6 +193,22 @@ function RegisterForm() {
         {error && (
           <div className="rounded-md bg-red-50 p-3">
             <p className="text-sm text-red-700">{error}</p>
+            {/* Si el correo ya tiene cuenta, el ciudadano puede resolverlo él
+                mismo: le damos los dos caminos sin que tenga que buscarlos. */}
+            {errorCode === 'existing_account' && (
+              <p className="mt-2 text-sm text-red-700">
+                <Link
+                  href={`/login?${new URLSearchParams({ redirect: redirectTo, ...(tenant ? { tenant } : {}) })}`}
+                  className="font-semibold underline"
+                >
+                  Inicia sesión
+                </Link>
+                {' · '}
+                <Link href="/recuperar" className="font-semibold underline">
+                  Recuperar contraseña
+                </Link>
+              </p>
+            )}
           </div>
         )}
 
