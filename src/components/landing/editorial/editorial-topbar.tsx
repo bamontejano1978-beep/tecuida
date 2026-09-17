@@ -70,6 +70,12 @@ export default function EditorialTopbar({ tenant }: EditorialTopbarProps) {
         <Link href="/login" className={`${styles.navLink} ${styles.sansBtn}`}>
           Área ciudadana
         </Link>
+        {/* Solo visible en móvil (≤700 px), donde el nav y «Área ciudadana»
+            se ocultan: sin este botón, la cabecera —que es sticky— no ofrecía
+            ninguna entrada al alta más allá del pie de página. */}
+        <Link href="/register" className={styles.heroCtaMobile}>
+          Crear cuenta
+        </Link>
       </div>
     </header>
   )

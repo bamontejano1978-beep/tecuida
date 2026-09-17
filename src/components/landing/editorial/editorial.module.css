@@ -104,6 +104,14 @@
   gap: 28px;
 }
 
+/* Botón de alta de la cabecera. Solo aparece en móvil (ver @media 700 px),
+   donde el nav y «Área ciudadana» se ocultan y la cabecera se queda sin
+   ninguna entrada al registro. */
+.heroCtaMobile {
+  display: none;
+  text-decoration: none;
+}
+
 /* ── Hero split 35/65 ───────────────────────────────────────── */
 .hero {
   display: grid;
@@ -169,6 +177,9 @@
 .actions {
   display: flex;
   gap: 24px;
+  /* Tres CTAs en una columna del 35.5 % no caben en una sola fila: permitimos
+     que el tercero baje a una segunda línea en vez de desbordar el hero. */
+  flex-wrap: wrap;
 }
 
 .btn {
@@ -447,18 +458,39 @@
     grid-template-columns: 1fr;
   }
   .logo {
-    max-width: min(52vw, 220px);
+    /* Deja sitio al botón de alta: con 52vw, en pantallas de 320 px el CTA
+       quedaba fuera de la cabecera. */
+    max-width: min(44vw, 200px);
     max-height: 52px;
   }
   .crest {
-    width: 44px;
-    height: 44px;
+    /* El escudo cede su sitio al botón de alta en móvil (el logo ya lleva
+       la marca institucional). */
+    display: none;
   }
   .rightMenu {
     gap: 14px;
   }
   .rightMenu .sansBtn {
     display: none;
+  }
+  .heroCtaMobile {
+    display: inline-flex;
+    align-items: center;
+    /* ≥44 px de alto: mínimo recomendado para un área táctil. */
+    padding: 11px 14px;
+    border-radius: 7px;
+    background: var(--green2);
+    color: #fff;
+    font-family: 'Segoe UI', Arial, sans-serif;
+    font-size: 14px;
+    font-weight: 700;
+    white-space: nowrap;
+    box-shadow: 0 6px 12px rgba(47, 110, 72, 0.18);
+  }
+  .heroCtaMobile:hover {
+    background: #265c3c;
+    color: #fff;
   }
   .hero h1 {
     font-size: 26px;

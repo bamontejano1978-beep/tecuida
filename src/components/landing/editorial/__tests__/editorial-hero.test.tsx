@@ -31,6 +31,16 @@ describe('EditorialHero', () => {
     expect(screen.getAllByText(/^(BIENESTAR|SOSTENIBILIDAD SOCIAL|FUTURO)$/)).toHaveLength(3)
   })
 
+  it('ofrece el alta como primera acción del hero', () => {
+    render(<EditorialHero tenant={tenant} />)
+
+    const register = screen.getByRole('link', { name: /crear cuenta gratis/i })
+    expect(register).toHaveAttribute('href', '/register')
+    // Primero en `.actions`: en móvil los botones se apilan a ancho completo,
+    // así que el alta queda como la llamada más visible del hero.
+    expect(register.parentElement?.children[0]).toBe(register)
+  })
+
   it('acepta contenido editorial configurado desde administración', () => {
     const { container } = render(
       <EditorialHero

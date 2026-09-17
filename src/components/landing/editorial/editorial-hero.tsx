@@ -12,6 +12,7 @@
  * Server Component. Estilos en editorial.module.css.
  */
 
+import Link from 'next/link'
 import type { MunicipalityConfig } from '@/types'
 import { AssetAttribution } from '../asset-attribution'
 import styles from './editorial.module.css'
@@ -63,12 +64,19 @@ export default function EditorialHero({
           ))}
         </div>
 
+        {/* El alta es la acción principal del portal: va primero y con el
+            botón relleno. En móvil `.actions` apila los botones a ancho
+            completo, así que el registro queda como una llamada grande e
+            inconfundible justo bajo el texto de presentación. */}
         <div className={styles.actions}>
-          <a href="#programas" className={`${styles.btn} ${styles.btnPrimary}`}>
-            Ver programas
+          <Link href="/register" className={`${styles.btn} ${styles.btnPrimary}`}>
+            Crear cuenta gratis
             <span className={styles.arrow} aria-hidden="true">
               →
             </span>
+          </Link>
+          <a href="#programas" className={styles.btn}>
+            Ver programas
           </a>
           <a href="#ods" className={styles.btn}>
             Conocer la plataforma
