@@ -22,7 +22,7 @@ interface BatchRow {
   expires_at: string | null
   estado: 'activo' | 'revocado'
   created_at: string
-  municipal_invite_codes: CodeRow[]
+  municipal_invite_codes?: CodeRow[] | null
 }
 
 export default async function MunicipalInviteCodesPage() {
@@ -50,7 +50,12 @@ export default async function MunicipalInviteCodesPage() {
 
   const now = Date.now()
   const batches = ((batchData || []) as unknown as BatchRow[]).map((batch) => {
-    const effectiveStates = batch.municipal_invite_codes.map((code) =>
+    // PostgREST can omit an embedded relation for legacy/incomplete batches.
+    // Keep the manager usable and show that batch as empty instead of crashing.
+    const codes = Array.isArray(batch.municipal_invite_codes)
+      ? batch.municipal_invite_codes
+      : []
+    const effectiveStates = codes.map((code) =>
       code.estado === 'disponible' && code.expires_at && new Date(code.expires_at).getTime() <= now
         ? 'caducado'
         : code.estado,
@@ -68,7 +73,7 @@ export default async function MunicipalInviteCodesPage() {
       consumidos: effectiveStates.filter((state) => state === 'consumido').length,
       caducados: effectiveStates.filter((state) => state === 'caducado').length,
       revocados: effectiveStates.filter((state) => state === 'revocado').length,
-      codes: batch.municipal_invite_codes
+      codes: codes
         .map((code) => ({
           id: code.id,
           value: code.code_value,
