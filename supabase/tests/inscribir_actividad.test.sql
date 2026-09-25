@@ -270,7 +270,8 @@ SELECT lives_ok(
 -- TEST 4: INSC_NO_AUTH — sin setear request.jwt.claims
 -- ───────────────────────────────────────────────────────────────────────
 -- Limpiamos el setting local antes de cada test que lo necesite
-PERFORM set_config('request.jwt.claims', NULL, true);
+-- (PERFORM es PL/pgSQL; en SQL directo se usa SELECT).
+SELECT set_config('request.jwt.claims', NULL, true);
 
 SELECT throws_ok(
   $$SELECT public.inscribir_actividad(

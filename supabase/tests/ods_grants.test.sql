@@ -36,7 +36,7 @@ ON CONFLICT (id) DO NOTHING;
 INSERT INTO public.applications (id, category_id, nombre, tipo, activa, app_slug) VALUES
   ('22222222-0068-0000-0000-000000000002', '55555555-0068-0000-0000-000000000005', 'App ODS Uno', 'herramienta', true, 'ods-uno'),
   ('22222222-0068-0000-0000-000000000003', '55555555-0068-0000-0000-000000000005', 'App ODS Dos', 'herramienta', true, 'ods-dos'),
-  ('22222222-0068-0000-0000-0000-000000000004', '55555555-0068-0000-0000-000000000005', 'App No Asignada', 'herramienta', true, 'ods-no-asignada')
+  ('22222222-0068-0000-0000-000000000004', '55555555-0068-0000-0000-000000000005', 'App No Asignada', 'herramienta', true, 'ods-no-asignada')
 ON CONFLICT (id) DO NOTHING;
 
 INSERT INTO public.municipality_applications (municipality_id, application_id, activa, publication_status)
@@ -45,9 +45,9 @@ VALUES
   ('11111111-0068-0000-0000-000000000001', '22222222-0068-0000-0000-000000000003', true, 'publicada')
 ON CONFLICT (municipality_id, application_id) DO NOTHING;
 
-INSERT INTO public.municipal_invite_batches (id, municipality_id, nombre, cantidad, expires_at)
+INSERT INTO public.municipal_invite_batches (id, municipality_id, nombre, cantidad, expires_at, proposito)
 VALUES
-  ('66666666-0068-0000-0000-000000000006', '11111111-0068-0000-0000-000000000001', 'Lote ODS semana 1', 2, now() + interval '30 days');
+  ('66666666-0068-0000-0000-000000000006', '11111111-0068-0000-0000-000000000001', 'Lote ODS semana 1', 2, now() + interval '30 days', 'ods');
 
 INSERT INTO public.municipal_invite_codes (
   id, batch_id, municipality_id, code_hash, code_prefix, expires_at,
