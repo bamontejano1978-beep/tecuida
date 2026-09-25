@@ -43,6 +43,11 @@ export default async function MunicipalInviteCodesPage() {
     batchSelectParts.push('application_id, application:applications(nombre)')
   }
   if (capability.hasPurposeColumn) batchSelectParts.push('proposito')
+  // Embed de los códigos del lote: alimenta la tabla y los contadores.
+  // Sin él, PostgREST omite la relación y el panel mostraría lotes vacíos.
+  batchSelectParts.push(
+    'municipal_invite_codes(id, code_value, code_prefix, estado, expires_at, consumed_at, created_at)',
+  )
   const batchSelect = batchSelectParts.join(', ')
 
   const [{ data: municipality }, { data: batchData }, { data: appData }] = await Promise.all([
