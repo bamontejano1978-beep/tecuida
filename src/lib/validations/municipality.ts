@@ -73,6 +73,7 @@ export const CreateMunicipalitySchema = z.object({
   telefono_contacto: z.string().max(30, 'El teléfono no puede superar los 30 caracteres').nullable().optional(),
   estado_suscripcion: subscriptionStatusSchema.default('activa'),
   layout_variant: z.enum(['classic', 'editorial']).optional(),
+  grant_mode: z.enum(['open', 'grant']).optional(),
   textos_institucionales: institutionalTextsSchema.optional(),
 })
 

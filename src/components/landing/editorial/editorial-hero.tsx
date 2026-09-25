@@ -47,10 +47,14 @@ export default function EditorialHero({
   const tagList =
     previewTags ?? ['BIENESTAR', 'SOSTENIBILIDAD SOCIAL', 'FUTURO']
 
+  const isVillafranca = tenant.slug === 'villafranca-de-los-barros' || tenant.slug === 'villafrancadelosbarros'
+
   return (
     <section id="inicio" className={styles.hero}>
       <div className={styles.heroCopy}>
-        <h1>{tenant.nombre_municipio} TE CUIDA</h1>
+        <h1>
+          {tenant.nombre_municipio} TE CUIDA{isVillafranca ? ' 2030' : ''}
+        </h1>
         <h2>{fallbackSubtitle}</h2>
 
         <p>{fallbackIntro}</p>

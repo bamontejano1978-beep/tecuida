@@ -116,6 +116,7 @@ export async function getTenantConfigFromDB(
     estado_suscripcion: data.estado_suscripcion as MunicipalityConfig['estado_suscripcion'],
     email_contacto: (data.email_contacto as string) || null,
     telefono_contacto: (data.telefono_contacto as string) || null,
+    grant_mode: ((data.grant_mode as MunicipalityConfig['grant_mode']) || 'open'),
   }
 
   // 3. Guardar en caché

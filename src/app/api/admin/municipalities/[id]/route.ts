@@ -144,6 +144,8 @@ export async function PUT(
       updateData.estado_suscripcion = updates.estado_suscripcion
     if (updates.layout_variant !== undefined)
       updateData.layout_variant = updates.layout_variant
+    if (updates.grant_mode !== undefined)
+      updateData.grant_mode = updates.grant_mode
     if (updates.textos_institucionales !== undefined)
       updateData.textos_institucionales = updates.textos_institucionales
 

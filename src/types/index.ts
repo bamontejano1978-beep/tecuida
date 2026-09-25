@@ -82,6 +82,13 @@ export interface InstitutionalTexts {
  */
 export type MunicipalityLayoutVariant = 'classic' | 'editorial'
 
+/**
+ * Modo de acceso del municipio a las aplicaciones (migración 068).
+ * - 'open': el ciudadano ve todas las apps publicadas de su municipio (histórico).
+ * - 'grant': solo ve las apps con concesión activa (programa ODS).
+ */
+export type MunicipalityGrantMode = 'open' | 'grant'
+
 export interface MunicipalityConfig {
   id: UUID
   slug: string
@@ -104,6 +111,8 @@ export interface MunicipalityConfig {
   email_contacto?: string | null
   /** Teléfono de contacto público (footer landing page). Migración 035. */
   telefono_contacto?: string | null
+  /** Modo de acceso a apps: 'open' (histórico) o 'grant' (programa ODS). Migración 068. */
+  grant_mode?: MunicipalityGrantMode
 }
 
 // ---------------------------------------------------------------------------

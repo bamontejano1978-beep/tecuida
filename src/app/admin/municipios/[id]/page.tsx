@@ -58,6 +58,7 @@ export default async function EditMunicipioPage({ params }: EditMunicipioPagePro
     email_contacto: (data.email_contacto as string) || null,
     telefono_contacto: (data.telefono_contacto as string) || null,
     layout_variant: ((data.layout_variant as string) || 'classic') as 'classic' | 'editorial',
+    grant_mode: ((data.grant_mode as string) || 'open') as 'open' | 'grant',
     textos_institucionales: {
       bienvenida: (data.textos_institucionales as Record<string, unknown>)?.bienvenida as string || '',
       descripcion: (data.textos_institucionales as Record<string, unknown>)?.descripcion as string || '',

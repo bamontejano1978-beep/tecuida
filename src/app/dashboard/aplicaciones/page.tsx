@@ -54,6 +54,9 @@ export default async function CitizenApplicationsPage() {
   if (!tenant) redirect('/dashboard')
 
   const adminClient = createAdminClient()
+  // Programa ODS (migración 068): en modo 'grant' solo apps con concesión activa.
+  const { getGrantedApplicationIds } = await import('@/lib/ods/gating')
+  const grantedApplicationIds = await getGrantedApplicationIds(user.id)
   const [{ data: appsData }, { data: progressData }, { data: surveyData }, { data: stateData, error: stateError }] = await Promise.all([
     adminClient
       .from('municipality_applications')
@@ -94,6 +97,8 @@ export default async function CitizenApplicationsPage() {
 
   const applications: LauncherApplication[] = ((appsData || []) as unknown as PublishedAppRow[])
     .filter((row) => row.application !== null)
+    // Programa ODS: si el municipio está en modo 'grant', solo apps concedidas.
+    .filter((row) => !grantedApplicationIds || grantedApplicationIds.has(row.application_id))
     .map((row) => {
       const app = row.application!
       const progress = progressByApp.get(app.id)

@@ -9,6 +9,7 @@ import {
   hashInviteCode,
   isInviteCodesConfigured,
 } from '@/lib/auth/municipal-invite-codes'
+import { getBatchCapability } from '@/lib/ods/batch-app-capability'
 
 const RequestSchema = z.discriminatedUnion('action', [
   z.object({
@@ -16,6 +17,13 @@ const RequestSchema = z.discriminatedUnion('action', [
     nombre: z.string().trim().min(1).max(100),
     cantidad: z.number().int().min(1).max(500),
     expires_in_days: z.number().int().min(1).max(365),
+    // Categoría del lote (migración 070): 'acceso' = alta de ciudadanos
+    // (registro); 'ods' = invitaciones a aplicaciones (programa ODS).
+    proposito: z.enum(['acceso', 'ods']).optional(),
+    // Programa ODS (migración 069): app pre-asignada al lote. Todos los
+    // códigos del lote concederán esta aplicación al activarse. Solo
+    // admite en lotes 'ods'.
+    application_id: z.string().uuid().nullish(),
   }),
   z.object({
     action: z.literal('set_required'),
@@ -78,15 +86,70 @@ export async function POST(
         generateMunicipalInviteCode(municipality.slug),
       )
 
+      // Capacidades de BD (migraciones 069/070). Sin las columnas, las
+      // peticiones se degradan: sin 070 todo lote es 'acceso' (clásico) y
+      // sin 069 no hay app pre-asignada (el ciudadano elige al activar).
+      const capability = await getBatchCapability()
+      const proposito = parsed.data.proposito ?? 'acceso'
+      if (parsed.data.proposito === 'ods' && !capability.hasPurposeColumn) {
+        return NextResponse.json(
+          { error: 'Aún no está activa la categoría ODS en la base de datos (migración 070 pendiente).' },
+          { status: 503 },
+        )
+      }
+
+      // Validación de la app pre-asignada (migración 069): solo en lotes ODS,
+      // debe existir, pertenecer al municipio y estar publicada y activa en él.
+      // Si la BD aún no tiene la 069, se ignora la app solicitada (modo 068).
+      let assignedApplicationId: string | null = null
+      if (parsed.data.application_id) {
+        if (proposito !== 'ods') {
+          return NextResponse.json(
+            { error: 'La aplicación pre-asignada solo admite en lotes del programa ODS.' },
+            { status: 422 },
+          )
+        }
+        const { data: appRow } = await supabase
+          .from('municipality_applications')
+          .select('application_id')
+          .eq('municipality_id', municipality.id)
+          .eq('application_id', parsed.data.application_id)
+          .eq('activa', true)
+          .eq('publication_status', 'publicada')
+          .limit(1)
+          .maybeSingle()
+        if (!appRow) {
+          return NextResponse.json(
+            { error: 'La aplicación indicada no está publicada en este municipio.' },
+            { status: 422 },
+          )
+        }
+        // Solo escribir la columna si la migración 069 está aplicada;
+        // si no, se ignora la app solicitada (modo 068).
+        if (capability.hasAppColumn) {
+          assignedApplicationId = parsed.data.application_id
+        }
+      }
+
+      const batchPayload: Record<string, unknown> = {
+        municipality_id: municipality.id,
+        nombre: parsed.data.nombre,
+        cantidad: parsed.data.cantidad,
+        expires_at: expiresAt,
+        created_by: adminUser.id,
+      }
+      // Columnas solo presentes si la BD ya tiene las migraciones aplicadas;
+      // si no, no se envían (modo clásico).
+      if (capability.hasPurposeColumn) {
+        batchPayload.proposito = proposito
+      }
+      if (assignedApplicationId) {
+        batchPayload.application_id = assignedApplicationId
+      }
+
       const { data: batch, error: batchError } = await supabase
         .from('municipal_invite_batches')
-        .insert({
-          municipality_id: municipality.id,
-          nombre: parsed.data.nombre,
-          cantidad: parsed.data.cantidad,
-          expires_at: expiresAt,
-          created_by: adminUser.id,
-        })
+        .insert(batchPayload)
         .select('id')
         .single()
 

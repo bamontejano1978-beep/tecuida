@@ -59,6 +59,7 @@ export function MunicipalityHero({
 }: MunicipalityHeroProps) {
   const inicial = nombre_municipio.charAt(0).toUpperCase()
   const primary = colores_corporativos.primary || '#142c19'
+  const isVillafranca = /villafranca/i.test(nombre_municipio)
   // useId() genera un id estable entre SSR/CSR y evita colisiones si varios
   // MunicipalityHero conviven en la misma página (<defs> reutilizable).
   const linesId = useId()
@@ -153,7 +154,7 @@ export function MunicipalityHero({
             {nombre_municipio}
             <br />
             <span className="bg-gradient-to-r from-[#f4d884] via-[#f4b64b] to-[#bd7c25] bg-clip-text text-transparent">
-              te cuida
+              te cuida{isVillafranca ? ' 2030' : ''}
             </span>
           </h1>
 

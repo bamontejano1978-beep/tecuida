@@ -22,6 +22,9 @@ interface BatchSummary {
   expires_at: string | null
   estado: 'activo' | 'revocado'
   created_at: string
+  application_id: string | null
+  application_nombre: string | null
+  proposito: 'acceso' | 'ods' | null
   disponibles: number
   reservados: number
   consumidos: number
@@ -43,6 +46,8 @@ export default function InviteCodesManager({
   configured,
   batches,
   apiEndpoint,
+  applications,
+  showPurposeSelector = false,
 }: {
   municipalityId: string
   municipalityName: string
@@ -50,12 +55,20 @@ export default function InviteCodesManager({
   configured: boolean
   batches: BatchSummary[]
   apiEndpoint?: string
+  /** Apps publicadas del municipio; habilita la pre-asignación por lote (migración 069). */
+  applications?: { id: string; nombre: string }[]
+  /** Selector de categoría de lote (migración 070: 'acceso' | 'ods'). */
+  showPurposeSelector?: boolean
 }) {
   const router = useRouter()
   const [required, setRequired] = useState(initialRequired)
   const [nombre, setNombre] = useState(`Lote ${new Date().toLocaleDateString('es-ES')}`)
   const [cantidad, setCantidad] = useState(50)
   const [days, setDays] = useState(90)
+  const [proposito, setProposito] = useState<'acceso' | 'ods'>('acceso')
+  const [applicationId, setApplicationId] = useState('')
+  // El selector de app solo se muestra en lotes ODS (con 070) o siempre (sin 070).
+  const showAppSelector = Boolean(applications && applications.length > 0) && (!showPurposeSelector || proposito === 'ods')
   const [busy, setBusy] = useState<string | null>(null)
   const [message, setMessage] = useState<{ type: 'ok' | 'error'; text: string } | null>(null)
   const [copiedCodeId, setCopiedCodeId] = useState<string | null>(null)
@@ -80,6 +93,10 @@ export default function InviteCodesManager({
         nombre,
         cantidad,
         expires_in_days: days,
+        // Categoría (migración 070): solo se envía cuando el panel muestra
+        // el selector y se elige ODS; 'acceso' es el default de la API.
+        ...(showPurposeSelector && proposito === 'ods' ? { proposito } : {}),
+        ...(applicationId ? { application_id: applicationId } : {}),
       }) as GeneratedBatch
       setMessage({
         type: 'ok',
@@ -193,7 +210,52 @@ export default function InviteCodesManager({
               <option value={365}>1 ano</option>
             </select>
           </label>
+          {showPurposeSelector && (
+            <label className="text-sm font-medium text-gray-700">
+              Tipo de lote
+              <select
+                value={proposito}
+                onChange={(event) => {
+                  const next = event.target.value === 'ods' ? 'ods' : 'acceso'
+                  setProposito(next)
+                  if (next !== 'ods') setApplicationId('')
+                }}
+                className="mt-1 block w-full rounded-lg border border-gray-300 px-3 py-2"
+              >
+                <option value="acceso">Acceso — alta de ciudadanos</option>
+                <option value="ods">Recurso — programa de recursos (ODS)</option>
+              </select>
+            </label>
+          )}
+          {showAppSelector && (
+            <label className="text-sm font-medium text-gray-700">
+              Aplicación del lote (opcional)
+              <select value={applicationId} onChange={(event) => setApplicationId(event.target.value)} className="mt-1 block w-full rounded-lg border border-gray-300 px-3 py-2">
+                <option value="">Sin asignar — el ciudadano elige al activar</option>
+                {applications?.map((app) => (
+                  <option key={app.id} value={app.id}>
+                    {app.nombre}
+                  </option>
+                ))}
+              </select>
+            </label>
+          )}
         </div>
+        {showPurposeSelector && proposito === 'acceso' && (
+          <p className="mt-2 text-xs text-gray-500">
+            Estos códigos sirven para que nuevos vecinos se den de alta (si activas la restricción de registro). No conceden acceso a aplicaciones.
+          </p>
+        )}
+        {showPurposeSelector && proposito === 'ods' && applications && applications.length === 0 && (
+          <p className="mt-2 text-xs text-amber-600">
+            Todavía no hay aplicaciones publicadas en tu municipio: publica una antes de generar invitaciones.
+          </p>
+        )}
+        {showAppSelector && (
+          <p className="mt-2 text-xs text-gray-500">
+            Si asignas una aplicación, cada código de este lote concederá acceso a ella al activarse (el ciudadano no elige). Si no, el ciudadano elige entre las disponibles.
+          </p>
+        )}
         <button type="button" onClick={generateBatch} disabled={!configured || busy !== null || !nombre.trim() || cantidad < 1 || cantidad > 500} className="mt-5 rounded-lg bg-indigo-600 px-4 py-2 text-sm font-semibold text-white hover:bg-indigo-500 disabled:opacity-50">
           {busy === 'generate' ? 'Generando...' : 'Generar codigos'}
         </button>
@@ -209,6 +271,14 @@ export default function InviteCodesManager({
                 <div>
                   <h3 className="font-semibold text-gray-900">{batch.nombre}</h3>
                   <p className="mt-1 text-xs text-gray-500">Creado {new Date(batch.created_at).toLocaleDateString('es-ES')} · Caduca {batch.expires_at ? new Date(batch.expires_at).toLocaleDateString('es-ES') : 'sin fecha'}</p>
+                  <p className="mt-1 flex flex-wrap items-center gap-2 text-xs">
+                    <span className={`rounded-full px-2 py-0.5 font-semibold ${batch.proposito === 'ods' ? 'bg-indigo-100 text-indigo-700' : 'bg-gray-100 text-gray-600'}`}>
+                      {batch.proposito === 'ods' ? 'Recurso (ODS)' : 'Acceso'}
+                    </span>
+                    {batch.application_nombre && (
+                      <span className="font-medium text-indigo-600">App asignada: {batch.application_nombre}</span>
+                    )}
+                  </p>
                 </div>
                 {batch.estado === 'activo' ? (
                   <button type="button" onClick={() => revokeBatch(batch.id)} disabled={busy !== null} className="text-sm font-semibold text-red-600 hover:text-red-500 disabled:opacity-50">

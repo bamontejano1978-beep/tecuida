@@ -122,6 +122,20 @@ export default async function MunicipioLayout({
                   Códigos de acceso
                 </Link>
               )}
+              {isMunicipioAdmin && (
+                <Link
+                  href="/municipio/ods"
+                  className="text-sm font-medium text-indigo-600 hover:text-indigo-800 transition-colors"
+                >
+                  Programa ODS
+                </Link>
+              )}
+              <Link
+                href="/municipio/dossiers"
+                className="text-sm font-medium text-gray-600 hover:text-gray-900 transition-colors"
+              >
+                📄 Dossieres
+              </Link>
               {isSuperadmin && (
                 <Link
                   href="/admin"

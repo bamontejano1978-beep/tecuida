@@ -13,6 +13,25 @@
 -- ============================================================
 -- 1. APPLICATION
 -- ============================================================
+-- La columna brand_color se crea canónicamente en la 027, pero esta
+-- migración la usa en el INSERT siguiente. Sin este guard, replay de
+-- la cadena desde cero (p. ej. CI con `supabase start`) falla con
+-- SQLSTATE 42703. Idempotente: si la 027 ya la creó, no hace nada.
+ALTER TABLE public.applications
+  ADD COLUMN IF NOT EXISTS brand_color text;
+
+-- La categoría del programa se sembró a mano en el proyecto original y
+-- no existe en la cadena: sin este guard, el INSERT inferior falla con
+-- SQLSTATE 23503 (FK applications_category_id_fkey) en un replay limpio.
+INSERT INTO public.categories (id, nombre, descripcion, orden)
+VALUES (
+  '11111111-0000-0000-0000-000000000001',
+  'Bienestar y salud mental',
+  'Programas de mindfulness, gestión del estrés y bienestar emocional.',
+  1
+)
+ON CONFLICT (id) DO NOTHING;
+
 INSERT INTO public.applications (id, category_id, nombre, descripcion, thumbnail_url, tipo, activa, app_slug, brand_color)
 VALUES (
   '22222222-0000-0000-0000-000000000027',

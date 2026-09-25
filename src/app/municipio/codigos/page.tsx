@@ -3,6 +3,7 @@ import { redirect } from 'next/navigation'
 import { getAdminAccess } from '@/lib/admin/activities'
 import { createAdminClient } from '@/lib/supabase/server'
 import { isInviteCodesConfigured } from '@/lib/auth/municipal-invite-codes'
+import { getBatchCapability } from '@/lib/ods/batch-app-capability'
 import InviteCodesManager from '@/app/admin/municipios/[id]/codigos/invite-codes-manager'
 
 interface CodeRow {
@@ -22,6 +23,8 @@ interface BatchRow {
   expires_at: string | null
   estado: 'activo' | 'revocado'
   created_at: string
+  application_id: string | null
+  proposito: 'acceso' | 'ods' | null
   municipal_invite_codes?: CodeRow[] | null
 }
 
@@ -32,7 +35,17 @@ export default async function MunicipalInviteCodesPage() {
 
   const municipalityId = access.municipality_id
   const supabase = createAdminClient()
-  const [{ data: municipality }, { data: batchData }] = await Promise.all([
+  // Capacidades de BD (migraciones 069/070): si una columna aún no existe,
+  // se selecciona sin ella y el panel oculta esa función (modo degradado).
+  const capability = await getBatchCapability()
+  const batchSelectParts = ['id, nombre, cantidad, expires_at, estado, created_at']
+  if (capability.hasAppColumn) {
+    batchSelectParts.push('application_id, application:applications(nombre)')
+  }
+  if (capability.hasPurposeColumn) batchSelectParts.push('proposito')
+  const batchSelect = batchSelectParts.join(', ')
+
+  const [{ data: municipality }, { data: batchData }, { data: appData }] = await Promise.all([
     supabase
       .from('municipalities')
       .select('id, nombre_municipio, invite_codes_required')
@@ -41,12 +54,32 @@ export default async function MunicipalInviteCodesPage() {
       .single(),
     supabase
       .from('municipal_invite_batches')
-      .select('id, nombre, cantidad, expires_at, estado, created_at, municipal_invite_codes(id, code_value, code_prefix, estado, expires_at, consumed_at, created_at)')
+      .select(batchSelect)
       .eq('municipality_id', municipalityId)
       .order('created_at', { ascending: false }),
+    // Apps publicadas del municipio (migración 069): para el selector de
+    // pre-asignación de app al generar un lote.
+    supabase
+      .from('municipality_applications')
+      .select('application_id, application:applications!inner(id, nombre)')
+      .eq('municipality_id', municipalityId)
+      .eq('activa', true)
+      .eq('publication_status', 'publicada')
+      .order('application_id'),
   ])
 
   if (!municipality) redirect('/login?error=unauthorized')
+
+  interface AppOptionRow {
+    application: { id: string; nombre: string } | null
+  }
+  const applications = ((appData || []) as unknown as AppOptionRow[])
+    .map((row) => row.application)
+    .filter((app): app is { id: string; nombre: string } => Boolean(app))
+
+  interface BatchWithAppRow {
+    application?: { nombre: string } | null
+  }
 
   const now = Date.now()
   const batches = ((batchData || []) as unknown as BatchRow[]).map((batch) => {
@@ -68,6 +101,14 @@ export default async function MunicipalInviteCodesPage() {
       expires_at: batch.expires_at,
       estado: batch.estado,
       created_at: batch.created_at,
+      application_id: capability.hasAppColumn
+        ? ((batch as { application_id?: string | null }).application_id ?? null)
+        : null,
+      proposito: capability.hasPurposeColumn
+        ? ((batch as { proposito?: 'acceso' | 'ods' | null }).proposito ?? 'acceso')
+        : 'acceso',
+      application_nombre:
+        ((batch as unknown as BatchWithAppRow).application?.nombre as string | undefined) || null,
       disponibles: effectiveStates.filter((state) => state === 'disponible').length,
       reservados: effectiveStates.filter((state) => state === 'reservado').length,
       consumidos: effectiveStates.filter((state) => state === 'consumido').length,
@@ -110,6 +151,8 @@ export default async function MunicipalInviteCodesPage() {
         configured={isInviteCodesConfigured()}
         batches={batches}
         apiEndpoint="/api/municipio/invite-codes"
+        applications={capability.hasAppColumn ? applications : []}
+        showPurposeSelector={capability.hasPurposeColumn}
       />
     </div>
   )

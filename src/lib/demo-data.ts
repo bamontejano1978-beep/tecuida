@@ -208,7 +208,12 @@ export const DEMO_APPS: DemoAppRow[] = [
 // ─────────────────────────────────────────────────────────────────
 
 export function getDemoTenant(slug: string): MunicipalityConfig {
-  const capitalized = slug.charAt(0).toUpperCase() + slug.slice(1)
+  // Nombre legible para el tenant demo: capitaliza el slug y separa los
+  // guiones ("villafranca-de-los-barros" → "Villafranca De Los Barros").
+  const capitalized = slug
+    .split('-')
+    .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
+    .join(' ')
   // Previsualización editorial en DEMO_MODE sin tocar la DB. Sólo afecta
   // el helper de demo: en producción con SUPABASE_SERVICE_ROLE_KEY real,
   // el valor viene de `public.municipalities.layout_variant` (columna

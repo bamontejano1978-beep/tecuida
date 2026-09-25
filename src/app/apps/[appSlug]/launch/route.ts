@@ -2,6 +2,7 @@ import { NextResponse, type NextRequest } from 'next/server'
 import { getPublicApplication } from '@/lib/applications/public-application'
 import { getApplicationEntryPath } from '@/lib/application-links'
 import { safeLaunchTarget, isIntegratedExternalApp } from '@/lib/applications/launch-target'
+import { checkAppGrantAccess } from '@/lib/ods/grants'
 
 export async function GET(
   request: NextRequest,
@@ -11,6 +12,13 @@ export async function GET(
 
   if (!app) {
     return NextResponse.redirect(new URL('/404', request.url))
+  }
+
+  // Programa ODS (migración 068): en modo 'grant', exigir concesión activa
+  // antes de servir el enlace de lanzamiento.
+  const access = await checkAppGrantAccess(app.id)
+  if (access.allowed === false) {
+    return NextResponse.redirect(new URL('/activar?app=' + encodeURIComponent(params.appSlug), request.url))
   }
 
   if (!app.url_acceso) {

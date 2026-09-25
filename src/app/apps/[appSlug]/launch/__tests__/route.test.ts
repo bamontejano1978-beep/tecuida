@@ -2,9 +2,22 @@
 import { NextRequest } from 'next/server'
 import { GET } from '../route'
 import { getPublicApplication } from '@/lib/applications/public-application'
+import { checkAppGrantAccess } from '@/lib/ods/grants'
 
 jest.mock('@/lib/applications/public-application', () => ({ getPublicApplication: jest.fn() }))
+jest.mock('@/lib/ods/grants', () => ({ checkAppGrantAccess: jest.fn() }))
 const request = () => new NextRequest('https://tecuida.group/apps/example/launch?access_token=private&redirect=https://untrusted.test')
+
+beforeEach(() => {
+  jest.mocked(checkAppGrantAccess).mockResolvedValue({ allowed: true })
+})
+
+test('redirects to /activar when the ODS grant is missing in grant mode', async () => {
+  jest.mocked(getPublicApplication).mockResolvedValue({ id: 'app', app_slug: 'example', url_acceso: 'https://example.org/activity' } as never)
+  jest.mocked(checkAppGrantAccess).mockResolvedValue({ allowed: false, reason: 'grant_required' })
+  const response = await GET(request(), { params: { appSlug: 'example' } })
+  expect(response.headers.get('location')).toBe('https://tecuida.group/activar?app=example')
+})
 
 test('does not forward query credentials to external applications', async () => {
   jest.mocked(getPublicApplication).mockResolvedValue({ id: 'app', app_slug: 'example', url_acceso: 'https://example.org/activity' } as never)

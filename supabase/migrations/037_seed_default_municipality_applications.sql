@@ -49,6 +49,13 @@ END $$;
 
 -- 2. Sembrar assignments: una fila por (municipio extremeño activo, app global activa).
 --    Idempotente: si la fila ya existe, refresca `activa=true` y metadatos.
+--    Las columnas created_at/updated_at se añadieron a mano en el proyecto
+--    original y no existen en la cadena: sin este guard, el replay limpio
+--    (CI, proyecto nuevo) falla con SQLSTATE 42703.
+ALTER TABLE public.municipality_applications
+  ADD COLUMN IF NOT EXISTS created_at timestamptz NOT NULL DEFAULT now(),
+  ADD COLUMN IF NOT EXISTS updated_at timestamptz NOT NULL DEFAULT now();
+
 INSERT INTO municipality_applications (municipality_id, application_id, activa, created_at, updated_at)
 SELECT
     m.id                    AS municipality_id,

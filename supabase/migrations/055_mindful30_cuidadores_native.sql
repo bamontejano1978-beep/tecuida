@@ -3,6 +3,12 @@
 
 BEGIN;
 
+-- La columna nivel_suscripcion se eliminó en la 022 y esta migración vuelve a
+-- usarla. En el proyecto original se re-creó a mano; sin este guard, el replay
+-- limpio de la cadena (CI, proyecto nuevo) falla con SQLSTATE 42703.
+ALTER TABLE public.applications
+  ADD COLUMN IF NOT EXISTS nivel_suscripcion text;
+
 DO $$
 DECLARE
   canonical_id uuid;

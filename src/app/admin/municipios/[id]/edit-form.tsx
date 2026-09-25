@@ -37,6 +37,7 @@ interface MunicipioData {
   email_contacto: string | null
   telefono_contacto: string | null
   layout_variant: 'classic' | 'editorial'
+  grant_mode: 'open' | 'grant'
   textos_institucionales: {
     bienvenida: string
     descripcion: string
@@ -88,6 +89,7 @@ export default function EditMunicipioForm({ municipio }: { municipio: MunicipioD
     email_contacto: municipio.email_contacto || '',
     telefono_contacto: municipio.telefono_contacto || '',
     layout_variant: municipio.layout_variant || 'classic',
+    grant_mode: municipio.grant_mode || 'open',
     // Textos institucionales
     texto_bienvenida: municipio.textos_institucionales.bienvenida || '',
     texto_descripcion: municipio.textos_institucionales.descripcion || '',
@@ -155,6 +157,7 @@ export default function EditMunicipioForm({ municipio }: { municipio: MunicipioD
         telefono_contacto: formData.telefono_contacto.trim() || null,
         estado_suscripcion: formData.estado_suscripcion,
         layout_variant: formData.layout_variant,
+        grant_mode: formData.grant_mode,
         textos_institucionales: {
           bienvenida: formData.texto_bienvenida.trim() || undefined,
           descripcion: formData.texto_descripcion.trim() || undefined,
@@ -338,6 +341,26 @@ export default function EditMunicipioForm({ municipio }: { municipio: MunicipioD
         </div>
         <p className="mt-2 text-xs text-indigo-600">
           El modo editorial permite adaptar textos, principios, ODS, visibilidad y orden sin modificar código.
+        </p>
+      </div>
+
+      {/* Acceso por concesiones (Programa ODS) */}
+      <div className="rounded-lg border border-gray-200 bg-gray-50 p-4">
+        <label htmlFor="grant_mode" className="block text-sm font-medium text-gray-900">
+          Acceso a aplicaciones
+        </label>
+        <select
+          id="grant_mode"
+          value={formData.grant_mode}
+          onChange={(e) => updateField('grant_mode', e.target.value as 'open' | 'grant')}
+          className="mt-1 block w-full max-w-xs rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm"
+        >
+          <option value="open">Abierto — todas las apps publicadas (histórico)</option>
+          <option value="grant">Por concesión — Programa ODS (código por app)</option>
+        </select>
+        <p className="mt-2 text-xs text-gray-500">
+          En modo «por concesión» cada ciudadano solo ve las apps que ha activado con su código
+          ODS (una nueva por semana). Panel del programa: /municipio/ods.
         </p>
       </div>
 

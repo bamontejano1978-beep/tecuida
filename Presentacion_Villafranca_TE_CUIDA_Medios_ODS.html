@@ -1,0 +1,433 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>VCA TE CUIDA 2030 · Villafranca de los Barros — Presentación para medios</title>
+<meta name="description" content="Presentación del programa ODS de VCA TE CUIDA en Villafranca de los Barros">
+<style>
+  :root{--green:#142c19;--green2:#264d2c;--gold:#e4aa45;--gold2:#bd7c25;--goldL:#f4d884;--paper:#f7f1e7;--ink:#20231f;--muted:#64705e;--indigo:#4f46e5;--emerald:#059669;--radius:22px;--max:1120px}
+  *{box-sizing:border-box}html{scroll-behavior:smooth}
+  body{margin:0;font-family:ui-sans,system-ui,-apple-system,Segoe UI,Roboto,Inter,Helvetica,Arial;color:var(--ink);background:var(--paper);-webkit-font-smoothing:antialiased}
+  a{color:inherit}
+  /* progress bar */
+  #bar{position:fixed;inset:0 0 auto 0;height:4px;z-index:60;background:linear-gradient(90deg,var(--gold),var(--gold2));transform-origin:left;transform:scaleX(0)}
+  /* nav dots */
+  #dots{position:fixed;right:18px;top:50%;transform:translateY(-50%);z-index:50;display:flex;flex-direction:column;gap:10px}
+  #dots button{width:9px;height:9px;border-radius:999px;border:0;background:rgba(20,44,25,.2);cursor:pointer;padding:0}
+  #dots button[aria-current=true]{background:var(--gold2);box-shadow:0 0 0 4px rgba(228,170,69,.25)}
+  /* controls */
+  #ctrl{position:fixed;left:50%;bottom:18px;transform:translateX(-50%);z-index:50;display:flex;gap:10px}
+  #ctrl button{width:44px;height:44px;border-radius:999px;border:1px solid rgba(20,44,25,.12);background:#fff;cursor:pointer;display:grid;place-items:center;font-size:18px;box-shadow:0 8px 24px rgba(0,0,0,.12)}
+  #ctrl button:disabled{opacity:.45;cursor:not-allowed}
+  /* slides */
+  .deck{scroll-snap-type:y mandatory;height:100svh;overflow:auto}
+  section{scroll-snap-align:start;min-height:100svh;display:flex;flex-direction:column;position:relative}
+  .inner{width:min(var(--max),calc(100% - 40px));margin:0 auto}
+  /* topbar mock */
+  .topbar{height:72px;background:linear-gradient(90deg,var(--green),var(--green2));color:#fff;display:flex;align-items:center;gap:14px;padding:0 clamp(16px,4vw,40px);position:sticky;top:0;z-index:10;box-shadow:0 8px 24px rgba(0,0,0,.12)}
+  .badge{width:42px;height:42px;border-radius:14px;display:grid;place-items:center;background:linear-gradient(135deg,var(--gold),var(--gold2));font-weight:900;font-size:18px;box-shadow:inset 0 0 0 1px rgba(255,255,255,.3)}
+  .pill{border:1px solid rgba(255,255,255,.28);background:rgba(255,255,255,.1);border-radius:999px;padding:6px 12px;font-size:10px;font-weight:800;letter-spacing:.18em;text-transform:uppercase}
+  /* hero */
+  .hero{position:relative;min-height:58vh;display:flex;align-items:end;overflow:hidden;color:#fff;background:linear-gradient(135deg,var(--green),#050d08)}
+  .hero::after{content:"";position:absolute;inset:0;background:linear-gradient(180deg,rgba(15,29,20,.35),rgba(15,29,20,.88))}
+  .hero .inner{position:relative;z-index:1;padding:56px 0 90px}
+  .kicker{color:#f4b64b;font-size:11px;font-weight:900;letter-spacing:.22em;text-transform:uppercase}
+  h1{margin:.25em 0 .35em;font-size:clamp(36px,7vw,72px);line-height:.92;font-weight:900}
+  h1 em{background:linear-gradient(90deg,var(--goldL),var(--gold),var(--gold2));-webkit-background-clip:text;background-clip:text;color:transparent;font-style:normal}
+  .lead{max-width:640px;color:rgba(255,255,255,.9);font-size:17px;line-height:1.5}
+  .cta{display:inline-flex;align-items:center;gap:10px;min-height:48px;padding:0 22px;border-radius:14px;font-weight:900;text-decoration:none}
+  .cta--gold{background:linear-gradient(135deg,var(--gold),var(--gold2));color:#fff;box-shadow:0 14px 32px rgba(189,124,37,.3)}
+  .cta--ghost{border:1px solid rgba(255,255,255,.45);background:rgba(255,255,255,.1);color:#fff;backdrop-filter:blur(6px)}
+  /* stats */
+  .stats{width:min(var(--max),calc(100% - 40px));margin:-48px auto 0;position:relative;z-index:2;background:rgba(255,255,255,.96);border:1px solid rgba(255,255,255,.7);border-radius:20px;box-shadow:0 24px 70px rgba(35,30,18,.13);backdrop-filter:blur(8px);display:grid;grid-template-columns:repeat(4,1fr);overflow:hidden}
+  .stat{padding:22px 20px;border-right:1px solid rgba(35,45,30,.12);display:flex;gap:12px;align-items:center}
+  .stat:last-child{border-right:0}
+  .stat i{width:44px;height:44px;border-radius:999px;display:grid;place-items:center;background:#f5efe2;color:#38633e;flex:0 0 auto}
+  .stat strong{color:#38633e;font-size:26px;line-height:1}
+  .stat span{display:block;font-size:10px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+  @media(max-width:760px){.stats{grid-template-columns:1fr 1fr}.stat{border-bottom:1px solid rgba(35,45,30,.12)}.stat:nth-child(even){border-right:0}}
+  /* cards */
+  .card{background:#fff;border:1px solid rgba(20,44,25,.08);border-radius:var(--radius);box-shadow:0 12px 40px rgba(0,0,0,.06)}
+  .grid4{display:grid;grid-template-columns:repeat(4,1fr);gap:14px}
+  .grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}
+  @media(max-width:860px){.grid4{grid-template-columns:1fr 1fr}.grid3{grid-template-columns:1fr}}
+  /* browser mock */
+  .browser{border:1px solid rgba(20,44,25,.12);border-radius:16px;overflow:hidden;background:#fff;box-shadow:0 12px 40px rgba(0,0,0,.08)}
+  .browser__bar{height:36px;background:#f3f4f6;border-bottom:1px solid rgba(0,0,0,.06);display:flex;align-items:center;gap:6px;padding:0 12px}
+  .browser__bar i{width:10px;height:10px;border-radius:999px;background:#e5e7eb;display:block}
+  .browser__bar i:nth-child(1){background:#fecaca}.browser__bar i:nth-child(2){background:#fde68a}.browser__bar i:nth-child(3){background:#bbf7d0}
+  .browser__bar span{margin-left:8px;font-size:11px;color:#9ca3af}
+  /* badge */
+  .badge-soft{display:inline-flex;align-items:center;gap:6px;padding:6px 10px;border-radius:999px;font-size:11px;font-weight:800;letter-spacing:.06em;text-transform:uppercase}
+  /* timeline */
+  .tl{display:flex;gap:12px;align-items:stretch}
+  .tl>div{flex:1}
+  .tl .arrow{flex:0 0 28px;display:grid;place-items:center;color:var(--gold2);font-weight:900}
+  /* print */
+  @media print{.deck{height:auto;overflow:visible;scroll-snap-type:none}#dots,#ctrl,#bar{display:none}section{break-inside:avoid;min-height:auto;padding:24px 0}}
+</style>
+</head>
+<body>
+<div id="bar"></div>
+<nav id="dots" aria-label="Diapositivas"></nav>
+<div id="ctrl"><button id="prev" aria-label="Anterior">‹</button><button id="next" aria-label="Siguiente">›</button></div>
+<main class="deck" id="deck">
+
+<!-- 1 COVER -->
+<section id="s1" style="justify-content:center;background:linear-gradient(135deg,var(--green),#050d08);color:#fff">
+  <div class="inner" style="padding:72px 0">
+    <div class="pill" style="background:rgba(228,170,69,.18);border-color:rgba(228,170,69,.35)">Ayuntamiento de Villafranca de los Barros · VCA TE CUIDA</div>
+    <h1 style="margin-top:18px">Villafranca<br><em>te cuida 2030</em></h1>
+    <p class="lead">Una plataforma municipal de bienestar abierta a toda la ciudadanía. Ahora vinculada a <strong>Agenda 2030</strong> con un programa de participación en la calle.</p>
+    <p style="margin-top:10px;display:inline-flex;gap:8px;align-items:center;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.18);border-radius:999px;padding:8px 14px;font-size:13px">“Una idea para mejorar Villafranca. <strong>Un recurso para cuidarte a ti.</strong>”</p>
+    <div style="margin-top:22px;display:flex;flex-wrap:wrap;gap:12px">
+      <a class="cta cta--gold" href="#s6">Ver el programa ODS →</a>
+      <a class="cta cta--ghost" href="#s3">Cómo funciona para el ciudadano →</a>
+    </div>
+    <div style="margin-top:26px;display:flex;gap:10px;flex-wrap:wrap;font-size:12px;opacity:.8">
+      <span>v. con programa ODS · solo Villafranca</span><span>·</span><span>tecuida.group · villafranca-de-los-barros.tecuida.group</span>
+    </div>
+  </div>
+</section>
+
+<!-- 2 QUÉ ES -->
+<section id="s2">
+  <div class="topbar"><span class="badge">V</span><strong>Ayuntamiento de Villafranca de los Barros</strong><span class="pill" style="margin-left:auto">te cuida</span></div>
+  <div class="inner" style="padding:40px 0 32px">
+    <div style="display:grid;grid-template-columns:1.2fr .8fr;gap:24px;align-items:start">
+      <div>
+        <div class="kicker">Qué es VCA TE CUIDA</div>
+        <h2 style="font-size:clamp(28px,4vw,42px);line-height:1;margin:.2em 0">La plataforma de bienestar de tu municipio</h2>
+        <p style="color:var(--muted);line-height:1.6">VCA TE CUIDA reúne en un solo lugar programas, herramientas y recursos para cuidar la salud emocional, los hábitos y la vida en comunidad. Cada ayuntamiento decide qué ofrece a sus vecinos; la ciudadanía entra con su cuenta y encuentra solo lo que le corresponde.</p>
+        <ul style="margin:18px 0 0;padding:0;list-style:none;display:grid;gap:10px">
+          <li style="display:flex;gap:10px"><span style="color:var(--gold2)">●</span> Catálogo municipal con categorías, apps y actividades locales</li>
+          <li style="display:flex;gap:10px"><span style="color:var(--gold2)">●</span> Área ciudadana con progreso, favoritos y perfil</li>
+          <li style="display:flex;gap:10px"><span style="color:var(--gold2)">●</span> Diseño institucional por municipio (colores, escudo, hero editorial en Villafranca)</li>
+          <li style="display:flex;gap:10px"><span style="color:var(--gold2)">●</span> Disponible 365 días, sin coste para el vecino</li>
+        </ul>
+      </div>
+      <div class="card" style="padding:18px">
+        <div style="font-size:12px;font-weight:800;letter-spacing:.12em;text-transform:uppercase;color:var(--muted)">Datos vivos</div>
+        <div style="margin-top:12px;display:grid;grid-template-columns:1fr 1fr;gap:10px">
+          <div style="border:1px solid rgba(0,0,0,.06);border-radius:14px;padding:14px;text-align:center"><div style="font-size:28px;font-weight:900;color:#38633e">365</div><div style="font-size:11px;color:var(--muted)">días disponible</div></div>
+          <div style="border:1px solid rgba(0,0,0,.06);border-radius:14px;padding:14px;text-align:center"><div style="font-size:28px;font-weight:900;color:#38633e">Gratuito</div><div style="font-size:11px;color:var(--muted)">para los vecinos</div></div>
+          <div style="border:1px solid rgba(0,0,0,.06);border-radius:14px;padding:14px;text-align:center"><div style="font-size:28px;font-weight:900;color:#38633e">Abierto</div><div style="font-size:11px;color:var(--muted)">a toda la ciudadanía</div></div>
+          <div style="border:1px solid rgba(0,0,0,.06);border-radius:14px;padding:14px;text-align:center"><div style="font-size:28px;font-weight:900;color:#38633e">RGPD</div><div style="font-size:11px;color:var(--muted)">privado por diseño</div></div>
+        </div>
+        <p style="margin:14px 0 0;font-size:12px;color:var(--muted)">Captura real: bloque de estadísticas de la landing municipal (componente <code>page.tsx</code> + <code>MunicipalityHero</code>).</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- 3 LANDING REAL -->
+<section id="s3" style="background:#fff">
+  <div class="inner" style="padding:28px 0 18px">
+    <div class="kicker">Pantalla real · Landing municipal</div>
+    <h2 style="margin:.2em 0">Así entra la ciudadanía</h2>
+    <p style="color:var(--muted);max-width:760px">La primera pantalla que ve el vecino: topbar institucional, hero con la imagen del municipio y la barra de métricas. Debajo, programas por categorías, actividades destacadas y acceso directo a su área.</p>
+  </div>
+  <div class="inner">
+    <div class="browser">
+      <div class="browser__bar"><i></i><i></i><i></i><span>villafranca-de-los-barros.tecuida.group</span><span style="margin-left:auto;background:var(--green);color:#fff;border-radius:999px;padding:4px 10px;font-size:11px;font-weight:800">Área ciudadana</span></div>
+      <div class="hero" style="min-height:320px">
+        <div class="inner" style="padding:28px 0 56px">
+          <div class="kicker" style="color:#f4b64b">Bienestar · comunidad · Villafranca de los Barros</div>
+          <h3 style="margin:.2em 0;font-size:clamp(32px,6vw,56px);line-height:.95;font-weight:900">Villafranca<br><span style="background:linear-gradient(90deg,var(--goldL),var(--gold2));-webkit-background-clip:text;background-clip:text;color:transparent">te cuida 2030</span></h3>
+          <p style="max-width:560px;color:rgba(255,255,255,.88)">Programas y recursos para cuidar de las personas, fortalecer la comunidad y construir un municipio más saludable.</p>
+          <div style="margin-top:14px;display:flex;gap:10px;flex-wrap:wrap"><span class="cta cta--gold" style="pointer-events:none">Descubre los programas →</span><span class="cta cta--ghost" style="pointer-events:none">Accede a tu área →</span></div>
+        </div>
+      </div>
+      <div class="stats" style="margin-top:-28px">
+        <div class="stat"><i>◈</i><div><strong>6+</strong><span>Programas activos</span></div></div>
+        <div class="stat"><i>◎</i><div><strong>Abierto</strong><span>A toda la ciudadanía</span></div></div>
+        <div class="stat"><i>♥</i><div><strong>Gratuito</strong><span>Para los vecinos</span></div></div>
+        <div class="stat"><i>▦</i><div><strong>365</strong><span>Días disponible</span></div></div>
+      </div>
+      <div style="padding:14px 18px;display:flex;gap:10px;flex-wrap:wrap">
+        <span class="badge-soft" style="background:#eef2ff;color:#4338ca">Programas · Talleres · Actividades</span>
+        <span class="badge-soft" style="background:#ecfdf5;color:#065f46">Catálogo vivo por categorías</span>
+      </div>
+    </div>
+    <p style="font-size:12px;color:var(--muted);margin:10px 0 28px">Mockup fiel de la landing real (<code>src/app/page.tsx</code> + <code>MunicipalityHero</code>). En Villafranca usa el layout editorial (migration 045).</p>
+  </div>
+</section>
+
+<!-- 4 CATALOGO -->
+<section id="s4">
+  <div class="inner" style="padding:32px 0">
+    <div class="kicker">Pantalla real · Catálogo por categorías</div>
+    <h2>Qué encuentra dentro</h2>
+    <div class="grid3" style="margin-top:14px">
+      <div class="card" style="padding:14px"><div style="height:120px;border-radius:14px;background:linear-gradient(135deg,#dbeafe,#a5b4fc)"></div><div style="margin-top:10px;font-weight:800">Programa Reto30</div><div style="color:var(--muted);font-size:13px">30 días para entrenar atención y hábitos saludables.</div><div style="margin-top:8px;font-size:12px;font-weight:800;color:var(--indigo)">Abrir programa →</div></div>
+      <div class="card" style="padding:14px"><div style="height:120px;border-radius:14px;background:linear-gradient(135deg,#dcfce7,#86efac)"></div><div style="margin-top:10px;font-weight:800">Mindful30 Cuidadores</div><div style="color:var(--muted);font-size:13px">Para quien cuida: respiración, gestión del estrés y descanso.</div><div style="margin-top:8px;font-size:12px;font-weight:800;color:var(--emerald)">Abrir programa →</div></div>
+      <div class="card" style="padding:14px"><div style="height:120px;border-radius:14px;background:linear-gradient(135deg,#fef3c7,#fcd34d)"></div><div style="margin-top:10px;font-weight:800">Actividades locales</div><div style="color:var(--muted);font-size:13px">Talleres presenciales del municipio. Plazas, fechas y reservas.</div><div style="margin-top:8px;font-size:12px;font-weight:800;color:#b45309">Ver actividades →</div></div>
+    </div>
+    <p style="font-size:12px;color:var(--muted);margin-top:10px">Tarjetas del catálogo (<code>CategoryBanners</code> / <code>CatalogClient</code>). Cada municipio decide qué apps están publicadas.</p>
+    <div class="card" style="margin-top:14px;padding:14px;display:flex;gap:12px;align-items:center;flex-wrap:wrap">
+      <span style="font-weight:800">Mi área ciudadana</span><span style="color:var(--muted);font-size:13px">→ progreso, favoritos, perfil, mis actividades</span><span style="margin-left:auto;background:var(--green);color:#fff;border-radius:999px;padding:6px 12px;font-size:12px;font-weight:800">/dashboard</span>
+    </div>
+  </div>
+</section>
+
+<!-- 5 ODS INTRO -->
+<section id="s5" style="background:linear-gradient(180deg,#fff 0,#eff6ff 100%)">
+  <div class="inner" style="padding:40px 0">
+    <div style="display:grid;grid-template-columns:1.1fr .9fr;gap:22px;align-items:center">
+      <div>
+        <div class="kicker" style="color:var(--indigo)">Novedad · Solo en Villafranca</div>
+        <h2 style="font-size:clamp(30px,5vw,48px);line-height:1">El programa ODS:<br>participas fuera, te cuidas dentro</h2>
+        <p style="color:var(--muted);line-height:1.6">Vinculamos <strong>Agenda 2030 y participación ciudadana</strong> a un retorno útil: cada idea que aportas para mejorar Villafranca se convierte en acceso a un recurso de bienestar.</p>
+        <div style="margin-top:14px;display:inline-flex;align-items:center;gap:10px;background:#fff;border:1px solid rgba(79,70,229,.18);border-radius:999px;padding:10px 14px"><span style="background:var(--indigo);color:#fff;border-radius:999px;padding:4px 10px;font-size:11px;font-weight:900">LEMA</span><strong>“Una idea para mejorar Villafranca. Un recurso para cuidarte a ti.”</strong></div>
+        <ul style="margin:16px 0 0;padding:0;list-style:none;display:grid;gap:8px;font-size:14px">
+          <li>17 tarjetas, una por cada ODS — eliges el que te mueve.</li>
+          <li>Una pregunta abierta: <em>“¿Qué harías para mejorar Villafranca en este objetivo?”</em></li>
+          <li>Solo correo electrónico. Sin teléfono.</li>
+        </ul>
+      </div>
+      <div class="card" style="padding:0;overflow:hidden">
+        <div style="background:linear-gradient(135deg,#4f46e5,#06b6d4);color:#fff;padding:16px 18px;display:flex;justify-content:space-between;align-items:center"><strong>Tarjeta ODS · Ejemplo</strong><span style="background:rgba(255,255,255,.2);border-radius:999px;padding:4px 10px;font-size:11px;font-weight:800">ODS 3 · Salud y bienestar</span></div>
+        <div style="padding:16px">
+          <div style="border:1px dashed rgba(79,70,229,.35);border-radius:14px;padding:14px;background:#f8fafc">
+            <div style="font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);font-weight:800">¿Qué harías para mejorar Villafranca en este objetivo?</div>
+            <div style="margin-top:8px;min-height:44px;border-bottom:1px solid #e5e7eb"></div>
+            <div style="margin-top:12px;display:flex;gap:8px"><span style="font-size:12px;color:var(--muted);white-space:nowrap">Mi correo:</span><span style="flex:1;border-bottom:1px solid #e5e7eb;min-width:120px"></span></div>
+          </div>
+          <div style="margin-top:10px;display:flex;gap:8px;flex-wrap:wrap"><span class="badge-soft" style="background:#eef2ff;color:#4338ca">ODS 1</span><span class="badge-soft" style="background:#ecfdf5;color:#065f46">ODS 11</span><span class="badge-soft" style="background:#fef3c7;color:#92400e">ODS 4</span><span class="badge-soft" style="background:#fce7f3;color:#9d174d">… 17 en total</span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- 6 CICLO SEMANAL -->
+<section id="s6">
+  <div class="inner" style="padding:36px 0">
+    <div class="kicker">Cómo funciona · Ciclo semanal</div>
+    <h2>De la urna a tu correo</h2>
+    <div class="tl" style="margin-top:14px">
+      <div class="card" style="padding:16px;text-align:center"><div style="font-size:28px">🗳️</div><div style="font-weight:900">Lunes–Domingo</div><div style="font-size:13px;color:var(--muted)">Eliges ODS, escribes tu idea y tu correo. Depositas la tarjeta en la urna. <strong>1 por persona y semana.</strong></div></div>
+      <div class="arrow">→</div>
+      <div class="card" style="padding:16px;text-align:center"><div style="font-size:28px">📥</div><div style="font-weight:900">Fin de semana</div><div style="font-size:13px;color:var(--muted)">El Ayuntamiento recoge las tarjetas y revisa las participaciones.</div></div>
+      <div class="arrow">→</div>
+      <div class="card" style="padding:16px;text-align:center;border-color:rgba(79,70,229,.25)"><div style="font-size:28px">✉️</div><div style="font-weight:900">Lunes–Miércoles</div><div style="font-size:13px;color:var(--muted)">Recibes en tu correo un <strong>código individual</strong>. Solo funciona con ese correo.</div></div>
+    </div>
+    <div class="card" style="margin-top:14px;padding:14px;display:flex;gap:12px;align-items:center;flex-wrap:wrap;background:#eef2ff;border-color:rgba(79,70,229,.18)">
+      <span style="background:var(--indigo);color:#fff;border-radius:999px;padding:6px 12px;font-size:12px;font-weight:900">Importante</span>
+      <span style="font-size:13px">Los códigos no se publican. Solo los envía el Ayuntamiento tras revisar cada participación. Así se garantiza que participan vecinos y vecinas de Villafranca.</span>
+    </div>
+  </div>
+</section>
+
+<!-- 7 EMAIL -->
+<section id="s7" style="background:#f8fafc">
+  <div class="inner" style="padding:32px 0">
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:18px;align-items:start">
+      <div>
+        <div class="kicker">Pantalla real · Correo</div>
+        <h2>Así llega tu código</h2>
+        <p style="color:var(--muted)">Plantilla real del correo (<code>lib/ods/email.ts</code>). Remitente verificado <code>TE CUIDA &lt;no-reply@tecuida.group&gt;</code> vía Resend. Incluye el código en tipografía monoespaciada, el botón de activación y recordatorio de usar el mismo correo.</p>
+        <div style="margin-top:12px;display:flex;gap:8px;flex-wrap:wrap"><span class="badge-soft" style="background:#fef3c7;color:#92400e">Caducidad configurable</span><span class="badge-soft" style="background:#e0e7ff;color:#3730a3">Reenvíos desde el panel</span></div>
+      </div>
+      <div class="browser">
+        <div class="browser__bar"><i></i><i></i><i></i><span>Correo · Tu código de acceso a VCA TE CUIDA</span></div>
+        <div style="padding:18px;max-width:520px;margin:0 auto;font-family:system-ui">
+          <p style="margin:0">Hola,</p>
+          <p>Gracias por participar en el programa <strong>ODS de VCA TE CUIDA</strong>. <em>Una idea para mejorar Villafranca. Un recurso para cuidarte a ti.</em></p>
+          <p>Tu código individual de acceso es:</p>
+          <div style="background:#f3f4f6;border-radius:14px;padding:14px;text-align:center;font-family:ui-monospace,monospace;font-size:22px;font-weight:900;letter-spacing:.12em">VI-AB12-CD34-EF56</div>
+          <div style="margin:16px 0"><a href="#" style="background:var(--indigo);color:#fff;text-decoration:none;padding:10px 18px;border-radius:12px;font-weight:800;display:inline-block">Activar mi recurso →</a></div>
+          <p style="font-size:13px;color:#374151">Regístrate o inicia sesión <strong>con este mismo correo</strong> (el que escribiste en tu tarjeta).</p>
+          <p style="font-size:11px;color:#9ca3af">Si no has participado, ignora este mensaje.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- 8 ACTIVAR -->
+<section id="s8">
+  <div class="inner" style="padding:32px 0">
+    <div class="kicker">Pantalla real · /activar</div>
+    <h2>Activar tu recurso en 3 toques</h2>
+    <p style="color:var(--muted)">Flujo real (<code>src/app/activar/activate-client.tsx</code>). La persona entra con su correo, introduce el código y elige la app que quiere estrenar.</p>
+    <div class="grid3" style="margin-top:14px">
+      <div class="browser"><div class="browser__bar"><i></i><i></i><i></i><span>/activar · Paso 1</span></div><div style="padding:16px"><div style="font-size:11px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)">Paso 1 · Código</div><div style="margin-top:8px;border:1px solid #e5e7eb;border-radius:12px;padding:10px 12px;font-family:ui-monospace,monospace;letter-spacing:.08em">VI-AB12-CD34-EF56</div><div style="margin-top:10px;background:var(--indigo);color:#fff;border-radius:12px;padding:10px;text-align:center;font-weight:800">Continuar</div><div style="margin-top:8px;font-size:11px;color:var(--muted)">Debes haber iniciado sesión con el mismo correo de tu tarjeta.</div></div></div>
+      <div class="browser"><div class="browser__bar"><i></i><i></i><i></i><span>/activar · Paso 2</span></div><div style="padding:16px"><div style="font-size:11px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)">Paso 2 · Elige tu app</div><div style="margin-top:10px;display:grid;grid-template-columns:1fr 1fr;gap:8px"><div style="border:1px solid rgba(79,70,229,.25);border-radius:12px;padding:10px"><div style="font-weight:800;font-size:13px">Reto30</div><div style="font-size:11px;color:var(--muted)">30 días de hábitos</div><div style="margin-top:6px;font-size:11px;font-weight:800;color:var(--indigo)">Elegir esta</div></div><div style="border:1px solid rgba(79,70,229,.25);border-radius:12px;padding:10px"><div style="font-weight:800;font-size:13px">Mindful30</div><div style="font-size:11px;color:var(--muted)">Atención plena</div><div style="margin-top:6px;font-size:11px;font-weight:800;color:var(--indigo)">Elegir esta</div></div></div><div style="margin-top:10px;background:#fef3c7;border:1px solid #fde68a;border-radius:10px;padding:8px;font-size:11px;color:#92400e">Ya tienes 2 apps. Te quedan 4 por descubrir.</div></div></div>
+      <div class="browser"><div class="browser__bar"><i></i><i></i><i></i><span>/activar · Paso 3</span></div><div style="padding:16px;text-align:center"><div style="background:#ecfdf5;border:1px solid #a7f3d0;border-radius:14px;padding:16px"><div style="font-size:18px">✓</div><div style="font-weight:900;color:#065f46">¡Tu recurso está activo!</div><div style="font-size:13px;color:#065f46;margin-top:4px">Ya tienes acceso a <strong>Reto30</strong>.</div><div style="margin-top:10px;background:var(--emerald);color:#fff;border-radius:12px;padding:10px;font-weight:800">Abrir Reto30 →</div></div><div style="margin-top:8px;font-size:11px;color:var(--muted)">La próxima semana podrás sumar otra con una nueva idea.</div></div></div>
+    </div>
+    <div class="card" style="margin-top:12px;padding:12px 14px;display:flex;gap:10px;flex-wrap:wrap;font-size:12px">
+      <span style="background:#fef3c7;border:1px solid #fde68a;border-radius:999px;padding:4px 10px">Si el correo no coincide → “Este código fue emitido para otro correo.”</span>
+      <span style="background:#eef2ff;border:1px solid #c7d2fe;border-radius:999px;padding:4px 10px">Si ya activaste esta semana → “Podrás activar otro a partir del lunes.”</span>
+      <span style="background:#ecfdf5;border:1px solid #a7f3d0;border-radius:999px;padding:4px 10px">Si ya tienes esa app → “Elige otra distinta.”</span>
+    </div>
+  </div>
+</section>
+
+<!-- 9 DASHBOARD -->
+<section id="s9" style="background:#f8fafc">
+  <div class="inner" style="padding:32px 0">
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:18px;align-items:start">
+      <div>
+        <div class="kicker">Pantalla real · Área ciudadana</div>
+        <h2>Tu progreso, visible</h2>
+        <p style="color:var(--muted)">En Villafranca el dashboard solo muestra las apps con concesión activa (<code>grant_mode='grant'</code>). Cada semana sumas una nueva. El resto de municipios no cambia.</p>
+        <div style="margin-top:12px;display:flex;gap:8px;flex-wrap:wrap"><span class="badge-soft" style="background:#ecfdf5;color:#065f46">Solo apps concedidas</span><span class="badge-soft" style="background:#eef2ff;color:#3730a3">Filtrado en servidor</span></div>
+      </div>
+      <div class="browser">
+        <div class="browser__bar"><i></i><i></i><i></i><span>/dashboard · Villafranca</span></div>
+        <div style="padding:14px">
+          <div style="display:flex;justify-content:space-between;align-items:center"><strong>Mis recursos</strong><a href="#" style="background:var(--indigo);color:#fff;border-radius:999px;padding:6px 12px;font-size:11px;font-weight:800;text-decoration:none">+ Añadir con código ODS</a></div>
+          <div style="margin-top:10px;display:grid;grid-template-columns:1fr 1fr;gap:10px">
+            <div style="border:1px solid #e5e7eb;border-radius:14px;padding:12px"><div style="height:64px;border-radius:10px;background:linear-gradient(135deg,#dbeafe,#a5b4fc)"></div><div style="margin-top:8px;font-weight:800;font-size:13px">Reto30</div><div style="font-size:11px;color:var(--muted)">Día 3 · 20% completado</div></div>
+            <div style="border:1px solid #e5e7eb;border-radius:14px;padding:12px"><div style="height:64px;border-radius:10px;background:linear-gradient(135deg,#dcfce7,#86efac)"></div><div style="margin-top:8px;font-weight:800;font-size:13px">Mindful30</div><div style="font-size:11px;color:var(--muted)">Nuevo · Sin empezar</div></div>
+          </div>
+          <div style="margin-top:10px;border:1px dashed #c7d2fe;border-radius:12px;padding:10px;text-align:center;font-size:12px;color:#4338ca">¿Otra idea esta semana? Activa un nuevo recurso el lunes.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- 10 APP BLOQUEADA -->
+<section id="s10">
+  <div class="inner" style="padding:32px 0">
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:18px;align-items:center">
+      <div class="browser">
+        <div class="browser__bar"><i></i><i></i><i></i><span>/apps/reto30/run · sin concesión</span></div>
+        <div style="padding:24px;text-align:center;background:#fffbeb;border-top:1px solid #fde68a">
+          <div style="display:inline-grid;place-items:center;width:48px;height:48px;border-radius:999px;background:#fef3c7;color:#92400e;font-size:22px">◈</div>
+          <div style="margin-top:10px;font-weight:900;color:#78350f">Recurso no activado</div>
+          <div style="margin-top:6px;font-size:13px;color:#92400e;max-width:360px;margin-inline:auto">Esta aplicación forma parte del programa ODS y se activa con el código que recibes por correo tras participar con tu idea en la urna.</div>
+          <div style="margin-top:12px"><a href="#" style="background:#d97706;color:#fff;border-radius:12px;padding:10px 16px;font-weight:800;text-decoration:none;display:inline-block">Activar con mi código ODS →</a></div>
+        </div>
+      </div>
+      <div>
+        <div class="kicker">Gating real · Servidor</div>
+        <h2>Solo ves lo que has activado</h2>
+        <p style="color:var(--muted)">El control es server-side en <code>/apps/[appSlug]/run</code> y <code>/launch</code>. Sin concesión, el contenido no se sirve. En el resto de municipios (<code>open</code>) no hay bloqueo.</p>
+        <ul style="font-size:13px;color:var(--muted);line-height:1.6"><li>La landing de la app sigue siendo visible (informativa)</li><li>El contenido requiere concesión activa</li><li>Todo queda registrado: código → cuenta → app</li></ul>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- 11 PANEL AYUNTAMIENTO -->
+<section id="s11" style="background:#f8fafc">
+  <div class="inner" style="padding:32px 0">
+    <div class="kicker">Pantalla real · Panel municipal</div>
+    <h2>El Ayuntamiento lo tiene a mano</h2>
+    <p style="color:var(--muted)">Panel en <code>/municipio/ods</code>: ciclo semanal completo. Solo para gestores municipales.</p>
+    <div class="browser" style="margin-top:12px">
+      <div class="browser__bar"><i></i><i></i><i></i><span>/municipio/ods · Programa ODS</span><span style="margin-left:auto;font-size:11px;color:var(--muted)">Villafranca de los Barros</span></div>
+      <div style="padding:14px">
+        <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:8px">
+          <div style="background:#f8fafc;border:1px solid #e5e7eb;border-radius:12px;padding:10px;text-align:center"><div style="font-size:20px;font-weight:900">12</div><div style="font-size:11px;color:var(--muted)">Pendientes de destino</div></div>
+          <div style="background:#fffbeb;border:1px solid #fde68a;border-radius:12px;padding:10px;text-align:center"><div style="font-size:20px;font-weight:900">8</div><div style="font-size:11px;color:var(--muted)">Pendientes de envío</div></div>
+          <div style="background:#eff6ff;border:1px solid #bfdbfe;border-radius:12px;padding:10px;text-align:center"><div style="font-size:20px;font-weight:900">24</div><div style="font-size:11px;color:var(--muted)">Enviados</div></div>
+          <div style="background:#ecfdf5;border:1px solid #a7f3d0;border-radius:12px;padding:10px;text-align:center"><div style="font-size:20px;font-weight:900">18</div><div style="font-size:11px;color:var(--muted)">Activados</div></div>
+        </div>
+        <div style="margin-top:12px;display:grid;grid-template-columns:1fr 1fr;gap:12px">
+          <div style="border:1px solid #e5e7eb;border-radius:12px;padding:12px"><div style="font-size:12px;font-weight:800">Ciclo semanal</div><div style="font-size:11px;color:var(--muted)">1) Generar lote en “Códigos” · 2) Pegar destinos (código,correo) · 3) Enviar pendientes</div><div style="margin-top:8px;display:flex;gap:6px"><span style="background:var(--indigo);color:#fff;border-radius:8px;padding:6px 10px;font-size:11px;font-weight:800">Importar destinos</span><span style="background:var(--emerald);color:#fff;border-radius:8px;padding:6px 10px;font-size:11px;font-weight:800">Enviar pendientes</span></div></div>
+          <div style="border:1px solid #e5e7eb;border-radius:12px;padding:12px"><div style="font-size:12px;font-weight:800">Registrar participaciones</div><div style="font-size:11px;color:var(--muted)">Lunes de la semana + lista email,ods. Una por correo y semana.</div><div style="margin-top:8px;border:1px dashed #c7d2fe;border-radius:8px;padding:6px 10px;font-size:11px;color:#4338ca">2026-03-16 → ana@ejemplo.es, 11</div></div>
+        </div>
+        <div style="margin-top:12px;border:1px solid #e5e7eb;border-radius:12px;overflow:hidden">
+          <div style="display:grid;grid-template-columns:1.2fr 1fr .8fr .7fr auto;gap:8px;padding:8px 10px;background:#f9fafb;font-size:11px;font-weight:800;color:var(--muted)"><span>Código</span><span>Destino</span><span>Estado</span><span>Enviado</span><span>Acciones</span></div>
+          <div style="display:grid;grid-template-columns:1.2fr 1fr .8fr .7fr auto;gap:8px;padding:8px 10px;border-top:1px solid #f3f4f6;font-size:12px;align-items:center"><span style="font-family:ui-monospace,monospace">VI-AB12-…</span><span>ana@ejemplo.es</span><span><span style="background:#dbeafe;color:#1e40af;border-radius:999px;padding:2px 8px;font-size:11px;font-weight:800">Enviado</span></span><span>16/03</span><span style="display:flex;gap:8px"><span style="color:var(--muted)">Corregir</span><span style="color:var(--indigo);font-weight:800">Reenviar</span><span style="color:#dc2626">Revocar</span></span></div>
+          <div style="display:grid;grid-template-columns:1.2fr 1fr .8fr .7fr auto;gap:8px;padding:8px 10px;border-top:1px solid #f3f4f6;font-size:12px;align-items:center"><span style="font-family:ui-monospace,monospace">VI-CD34-…</span><span style="color:var(--muted)">—</span><span><span style="background:#f3f4f6;color:#4b5563;border-radius:999px;padding:2px 8px;font-size:11px;font-weight:800">Pendiente de destino</span></span><span>—</span><span style="display:flex;gap:8px"><span style="color:var(--muted)">Corregir</span><span style="color:#dc2626">Revocar</span></span></div>
+        </div>
+      </div>
+    </div>
+    <p style="font-size:12px;color:var(--muted);margin-top:8px">Estados reales derivados en el panel: pendiente de destino → pendiente de envío → enviado → activado (consumido) / caducado / revocado. Revocar retira la concesión.</p>
+  </div>
+</section>
+
+<!-- 12 PRIVACIDAD -->
+<section id="s12">
+  <div class="inner" style="padding:36px 0">
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:18px">
+      <div>
+        <div class="kicker">Confianza</div>
+        <h2>Privado por diseño</h2>
+        <ul style="line-height:1.7;color:var(--muted)">
+          <li><strong>Solo Villafranca</strong> está en modo <code>grant</code> (<code>municipalities.grant_mode</code>). El resto no cambia.</li>
+          <li>El código solo funciona con el correo de la tarjeta: verificación por <strong>hash HMAC</strong> con pepper del servidor.</li>
+          <li>El correo en claro se guarda <strong>cifrado AES-256-GCM</strong> (reenvíos) y nunca lo ve la ciudadanía.</li>
+          <li>RLS activado; el ciudadano solo lee sus concesiones. Todo el consumo es <strong>transaccional</strong> (<code>FOR UPDATE</code>).</li>
+        </ul>
+      </div>
+      <div class="card" style="padding:16px">
+        <div style="font-weight:900">Garantías técnicas</div>
+        <div style="margin-top:10px;display:grid;gap:8px;font-size:13px">
+          <div style="display:flex;justify-content:space-between;border-bottom:1px solid #f3f4f6;padding:8px 0"><span>Código</span><span style="font-weight:800">un solo uso · caducidad · revocable</span></div>
+          <div style="display:flex;justify-content:space-between;border-bottom:1px solid #f3f4f6;padding:8px 0"><span>Correo</span><span style="font-weight:800">vinculación estricta</span></div>
+          <div style="display:flex;justify-content:space-between;border-bottom:1px solid #f3f4f6;padding:8px 0"><span>Semana</span><span style="font-weight:800">1 activación · app distinta</span></div>
+          <div style="display:flex;justify-content:space-between;padding:8px 0"><span>Municipio</span><span style="font-weight:800">solo vecinos con código</span></div>
+        </div>
+        <div style="margin-top:10px;font-size:11px;color:var(--muted)">Migración <code>068_ods_grants_villafranca.sql</code> + tests pgTAP. Semana ISO Europe/Madrid.</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- 13 CTA -->
+<section id="s13" style="background:linear-gradient(135deg,var(--green),#050d08);color:#fff;justify-content:center">
+  <div class="inner" style="padding:48px 0;text-align:center">
+    <div class="kicker" style="color:var(--gold)">Te toca</div>
+    <h2 style="font-size:clamp(32px,5vw,52px);line-height:1">Tu idea mejora Villafranca.<br>Tu recurso te cuida a ti.</h2>
+    <p style="color:rgba(255,255,255,.85);max-width:640px;margin:12px auto 0">Busca la urna ODS, elige tu objetivo y deja tu tarjeta. La semana que viene, tu código te espera en el correo.</p>
+    <div style="margin:18px auto 0;display:flex;gap:12px;justify-content:center;flex-wrap:wrap">
+      <a class="cta cta--gold" href="https://villafranca-de-los-barros.tecuida.group" target="_blank" rel="noopener">villafranca-de-los-barros.tecuida.group →</a>
+      <span class="cta cta--ghost" style="pointer-events:none">Escanea el QR en el cartel</span>
+    </div>
+    <div style="margin:18px auto 0;width:132px;height:132px;border-radius:16px;background:#fff;display:grid;place-items:center;color:var(--green);font-weight:900;box-shadow:0 12px 40px rgba(0,0,0,.2)">QR</div>
+    <div style="margin-top:10px;font-size:11px;opacity:.7">Sustituye este bloque por <code>qr_villafranca.png</code> al imprimir.</div>
+    <div style="margin-top:18px;font-size:12px;opacity:.6">VCA TE CUIDA · Ayuntamiento de Villafranca de los Barros · tecuida.group · Imágenes: pantallas reales de la plataforma</div>
+  </div>
+</section>
+
+</main>
+<script>
+const deck=document.getElementById('deck'),bar=document.getElementById('bar'),dots=document.getElementById('dots'),prev=document.getElementById('prev'),next=document.getElementById('next');
+const sections=[...document.querySelectorAll('section')];
+let idx=0;
+sections.forEach((s,i)=>{
+  const b=document.createElement('button');
+  b.setAttribute('aria-label','Ir a '+(i+1));
+  b.addEventListener('click',()=>go(i));
+  dots.appendChild(b);
+});
+function render(){
+  dots.querySelectorAll('button').forEach((b,i)=>b.setAttribute('aria-current',String(i===idx)));
+  prev.disabled=idx===0; next.disabled=idx===sections.length-1;
+  const p=(idx+1)/sections.length; bar.style.transform='scaleX('+p+')';
+}
+function go(i){idx=Math.max(0,Math.min(sections.length-1,i)); sections[idx].scrollIntoView({behavior:'smooth'}); render()}
+prev.addEventListener('click',()=>go(idx-1)); next.addEventListener('click',()=>go(idx+1));
+deck.addEventListener('scroll',()=>{
+  let best=0, bestTop=Infinity;
+  sections.forEach((s,i)=>{const r=s.getBoundingClientRect(); const v=Math.abs(r.top); if(v<bestTop){bestTop=v;best=i}});
+  if(best!==idx){idx=best;render()}
+},{passive:true});
+document.addEventListener('keydown',e=>{
+  if(e.key==='ArrowRight'||e.key==='ArrowDown'||e.key==='PageDown')go(idx+1);
+  if(e.key==='ArrowLeft'||e.key==='ArrowUp'||e.key==='PageUp')go(idx-1);
+  if(e.key==='Home')go(0); if(e.key==='End')go(sections.length-1);
+});
+render();
+// Sustituir QR placeholder por imagen real si existe
+fetch('qr_villafranca.png',{method:'HEAD'}).then(r=>{
+  if(r.ok){
+    document.querySelectorAll('div').forEach(d=>{
+      if(d.textContent.trim()==='QR' && d.style.background==='#fff' || d.textContent.trim()==='QR'){
+        // reemplazo laxo: busca el div QR por contenido
+      }
+    });
+    const qr=document.querySelector('#s13 .inner div[style*=\"132px\"]');
+    if(qr){qr.innerHTML='<img src="qr_villafranca.png" alt="QR Villafranca" style="width:100%;height:100%;object-fit:contain;border-radius:12px">';qr.style.padding='6px'}
+  }
+}).catch(()=>{});
+</script>
+</body>
+</html>

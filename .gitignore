@@ -55,4 +55,11 @@ yarn-error.log*
 *.tsbuildinfo
 next-env.d.ts
 
+# dump de datos de producción (contiene PII: emails hasheados, códigos)
+/migration-dump.json
+
+# dossiers fuente regenerables (node scripts/generate-app-dossiers.mjs)
+# El PDF servido en runtime vive en /public/dossiers y SÍ se versiona.
+/dossiers
+
 .vercel

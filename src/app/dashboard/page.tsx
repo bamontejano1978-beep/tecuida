@@ -176,6 +176,7 @@ export default async function DashboardPage() {
   const adminClient = createAdminClient()
 
   let activeApps: ActiveAppRow[] = []
+  let grantedApplicationIds: Set<string> | null = null
   if (tenant) {
     const { data } = await adminClient
       .from('municipality_applications')
@@ -191,6 +192,14 @@ export default async function DashboardPage() {
       .eq('publication_status', 'publicada')
 
     activeApps = (data || []) as unknown as ActiveAppRow[]
+
+    // Programa ODS (migración 068): en modo 'grant' el ciudadano solo ve las
+    // apps con concesión activa. En 'open' (resto de municipios) no filtra.
+    const { getGrantedApplicationIds } = await import('@/lib/ods/gating')
+    grantedApplicationIds = await getGrantedApplicationIds(user.id)
+    if (grantedApplicationIds) {
+      activeApps = activeApps.filter((row) => grantedApplicationIds!.has(row.application_id))
+    }
   }
 
   const [
