@@ -244,7 +244,7 @@ INSERT INTO public.municipal_invite_codes (
 UPDATE public.user_app_grants
    SET granted_at = granted_at - interval '14 days'
  WHERE user_id = '44444444-0068-0000-0000-000000000014'
-   AND application_id = '22222222-0068-0000-0000-000000000003';
+   AND application_id IN ('22222222-0068-0000-0000-000000000002', '22222222-0068-0000-0000-000000000003');
 
 SELECT throws_ok(
   $$
