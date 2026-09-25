@@ -64,6 +64,13 @@ INSERT INTO public.municipal_invite_codes (
    repeat('e', 64), 'ODS-TEST', now() + interval '30 days',
    repeat('f', 64), 'encrypted:luis@test.com');
 
+-- users.id referencia auth.users (FK): seedear primero las identidades.
+INSERT INTO auth.users (id, email, encrypted_password, email_confirmed_at, role)
+VALUES
+  ('44444444-0068-0000-0000-000000000004', 'ana@test.com',  '', now(), 'authenticated'),
+  ('44444444-0068-0000-0000-000000000014', 'luis@test.com', '', now(), 'authenticated')
+ON CONFLICT (id) DO NOTHING;
+
 INSERT INTO public.users (id, municipality_id, email, rol, residency_status, residency_method)
 VALUES
   ('44444444-0068-0000-0000-000000000004',

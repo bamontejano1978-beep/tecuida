@@ -61,12 +61,14 @@ VALUES
   ('00000000-0000-0000-0000-aaaaaaaaaaaa', '11111111-0000-0000-0000-000000000001',
    'alice@test.com',         'alice',  'ciudadano'),
   ('00000000-0000-0000-0000-cccccccccccc', '22222222-0000-0000-0000-000000000002',
-   'mallory@tenant-b.com',  'mallory','ciudadano')
+   'mallory@tenant-b.com',  'mallory','ciudadano'),
+  ('00000000-0000-0000-0000-bbbbbbbbbbbb', '11111111-0000-0000-0000-000000000001',
+   'bob@test.com',           'bob',    'ciudadano')
 ON CONFLICT (id) DO NOTHING;
 -- NOTA: 'no-profile@test.com' existe en auth.users pero NO en public.users.
 --   Eso permite testear el path INSC_NO_PROFILE.
 -- bob existe en auth.users pero no lo usamos en los tests, sólo para evitar
---   errores de FK en escenarios donde aparezca como user_id.
+--   En TEST 10 (INSC_FULL) sí se usa: aforo lleno + usuario sin inscripción previa.
 
 INSERT INTO public.categories (id, nombre, descripcion, orden)
 VALUES
@@ -361,18 +363,19 @@ SELECT throws_ok(
 -- ───────────────────────────────────────────────────────────────────────
 -- TEST 10: INSC_FULL — aforo agotado
 -- ───────────────────────────────────────────────────────────────────────
--- Pre-condición: dejamos A1 con plazas_inscritas=2 (igual a aforo=2),
--- de modo que el UPDATE-WHERE del RPC no tiene match y lanza INSC_FULL.
+-- Pre-condición: plazas_inscritas = aforo (2) y el llamador es BOB, un usuario
+-- SIN inscripción previa: para alice el RPC sería idempotente (TEST 2,
+-- was_duplicate) y no lanzaría INSC_FULL.
 UPDATE public.activities
-   SET plazas_inscritas = 2
+   SET plazas_inscritas = aforo
  WHERE id = '77777777-0000-0000-0000-000000000007'::uuid;
 
-SELECT tests_set_auth('00000000-0000-0000-0000-aaaaaaaaaaaa'::uuid);
+SELECT tests_set_auth('00000000-0000-0000-0000-bbbbbbbbbbbb'::uuid);
 
 SELECT throws_ok(
   $$SELECT public.inscribir_actividad(
        '77777777-0000-0000-0000-000000000007'::uuid,
-       'alice@test.com'
+       'bob@test.com'
      )$$,
   'P0001',
   'INSC_FULL',
@@ -389,10 +392,9 @@ SELECT throws_ok(
 SELECT is(
   (SELECT COUNT(*)::int FROM public.activity_inscriptions
     WHERE activity_id = '77777777-0000-0000-0000-000000000007'::uuid
-      AND user_id = '00000000-0000-0000-0000-aaaaaaaaaaaa'::uuid
-      AND estado = 'confirmada'),
-  1,
-  'atomicidad: el INSERT fantasma de TEST 10 se rolled-back; sólo sobrevive la inscripción de TEST 3'
+      AND user_id = '00000000-0000-0000-0000-bbbbbbbbbbbb'::uuid),
+  0,
+  'atomicidad: INSC_FULL no deja inscripción fantasma de bob'
 );
 
 SELECT is(
