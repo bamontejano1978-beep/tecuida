@@ -48,6 +48,11 @@ import { createAdminClient } from '@/lib/supabase/server'
 export interface MunicipalityAppRow {
   application_id: string
   thumbnail_url_override: string | null
+  /**
+   * Descripción específica del municipio (migración 073). NULL = usar la
+   * descripción global de `applications`; '' = mostrar sin descripción.
+   */
+  descripcion_override: string | null
   publication_status: 'disponible' | 'publicada' | 'oculta'
   published_at: string | null
   application: {
@@ -108,6 +113,7 @@ async function _fetchMunicipalityApps(
     .select(
       `application_id,
       thumbnail_url_override,
+      descripcion_override,
       publication_status,
       published_at,
       application:applications!inner (

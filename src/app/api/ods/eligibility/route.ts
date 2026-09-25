@@ -29,7 +29,7 @@ export async function GET() {
     admin
       .from('municipality_applications')
       .select(
-        `application_id, thumbnail_url_override,
+        `application_id, thumbnail_url_override, descripcion_override,
          application:applications!inner (id, nombre, descripcion, thumbnail_url, tipo, app_slug)`,
       )
       .eq('municipality_id', profile.municipality_id)
@@ -49,10 +49,15 @@ export async function GET() {
       app_slug: string | null
     } | null
     thumbnail_url_override: string | null
+    descripcion_override: string | null
   }
   const applications = ((apps || []) as unknown as EligibilityRow[])
     .filter((row) => row.application && !grantedIds.has(row.application.id))
-    .map((row) => row.application!)
+    // Migración 073: la descripción específica del municipio manda.
+    .map((row) => ({
+      ...row.application!,
+      descripcion: row.descripcion_override ?? row.application!.descripcion,
+    }))
 
   // Semana ISO en curso (Europe/Madrid), misma definición que ods_week_monday().
   const weekStart = new Date(`${currentWeekMonday()}T00:00:00+02:00`)

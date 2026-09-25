@@ -97,7 +97,7 @@ export async function GET(request: Request) {
   // La app debe estar publicada y activa en el municipio del usuario.
   const { data: published } = await admin
     .from('municipality_applications')
-    .select('application_id')
+    .select('application_id, descripcion_override')
     .eq('municipality_id', profile.municipality_id)
     .eq('application_id', app.id)
     .eq('activa', true)
@@ -109,5 +109,12 @@ export async function GET(request: Request) {
     return NextResponse.json({ assigned: false })
   }
 
-  return NextResponse.json({ assigned: true, application: app })
+  // Migración 073: la descripción específica del municipio manda sobre la global.
+  return NextResponse.json({
+    assigned: true,
+    application: {
+      ...app,
+      descripcion: published.descripcion_override ?? app.descripcion,
+    },
+  })
 }

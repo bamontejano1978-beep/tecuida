@@ -28,6 +28,7 @@ interface AssignmentRow {
   published_at: string | null
   hidden_at: string | null
   thumbnail_url_override: string | null
+  descripcion_override: string | null
   application: {
     id: string
     nombre: string
@@ -63,6 +64,7 @@ export default async function MunicipalApplicationsPage() {
           published_at,
           hidden_at,
           thumbnail_url_override,
+          descripcion_override,
           application:applications!inner (
             id,
             nombre,
@@ -104,6 +106,7 @@ export default async function MunicipalApplicationsPage() {
         published_at: row.published_at,
         hidden_at: row.hidden_at,
         thumbnail_url_override: row.thumbnail_url_override,
+        descripcion_override: row.descripcion_override,
         application: app,
         categoryName:
           (app.category_id && categoryNames.get(app.category_id)) ||

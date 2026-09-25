@@ -10,10 +10,14 @@ const RequestSchema = z.object({
   application_id: z.string().uuid(),
   status: z.enum(['publicada', 'oculta']).optional(),
   thumbnail_url_override: z.string().url().max(2048).nullable().optional(),
+  // Descripción específica del municipio (migración 073). null = volver a
+  // la descripción global; '' = mostrar sin descripción en este municipio.
+  descripcion_override: z.string().max(1000).nullable().optional(),
 }).refine(
   (data) =>
     data.status !== undefined ||
-    Object.prototype.hasOwnProperty.call(data, 'thumbnail_url_override'),
+    Object.prototype.hasOwnProperty.call(data, 'thumbnail_url_override') ||
+    Object.prototype.hasOwnProperty.call(data, 'descripcion_override'),
   { message: 'No hay cambios para guardar.' },
 )
 
@@ -85,12 +89,20 @@ export async function POST(request: Request) {
     updateData.thumbnail_url_override = parsed.data.thumbnail_url_override || null
   }
 
+  // Migración 073: descripción por municipio. Se recorta de nuevo por
+  // defensa en profundidad (la BD también tiene CHECK <= 1000).
+  if (Object.prototype.hasOwnProperty.call(parsed.data, 'descripcion_override')) {
+    const rawDescripcion = parsed.data.descripcion_override
+    updateData.descripcion_override =
+      rawDescripcion == null ? null : rawDescripcion.trim().slice(0, 1000)
+  }
+
   const { data, error } = await supabase
     .from('municipality_applications')
     .update(updateData)
     .eq('municipality_id', municipalityId)
     .eq('application_id', parsed.data.application_id)
-    .select('application_id, publication_status, published_at, hidden_at, thumbnail_url_override')
+    .select('application_id, publication_status, published_at, hidden_at, thumbnail_url_override, descripcion_override')
     .single()
 
   if (error) {

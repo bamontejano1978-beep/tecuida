@@ -10,6 +10,7 @@ export interface MunicipalApplicationItem {
   published_at: string | null
   hidden_at: string | null
   thumbnail_url_override: string | null
+  descripcion_override: string | null
   application: {
     id: string
     nombre: string
@@ -63,6 +64,15 @@ export default function MunicipalApplicationsManager({
   const [apps, setApps] = useState(initialApps)
   const [loadingId, setLoadingId] = useState<string | null>(null)
   const [iconLoadingId, setIconLoadingId] = useState<string | null>(null)
+  const [descLoadingId, setDescLoadingId] = useState<string | null>(null)
+  const [descDrafts, setDescDrafts] = useState<Record<string, string>>(() =>
+    Object.fromEntries(
+      initialApps.map((app) => [
+        app.application_id,
+        app.descripcion_override ?? app.application.descripcion ?? '',
+      ]),
+    ),
+  )
   const [message, setMessage] = useState<{ type: 'ok' | 'error'; text: string } | null>(null)
 
   const totals = useMemo(
@@ -177,6 +187,59 @@ export default function MunicipalApplicationsManager({
     }
   }
 
+  async function saveDescriptionOverride(applicationId: string, value: string | null) {
+    setDescLoadingId(applicationId)
+    setMessage(null)
+
+    try {
+      const response = await fetch('/api/municipio/applications', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          application_id: applicationId,
+          descripcion_override: value,
+        }),
+      })
+
+      if (!response.ok) {
+        const body = await response.json().catch(() => ({}))
+        throw new Error(body.error || 'No se pudo guardar la descripción.')
+      }
+
+      const body = await response.json()
+      const updated = body.data as {
+        application_id: string
+        descripcion_override: string | null
+      }
+
+      setApps((current) =>
+        current.map((app) => {
+          if (app.application_id !== updated.application_id) return app
+          setDescDrafts((drafts) => ({
+            ...drafts,
+            [app.application_id]:
+              updated.descripcion_override ?? app.application.descripcion ?? '',
+          }))
+          return { ...app, descripcion_override: updated.descripcion_override }
+        }),
+      )
+      setMessage({
+        type: 'ok',
+        text:
+          value === null
+            ? 'Descripción restaurada al texto global de TE CUIDA.'
+            : 'Descripción actualizada para tu municipio.',
+      })
+    } catch (error) {
+      setMessage({
+        type: 'error',
+        text: error instanceof Error ? error.message : 'Error inesperado.',
+      })
+    } finally {
+      setDescLoadingId(null)
+    }
+  }
+
   async function uploadIcon(applicationId: string, file: File | null) {
     if (!file) return
     setIconLoadingId(applicationId)
@@ -240,8 +303,15 @@ export default function MunicipalApplicationsManager({
           <div className="divide-y divide-gray-100">
             {apps.map((item) => {
               const thumbnail = item.thumbnail_url_override || item.application.thumbnail_url
+              // Migración 073: la descripción específica del municipio manda;
+              // '' (vacía) significa "sin descripción" a propósito.
+              const effectiveDescripcion =
+                item.descripcion_override !== null
+                  ? item.descripcion_override
+                  : item.application.descripcion
               const isLoading = loadingId === item.application_id
               const isIconLoading = iconLoadingId === item.application_id
+              const isDescLoading = descLoadingId === item.application_id
               return (
                 <article key={item.application_id} className="p-5">
                   <div className="flex flex-col gap-4 sm:flex-row sm:items-start">
@@ -273,7 +343,7 @@ export default function MunicipalApplicationsManager({
                           {item.categoryName} · {item.application.tipo}
                         </p>
                         <p className="mt-2 text-sm leading-6 text-gray-600">
-                          {item.application.descripcion || 'Sin descripción disponible.'}
+                          {effectiveDescripcion || 'Sin descripción disponible.'}
                         </p>
                         <div className="mt-4 rounded-lg border border-slate-200 bg-white p-4 shadow-sm">
                           <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
@@ -311,7 +381,7 @@ export default function MunicipalApplicationsManager({
                               Qué hace
                             </p>
                             <p className="mt-1 text-sm leading-5 text-slate-700">
-                              {item.application.descripcion || 'Aplicación municipal disponible para la ciudadanía.'}
+                              {effectiveDescripcion || 'Aplicación municipal disponible para la ciudadanía.'}
                             </p>
                           </div>
                           <div className="mt-4 rounded-lg bg-slate-50 px-3 py-2">
@@ -321,6 +391,60 @@ export default function MunicipalApplicationsManager({
                             <p className="mt-1 text-sm leading-5 text-slate-600">
                               {statusAdvice[item.publication_status]}
                             </p>
+                          </div>
+                        </div>
+                        <div className="mt-4 rounded-lg border border-indigo-100 bg-indigo-50 p-3">
+                          <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+                            <div>
+                              <p className="text-xs font-semibold uppercase tracking-wide text-indigo-700">
+                                Descripción en tu municipio
+                              </p>
+                              <p className="mt-1 text-xs text-gray-500">
+                                Personaliza cómo se presenta esta app a tu ciudadanía (máximo 1000 caracteres). El cambio se refleja en la landing, la lanzadera y la activación ODS.
+                              </p>
+                            </div>
+                            {item.descripcion_override !== null && (
+                              <button
+                                type="button"
+                                disabled={isDescLoading}
+                                onClick={() => saveDescriptionOverride(item.application_id, null)}
+                                className="rounded-lg border border-gray-300 bg-white px-3 py-2 text-xs font-semibold text-gray-700 hover:bg-gray-50 disabled:opacity-50"
+                              >
+                                Restaurar global
+                              </button>
+                            )}
+                          </div>
+                          <textarea
+                            value={descDrafts[item.application_id] ?? ''}
+                            maxLength={1000}
+                            rows={3}
+                            disabled={isDescLoading}
+                            onChange={(event) =>
+                              setDescDrafts((drafts) => ({
+                                ...drafts,
+                                [item.application_id]: event.target.value,
+                              }))
+                            }
+                            className="mt-2 block w-full rounded-lg border border-gray-300 px-3 py-2 text-sm text-gray-900 focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500 disabled:opacity-50"
+                            placeholder="Descripción que verán los vecinos de tu municipio"
+                          />
+                          <div className="mt-2 flex items-center justify-between">
+                            <span className="text-[11px] text-gray-400">
+                              {(descDrafts[item.application_id] ?? '').length}/1000
+                            </span>
+                            <button
+                              type="button"
+                              disabled={isDescLoading}
+                              onClick={() =>
+                                saveDescriptionOverride(
+                                  item.application_id,
+                                  (descDrafts[item.application_id] ?? '').trim(),
+                                )
+                              }
+                              className="rounded-lg bg-indigo-600 px-3 py-2 text-xs font-semibold text-white hover:bg-indigo-500 disabled:opacity-50"
+                            >
+                              {isDescLoading ? 'Guardando...' : 'Guardar descripción'}
+                            </button>
                           </div>
                         </div>
                         <div className="mt-4 rounded-lg border border-gray-200 bg-gray-50 p-3">

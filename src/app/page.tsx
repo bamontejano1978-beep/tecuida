@@ -46,6 +46,8 @@ import { getMunicipalityApplicationThumbnail } from '@/lib/tenant/municipality-a
 interface AppRow {
   application_id: string
   thumbnail_url_override: string | null
+  // Migración 073: descripción específica del municipio (NULL = global).
+  descripcion_override: string | null
   application: {
     id: string
     category_id: string
@@ -663,7 +665,8 @@ export default async function HomePage() {
       id: a.application!.id,
       categoria_id: a.application!.category_id,
       nombre: a.application!.nombre,
-      descripcion: a.application!.descripcion,
+      // Migración 073: la descripción del municipio manda sobre la global.
+      descripcion: a.descripcion_override ?? a.application!.descripcion,
       thumbnail_url: getMunicipalityApplicationThumbnail(
         a.thumbnail_url_override,
         a.application!.thumbnail_url,

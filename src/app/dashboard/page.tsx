@@ -14,6 +14,7 @@ export const dynamic = 'force-dynamic'
 interface ActiveAppRow {
   application_id: string
   thumbnail_url_override: string | null
+  descripcion_override: string | null
   application: {
     id: string
     nombre: string
@@ -183,6 +184,7 @@ export default async function DashboardPage() {
       .select(
         `application_id,
          thumbnail_url_override,
+         descripcion_override,
          application:applications!inner (
            id, nombre, descripcion, thumbnail_url, tipo, app_slug
          )`,
@@ -262,7 +264,9 @@ export default async function DashboardPage() {
     .map((row) => ({
       id: row.application!.id,
       nombre: row.application!.nombre,
-      descripcion: row.application!.descripcion || '',
+      // Migración 073: descripción específica del municipio si existe.
+      descripcion:
+        (row.descripcion_override ?? row.application!.descripcion) || '',
       tipo: row.application!.tipo,
       appSlug: row.application!.app_slug,
       thumbnailUrl: getMunicipalityApplicationThumbnail(

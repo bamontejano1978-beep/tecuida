@@ -11,6 +11,7 @@ export const dynamic = 'force-dynamic'
 interface PublishedAppRow {
   application_id: string
   thumbnail_url_override: string | null
+  descripcion_override: string | null
   application: {
     id: string
     nombre: string
@@ -60,7 +61,7 @@ export default async function CitizenApplicationsPage() {
   const [{ data: appsData }, { data: progressData }, { data: surveyData }, { data: stateData, error: stateError }] = await Promise.all([
     adminClient
       .from('municipality_applications')
-      .select(`application_id, thumbnail_url_override, application:applications!inner (id, nombre, descripcion, thumbnail_url, tipo, app_slug)`)
+      .select(`application_id, thumbnail_url_override, descripcion_override, application:applications!inner (id, nombre, descripcion, thumbnail_url, tipo, app_slug)`)
       .eq('municipality_id', tenant.id)
       .eq('activa', true)
       .eq('publication_status', 'publicada'),
@@ -105,7 +106,8 @@ export default async function CitizenApplicationsPage() {
       return {
         id: app.id,
         nombre: app.nombre,
-        descripcion: app.descripcion || '',
+        // Migración 073: descripción específica del municipio si existe.
+        descripcion: (row.descripcion_override ?? app.descripcion) || '',
         tipo: app.tipo,
         appSlug: app.app_slug,
         thumbnailUrl: getMunicipalityApplicationThumbnail(
